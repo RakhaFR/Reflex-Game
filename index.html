@@ -11,327 +11,131 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div
-      id="usernameDisplay"
-      style="
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        font-size: 18px;
-        color: rgb(255, 255, 255);
-        font-family: 'Orbitron', sans-serif;
-      "
-    >
-      👤 Username: -
-    </div>
+    <div id="flashOverlay"></div>
 
-    <p id="info-mode" class="hidden"></p>
-    <div id="loading-screen" class="loader">
-      <div class="loading-text">
-        Loading<span class="dot">.</span><span class="dot">.</span
-        ><span class="dot">.</span>
-      </div>
-      <div class="loading-bar-background">
-        <div class="loading-bar">
-          <div class="white-bars-container">
-            <div class="white-bar"></div>
-            <div class="white-bar"></div>
-            <div class="white-bar"></div>
-            <div class="white-bar"></div>
-            <div class="white-bar"></div>
-            <div class="white-bar"></div>
-            <div class="white-bar"></div>
-            <div class="white-bar"></div>
-            <div class="white-bar"></div>
-            <div class="white-bar"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="lobby" class="hidden">
-      <h1>Reflex Game</h1>
-      <h2>BETA VERSION</h2>
-      <input
-        type="text"
-        id="inputNama"
-        placeholder="Masukkan Nama Anda"
-        onfocus="uiClickSound.play()"
-        oninput="uiClickSound.play()"
-      />
-      <br />
-      <button
-        class="btn shiny-button"
-        onclick="uiClickSound.play(); sembunyikanRadioTime(); mulaiGame('normal')"
-      >
-        🎮 Basic Mode
-      </button>
-      <button
-        class="btn shiny-button"
-        onclick="uiClickSound.play(); tampilkanRadioWaktu();"
-      >
-        ⏱️ Time Attack Mode
-      </button>
-      <!-- LOBBY: Versus Mode Button -->
-      <button
-        class="btn shiny-button"
-        onclick="uiClickSound.play(); tampilkanRadioVersus();"
-      >
-        👥 Versus Mode (Local)
-      </button>
-
-      <div id="versus-radio-wrapper" class="hidden package-container">
-        <div class="package-heading">⏲️ Pilih Durasi Versus</div>
-        <div class="package-tab-wrapper">
-          <input
-            type="radio"
-            name="planVersus"
-            value="60"
-            id="vs60"
-            class="input"
-            checked
-          />
-          <label for="vs60" class="package-tab shiny-button">1 Menit</label>
-          <input
-            type="radio"
-            name="planVersus"
-            value="180"
-            id="vs180"
-            class="input"
-          />
-          <label for="vs180" class="package-tab shiny-button">3 Menit</label>
-          <input
-            type="radio"
-            name="planVersus"
-            value="300"
-            id="vs300"
-            class="input"
-          />
-          <label for="vs300" class="package-tab shiny-button">5 Menit</label>
-        </div>
-        <button
-          class="btn shiny-button"
-          onclick="uiClickSound.play(); mulaiGame('versus')"
-        >
-          🚀 Mulai Versus!
-        </button>
-      </div>
-
-      <br />
-      <div id="waktu-radio-wrapper" class="hidden package-container">
-        <div class="package-heading">⏲️ Pilih Durasi Time Attack</div>
-        <div class="package-tab-wrapper">
-          <input
-            type="radio"
-            name="plan"
-            value="30"
-            id="detik30"
-            class="input"
-            checked
-          />
-          <label for="detik30" class="package-tab shiny-button">30 Detik</label>
-          <input
-            type="radio"
-            name="plan"
-            value="60"
-            id="menit1"
-            class="input"
-          />
-          <label for="menit1" class="package-tab shiny-button">1 Menit</label>
-          <input
-            type="radio"
-            name="plan"
-            value="180"
-            id="menit3"
-            class="input"
-          />
-          <label for="menit3" class="package-tab shiny-button">3 Menit</label>
-          <input
-            type="radio"
-            name="plan"
-            value="300"
-            id="menit5"
-            class="input"
-          />
-          <label for="menit5" class="package-tab shiny-button">5 Menit</label>
-          <input
-            type="radio"
-            name="plan"
-            value="600"
-            id="menit10"
-            class="input"
-          />
-          <label for="menit10" class="package-tab shiny-button">10 Menit</label>
-        </div>
-        <button
-          class="btn hidden shiny-button"
-          id="btnMulaiTime"
-          onclick="uiClickSound.play(); mulaiGame('time')"
-        >
-          🚀 Mulai Time Attack!
-        </button>
-      </div>
-      <label for="pilihSkin">🎨 Pilih Tema Tombol:</label>
-      <select
-        id="pilihSkin"
-        onchange="uiClickSound.play(); gantiSkin(this.value)"
-        class="btn"
-      >
-        <option value="default">Default</option>
-        <option value="futuristic">Futuristik</option>
-        <option value="hardcore">Darkmode Hardcore</option>
-      </select>
-
-      <div id="bestScoreSection">
-        <h2>🏅 Skor Tertinggi</h2>
-        <p>Mode Normal: <span id="bestNormal">0</span></p>
-        <p>Mode Time Attack: <span id="bestTime">0</span></p>
-        <p>Mode Normal (Hardcore): <span id="bestNormalHardcore">0</span></p>
-        <p>Mode Time Attack (Hardcore): <span id="bestTimeHardcore">0</span></p>
-      </div>
-
-      <!-- Donasi Section -->
-      <!-- <div id="donate-section" class="hidden">
-  <form class="plan-chooser">
-    <div class="header">
-      <span class="title">Dukung Pengembang</span>
-      <p class="desc">Ayo bantu kami dengan donasi agar proyek ini terus berkembang 💖</p>
-    </div>
-
-    <div class="plan-option">
-      <input value="kopi" id="kopi" name="donasi" type="radio">
-      <label for="kopi">
-        <div class="plan-info">
-          <span class="plan-cost">Rp5.000</span>
-          <span class="plan-name">Traktir Kopi</span>
-        </div>
-      </label>
-    </div>
-
-    <div class="plan-option">
-      <input value="makan" id="makan" name="donasi" type="radio">
-      <label for="makan">
-        <div class="plan-info">
-          <span class="plan-cost">Rp20.000</span>
-          <span class="plan-name">Makan Siang</span>
-        </div>
-      </label>
-    </div>
-
-    <div class="plan-option">
-  <input value="bebas" id="bebas" name="donasi" type="radio">
-  <label for="bebas">
-  <div class="plan-info">
-    <span class="plan-cost">Suka-suka</span>
-    <span class="plan-name">Donasi Bebas</span>
-  </div>
-  <span class="reduction">Pilihan Populer</span>
-</label>
-  </div>
-
-      <div id="bebas-input-wrapper" class="hidden">
-        <label for="jumlahBebas">Masukkan jumlah donasi (min Rp1.000):</label>
-        <input
-          type="number"
-          id="jumlahBebas"
-          placeholder="Contoh: 10000"
-          min="1000"
-        />
-      </div>
-
-
-    <a href="#" class="choose-btn" onclick="prosesDonasi();">Donasi Sekarang</a>
-  </form>
-</div> -->
-
-      <!-- <div class="leaderboard">
-      <label for="filterMode">🏆 Lihat Leaderboard:</label>
-      <select id="filterMode" onchange="uiClickSound.play(); tampilkanLeaderboard()">
-        <option value="normal">Mode Biasa</option>
-        <option value="normal_hardcore">Biasa - Hardcore</option>
-        <option value="time">Time Attack</option>
-        <option value="time_hardcore">Time Attack - Hardcore</option>
-      </select>
-
-      <table>
-        <thead>
-          <tr><th>Peringkat</th><th>Nama</th><th>Skor</th></tr>
-        </thead>
-        <tbody id="leaderboardBody"></tbody>
-      </table>
-    </div> -->
-    </div>
-
-    <div id="gameplay" class="hidden">
-      <div
-        id="countdown"
-        class="hidden"
-        style="font-size: 48px; margin-top: 30px"
-      ></div>
-      <h2 id="judul-skor">
-        <span id="label-skor">Skor:</span> <span id="skor">0</span>
-      </h2>
-      <p id="giliran-pemain" class="hidden"></p>
-      <p id="info-ronde" class="hidden"></p>
-      <button id="tombol" class="btn" disabled>Menunggu...</button>
-
-      <!-- Popup Hasil Versus -->
-      <div id="versusPopup" class="popup hidden">
-        <div class="popup-content">
-          <h2>Gameplay Telah Berakhir</h2>
-          <p id="versusResultText"></p>
-          <button class="btn shiny-button" onclick="rematchVersus()">
-            🔁 Main Lagi
-          </button>
-          <button class="btn shiny-button" onclick="kembaliKeLobby()">
-            ← Kembali ke Lobby
-          </button>
-        </div>
-      </div>
-
-      <div id="versusNotif" class="versus-notif hidden"></div>
-      <!-- VERSUS UI: default hidden -->
-      <div id="versusContainer" class="hidden">
-        <div id="versusArea" class="versus-area">
-          <button
-            id="btnP1"
-            class="btn vs-btn left"
-            data-tooltip="Player 1 (A)"
-          >
-            P1
-          </button>
-          <div class="vs-divider" aria-hidden="true"></div>
-          <button
-            id="btnP2"
-            class="btn vs-btn right"
-            data-tooltip="Player 2 (L)"
-          >
-            P2
-          </button>
-        </div>
-        <div id="versusScore" style="margin-top: 10px">
-          <span>🟥 P1: <b id="skorP1">0</b></span> &nbsp;&nbsp;
-          <span>🟦 P2: <b id="skorP2">0</b></span>
-        </div>
-      </div>
-      <p id="feedback"></p>
-      <div id="progress-bar" class="hidden">
-        <div id="progress-inner"></div>
-      </div>
-      <button id="btnLobby" class="btn hidden" onclick="kembaliKeLobby()">
-        ← Kembali ke Lobby
-      </button>
-    </div>
-
-    <!-- Elemen Audio -->
-    <audio id="soundBenar" src="benar.mp3" preload="auto"></audio>
-    <audio id="soundSalah" src="salah.mp3" preload="auto"></audio>
-    <audio id="countdownSound" src="countdown.mp3" preload="auto"></audio>
-    <audio id="uiClickSound" src="click.mp3" preload="auto"></audio>
-    <audio id="soundFreeze" src="freeze.mp3" preload="auto"></audio>
+    <!-- Suara -->
+    <audio id="clickSound" src="click.mp3" preload="auto"></audio>
+    <!-- Suara tombol -->
+    <audio id="soundGreen" src="benar.mp3" preload="auto"></audio>
+    <audio id="soundRed" src="salah.mp3" preload="auto"></audio>
     <audio id="soundBonus" src="bonus-points.mp3" preload="auto"></audio>
 
+    <!-- HOME SCREEN -->
+    <div id="home" class="screen active">
+      <div class="container">
+        <!-- Tombol kiri -->
+        <div class="menu">
+          <button
+            class="btn play-btn shiny-button"
+            style="width: 140%"
+            onclick="goToLobby(),playSound()"
+          >
+            PLAY
+          </button>
+          <button
+            class="btn other-btn shiny-button"
+            style="width: 140%"
+            onclick="playSound()"
+          >
+            OTHER GAMES
+          </button>
+          <button
+            class="btn donate-btn shiny-button"
+            style="width: 140%"
+            onclick="playSound()"
+          >
+            DONATE
+          </button>
+        </div>
+        <!-- Judul + gambar kanan -->
+        <div class="title">
+          <h1>REFLEX HANDS GAMES (BETA)</h1>
+          <img src="logo.png" alt="Preview" style="border-radius: 15px" />
+        </div>
+      </div>
+    </div>
+
+    <!-- LOBBY -->
+    <div id="lobby" class="screen">
+      <button class="profile-btn" onclick="playSound()">Profile</button>
+      <h1>SELECT MODE!</h1>
+      <div class="mode-container">
+        <div class="mode">
+          <img src="basic-mode.jpg" alt="Basic Mode" />
+          <h3>Basic Mode</h3>
+          <button class="btn play-btn shiny-button" id="playBasicBtn">
+            PLAY
+          </button>
+        </div>
+        <!-- <div class="mode">
+          <img src="time-mode.jpg" alt="Time Attack" />
+          <h3>Time Attack Mode</h3>
+          <button class="btn play-btn shiny-button" onclick="playSound()">
+            PLAY
+          </button>
+        </div>
+        <div class="mode">
+          <img src="versus-mode.jpg" alt="Versus Mode" />
+          <h3>Versus Mode (Local)</h3>
+          <button class="btn play-btn shiny-button" onclick="playSound()">
+            PLAY
+          </button>
+        </div> -->
+      </div>
+      <button
+        class="btn back-btn shiny-button"
+        onclick="goToHome() , playSound()"
+      >
+        ⬅ Back To Main Menu
+      </button>
+    </div>
+
+    <!-- GAMEPLAY OVERLAY BASIC MODE -->
+    <div id="basicGame" class="screen">
+      <div id="comboContainer">
+        <span class="combo-label">COMBO</span>
+        <span id="combo">x0</span>
+      </div>
+
+      <h1>Basic Mode</h1>
+      <p style="text-align: center">skor : <span id="score">0</span></p>
+
+      <div id="gameArea">
+        <button
+          id="greenBtn"
+          class="btn"
+          style="background: linear-gradient(#00c851, #007e33)"
+        >
+          Klik! <span class="countdown" id="cdGreen"></span>
+        </button>
+        <button
+          id="redBtn"
+          class="btn"
+          style="background: linear-gradient(#ff4444, #cc0000)"
+        >
+          Jangan Klik! <span class="countdown" id="cdRed"></span>
+        </button>
+        <button
+          id="bonusBtn"
+          class="btn"
+          style="background: linear-gradient(#fff533, #c7c150)"
+        >
+          Bonus! <span class="countdown" id="cdBonus"></span>
+        </button>
+        <button
+          id="holdBtn"
+          class="btn"
+          style="background: linear-gradient(#aaaaaa, #555555)"
+        >
+          Hold <span class="countdown" id="cdHold"></span>
+        </button>
+      </div>
+
+      <button class="btn back-btn shiny-button" id="exitBasicBtn">
+        ⬅ Back To Main Menu
+      </button>
+    </div>
+    <footer>© 2025 by <strong>Rakha FR</strong> — Reflex Hands Games</footer>
     <script src="script.js"></script>
   </body>
 </html>
-
