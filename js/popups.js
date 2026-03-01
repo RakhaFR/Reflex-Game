@@ -23,9 +23,11 @@ document.getElementById("quitYesBtn").addEventListener("click", () => {
 
   if (quitTargetMode === "basic") {
     clearAllTimers(); hideAllButtons(); stopCountdown();
+    if (typeof statRecordGameEnd === "function") statRecordGameEnd("basic", score, basicBestCombo);
     document.getElementById("basicFinalScore").textContent = score;
     document.getElementById("basicFinalCombo").textContent = "Best Combo: x" + basicBestCombo;
     document.getElementById("basicResultPopup").classList.add("active");
+
   } else if (quitTargetMode === "versus") {
     if (vsMainTimer) { clearInterval(vsMainTimer); vsMainTimer = null; }
     vsClearAllTimers();
@@ -33,18 +35,20 @@ document.getElementById("quitYesBtn").addEventListener("click", () => {
     vsStopCountdown();
     if (vsP1FreezeTimeout) { clearTimeout(vsP1FreezeTimeout); vsP1FreezeTimeout = null; }
     if (vsP2FreezeTimeout) { clearTimeout(vsP2FreezeTimeout); vsP2FreezeTimeout = null; }
-    vsP1Frozen = false; vsP1FreezeCooldown = false;
-    vsP2Frozen = false; vsP2FreezeCooldown = false;
+    vsP1Frozen = false;
+    vsP2Frozen = false;
     document.removeEventListener("keydown", vsKeyHandler);
     document.getElementById("versusGame").classList.remove("active");
     document.getElementById("home").classList.add("active");
     quitTargetMode = null;
     return;
+
   } else if (quitTargetMode === "timeattack") {
     if (taMainTimer) { clearInterval(taMainTimer); taMainTimer = null; }
     taClearAllTimers(); taHideAllButtons(); taStopCountdown();
     if (taFreezeTimeout) { clearTimeout(taFreezeTimeout); taFreezeTimeout = null; }
     taFrozen = false; taFreezeCooldown = false;
+    if (typeof statRecordGameEnd === "function") statRecordGameEnd("ta", taScore, taBestCombo);
     document.getElementById("finalScore").textContent = taScore;
     document.getElementById("finalCombo").textContent = "Best Combo: x" + taBestCombo;
     document.getElementById("gameOverPopup").classList.add("active");
@@ -57,7 +61,7 @@ document.getElementById("basicPlayAgainBtn").addEventListener("click", () => {
   playSound();
   document.getElementById("basicResultPopup").classList.remove("active");
   basicBestCombo = 0;
-  startBasicMode();
+  openDifficultyPopup("basic");
 });
 
 document.getElementById("basicGoHomeBtn").addEventListener("click", () => {
@@ -75,7 +79,7 @@ document.getElementById("basicGoHomeBtn").addEventListener("click", () => {
 document.getElementById("taPlayAgainBtn").addEventListener("click", () => {
   playSound();
   document.getElementById("gameOverPopup").classList.remove("active");
-  openDurationPopup();
+  openDifficultyPopup("timeattack");
 });
 
 document.getElementById("taGoHomeBtn").addEventListener("click", () => {

@@ -11,12 +11,16 @@
   <link rel="stylesheet" href="css/time-attack.css" />
   <link rel="stylesheet" href="css/popups.css" />
   <link rel="stylesheet" href="css/versus-mode.css" />
+  <link rel="stylesheet" href="css/profile.css" />
 </head>
 
 <body>
 
   <!-- FLASH OVERLAY -->
   <div id="flashOverlay"></div>
+
+  <!-- PARTICLE BURST CANVAS -->
+  <canvas id="particleCanvas"></canvas>
 
   <!-- COUNTDOWN OVERLAY 3..2..1..GO! -->
   <div id="countdownOverlay">
@@ -31,7 +35,7 @@
   <audio id="soundFreeze" src="assets/audio/freeze.mp3" preload="auto"></audio>
   <audio id="countdownSound" src="assets/audio/countdown.mp3" preload="auto"></audio>
 
-  <!-- ==================== HOME ==================== -->
+  <!-- HOME -->
   <div id="home" class="screen active">
     <div class="container">
       <div class="menu">
@@ -46,7 +50,10 @@
     </div>
   </div>
 
-  <!-- ==================== LOBBY ==================== -->
+  <!-- PROFILE SCREEN -->
+  <div id="profileScreen" class="screen"></div>
+
+  <!-- LOBBY -->
   <div id="lobby" class="screen">
     <button class="profile-btn" id="profileBtn">Profile</button>
     <h1>SELECT MODE!</h1>
@@ -67,10 +74,10 @@
         <button class="btn play-btn shiny-button" id="playVersusBtn">PLAY</button>
       </div>
     </div>
-    <button class="btn back-btn shiny-button" id="lobbyBackBtn">⬅ Back To Main Menu</button>
+    <button class="btn back-btn shiny-button" id="lobbyBackBtn">Back To Main Menu</button>
   </div>
 
-  <!-- ==================== BASIC MODE ==================== -->
+  <!-- BASIC MODE -->
   <div id="basicGame" class="screen" style="max-width: 500px;">
     <div id="comboContainer">
       <span class="combo-label">COMBO</span>
@@ -79,15 +86,15 @@
     <h1>Basic Mode</h1>
     <p>Skor: <span id="score">0</span></p>
     <div id="gameArea">
-      <button id="greenBtn" class="btn">Klik! <span class="countdown" id="cdGreen"></span></button>
-      <button id="redBtn" class="btn">Jangan Klik! <span class="countdown" id="cdRed"></span></button>
-      <button id="bonusBtn" class="btn">Bonus! <span class="countdown" id="cdBonus"></span></button>
-      <button id="holdBtn" class="btn">Hold <span class="countdown" id="cdHold"></span></button>
+      <button id="greenBtn" class="btn game-btn">Klik! <span class="countdown" id="cdGreen"></span></button>
+      <button id="redBtn" class="btn game-btn">Jangan Klik! <span class="countdown" id="cdRed"></span></button>
+      <button id="bonusBtn" class="btn game-btn">Bonus! <span class="countdown" id="cdBonus"></span></button>
+      <button id="holdBtn" class="btn game-btn">Hold <span class="countdown" id="cdHold"></span></button>
     </div>
-    <button class="btn back-btn shiny-button" id="exitBasicBtn">⬅ Back To Main Menu</button>
+    <button class="btn back-btn shiny-button" id="exitBasicBtn">Back To Main Menu</button>
   </div>
 
-  <!-- ==================== TIME ATTACK ==================== -->
+  <!-- TIME ATTACK -->
   <div id="timeAttackGame" class="screen" style="max-width: 500px;">
     <div id="taComboContainer">
       <span class="combo-label">COMBO</span>
@@ -100,21 +107,47 @@
       <span id="timerLabel">0:00</span>
     </div>
     <div id="taGameArea">
-      <button id="taGreenBtn" class="btn">Klik! <span class="countdown" id="taCdGreen"></span></button>
-      <button id="taRedBtn" class="btn">Jangan Klik! <span class="countdown" id="taCdRed"></span></button>
-      <button id="taBonusBtn" class="btn">Bonus! <span class="countdown" id="taCdBonus"></span></button>
-      <button id="taHoldBtn" class="btn">Hold <span class="countdown" id="taCdHold"></span></button>
-      <button id="taFreezeBtn" class="btn freeze-btn shiny-button">
-        ❄️ Freeze! <span id="freezeCooldownLabel"></span>
+      <button id="taGreenBtn" class="btn game-btn">Klik! <span class="countdown" id="taCdGreen"></span></button>
+      <button id="taRedBtn" class="btn game-btn">Jangan Klik! <span class="countdown" id="taCdRed"></span></button>
+      <button id="taBonusBtn" class="btn game-btn">Bonus! <span class="countdown" id="taCdBonus"></span></button>
+      <button id="taHoldBtn" class="btn game-btn">Hold <span class="countdown" id="taCdHold"></span></button>
+      <button id="taFreezeBtn" class="btn game-btn freeze-btn shiny-button">
+        Freeze! <span id="freezeCooldownLabel"></span>
       </button>
     </div>
-    <button class="btn back-btn shiny-button" id="exitTimeAttackBtn">⬅ Back To Main Menu</button>
+    <button class="btn back-btn shiny-button" id="exitTimeAttackBtn">Back To Main Menu</button>
   </div>
 
-  <!-- ==================== POPUP: PILIH DURASI ==================== -->
+  <!-- POPUP: SELECT DIFFICULTY -->
+  <div id="difficultyPopup" class="popup-overlay">
+    <div class="popup-box diff-popup-box">
+      <h2>Select Difficulty</h2>
+      <p>Seberapa cepat refleksmu?</p>
+      <div class="diff-options">
+        <button class="diff-btn diff-normal shiny-button" id="diffNormal">
+          <div class="diff-icon">🟢</div>
+          <div class="diff-label">Normal</div>
+          <div class="diff-desc">Tempo standar — cocok untuk pemula</div>
+        </button>
+        <button class="diff-btn diff-medium shiny-button" id="diffMedium">
+          <div class="diff-icon">🟡</div>
+          <div class="diff-label">Medium</div>
+          <div class="diff-desc">Tombol bertahan 3 detik — lebih cepat!</div>
+        </button>
+        <button class="diff-btn diff-hard shiny-button" id="diffHard">
+          <div class="diff-icon">🔴</div>
+          <div class="diff-label">Hard</div>
+          <div class="diff-desc">Tombol bertahan 1.5 detik — reflek ekstrem!</div>
+        </button>
+      </div>
+      <button class="btn back-btn shiny-button" id="diffCancelBtn">Batal</button>
+    </div>
+  </div>
+
+  <!-- POPUP: PILIH DURASI (Time Attack) -->
   <div id="durationPopup" class="popup-overlay">
     <div class="popup-box">
-      <h2>⏱ Pilih Durasi</h2>
+      <h2>Pilih Durasi</h2>
       <p>Berapa lama kamu mau bertahan?</p>
       <div class="duration-options">
         <button class="dur-btn shiny-button" id="dur1">1 Menit</button>
@@ -123,50 +156,50 @@
         <button class="dur-btn shiny-button" id="dur7">7 Menit</button>
         <button class="dur-btn shiny-button" id="dur10">10 Menit</button>
       </div>
-      <button class="btn back-btn shiny-button" id="durCancelBtn">✖ Batal</button>
+      <button class="btn back-btn shiny-button" id="durCancelBtn">Batal</button>
     </div>
   </div>
 
-  <!-- ==================== POPUP: QUIT CONFIRM ==================== -->
+  <!-- POPUP: QUIT CONFIRM -->
   <div id="quitConfirmPopup" class="popup-overlay">
     <div class="popup-box">
-      <div class="quit-icon">⚠️</div>
+      <div class="quit-icon">&#9888;&#65039;</div>
       <h2>Akhiri Permainan?</h2>
       <p>Progres kamu akan hilang.<br>Yakin ingin berhenti?</p>
       <div class="quit-buttons">
-        <button class="btn quit-yes-btn shiny-button" id="quitYesBtn">✅ Ya, Akhiri</button>
-        <button class="btn quit-no-btn shiny-button" id="quitNoBtn">❌ Tidak</button>
+        <button class="btn quit-yes-btn shiny-button" id="quitYesBtn">Ya, Akhiri</button>
+        <button class="btn quit-no-btn shiny-button" id="quitNoBtn">Tidak</button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== POPUP: HASIL BASIC MODE ==================== -->
+  <!-- POPUP: HASIL BASIC MODE -->
   <div id="basicResultPopup" class="popup-overlay">
     <div class="popup-box">
-      <h2>🎮 Akhir Permainan</h2>
+      <h2>Akhir Permainan</h2>
       <p>Skor Akhir kamu:</p>
       <div id="basicFinalScore" class="final-score">0</div>
       <div id="basicFinalCombo" class="final-combo"></div>
-      <button class="btn play-btn shiny-button" id="basicPlayAgainBtn">🔄 Main Lagi</button>
-      <button class="btn back-btn shiny-button" id="basicGoHomeBtn">🏠 Kembali ke Menu</button>
+      <button class="btn play-btn shiny-button" id="basicPlayAgainBtn">Main Lagi</button>
+      <button class="btn back-btn shiny-button" id="basicGoHomeBtn">Kembali ke Menu</button>
     </div>
   </div>
 
-  <!-- ==================== POPUP: GAME OVER TIME ATTACK ==================== -->
+  <!-- POPUP: GAME OVER TIME ATTACK -->
   <div id="gameOverPopup" class="popup-overlay">
     <div class="popup-box">
-      <h2>⏰ Waktu Habis!</h2>
+      <h2>Waktu Habis!</h2>
       <p>Skor Akhir kamu:</p>
       <div id="finalScore" class="final-score">0</div>
       <div id="finalCombo" class="final-combo"></div>
-      <button class="btn play-btn shiny-button" id="taPlayAgainBtn">🔄 Main Lagi</button>
-      <button class="btn back-btn shiny-button" id="taGoHomeBtn">🏠 Kembali ke Menu</button>
+      <button class="btn play-btn shiny-button" id="taPlayAgainBtn">Main Lagi</button>
+      <button class="btn back-btn shiny-button" id="taGoHomeBtn">Kembali ke Menu</button>
     </div>
   </div>
 
-  <!-- ==================== VERSUS MODE ==================== -->
+  <!-- VERSUS MODE -->
   <div id="versusGame" class="screen">
-    <h1>⚔️ Versus Mode</h1>
+    <h1>Versus Mode</h1>
 
     <div id="vsTimerBarWrapper">
       <div id="vsTimerBarFill"></div>
@@ -182,53 +215,47 @@
           <div class="vs-key-hint">Tekan [A] untuk klik</div>
           <div class="vs-frozen-label" id="vsFrozenLabel1"></div>
         </div>
-
         <div class="vs-combo-box" id="vsComboBox1">
           <span class="combo-label">COMBO</span>
           <span id="vsCombo1">x0</span>
         </div>
-
-        <button class="vs-click-btn shiny-button" id="vsP1ClickBtn">
-          👆 KLIK!
-        </button>
-
+        <button class="vs-click-btn shiny-button" id="vsP1ClickBtn">KLIK!</button>
       </div>
 
-      <!-- DIVIDER + TOMBOL GAME DI TENGAH -->
+      <!-- DIVIDER + TOMBOL TENGAH -->
       <div style="position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:200px;">
         <div class="vs-divider" style="width:4px; height:100%; position:absolute;"></div>
-
         <div class="vs-game-center">
-          <button id="vsGreenBtn" class="btn">
+          <button id="vsGreenBtn" class="btn game-btn">
             Klik!
             <div class="vs-cd-row">
               <span class="vs-countdown" id="vsCd1"></span>
               <span class="vs-countdown" id="vsCd2"></span>
             </div>
           </button>
-          <button id="vsRedBtn" class="btn">
+          <button id="vsRedBtn" class="btn game-btn">
             Jangan Klik!
             <div class="vs-cd-row">
               <span class="vs-countdown"></span>
               <span class="vs-countdown"></span>
             </div>
           </button>
-          <button id="vsBonusBtn" class="btn">
-            ⭐ Bonus x3!
+          <button id="vsBonusBtn" class="btn game-btn">
+            Bonus x3!
             <div class="vs-cd-row">
               <span class="vs-countdown"></span>
               <span class="vs-countdown"></span>
             </div>
           </button>
-          <button id="vsFreezeBtn" class="btn">
-            ❄️ Freeze!
+          <button id="vsFreezeBtn" class="btn game-btn">
+            Freeze!
             <div class="vs-cd-row">
               <span class="vs-countdown"></span>
               <span class="vs-countdown"></span>
             </div>
           </button>
-          <button id="vsHoldBtn" class="btn">
-            ✋ Hold
+          <button id="vsHoldBtn" class="btn game-btn">
+            Hold
             <div class="vs-cd-row">
               <span class="vs-countdown" id="vsCdHold1"></span>
               <span class="vs-countdown" id="vsCdHold2"></span>
@@ -245,26 +272,21 @@
           <div class="vs-key-hint">Tekan [L] untuk klik</div>
           <div class="vs-frozen-label" id="vsFrozenLabel2"></div>
         </div>
-
         <div class="vs-combo-box" id="vsComboBox2">
           <span class="combo-label">COMBO</span>
           <span id="vsCombo2">x0</span>
         </div>
-
-        <button class="vs-click-btn shiny-button" id="vsP2ClickBtn">
-          👆 KLIK!
-        </button>
-
+        <button class="vs-click-btn shiny-button" id="vsP2ClickBtn">KLIK!</button>
       </div>
     </div>
 
-    <button class="btn back-btn shiny-button" id="exitVersusBtn">⬅ Back To Main Menu</button>
+    <button class="btn back-btn shiny-button" id="exitVersusBtn">Back To Main Menu</button>
   </div>
 
-  <!-- ==================== POPUP: PILIH DURASI VERSUS ==================== -->
+  <!-- POPUP: PILIH DURASI VERSUS -->
   <div id="vsDurationPopup" class="popup-overlay">
     <div class="popup-box">
-      <h2>⚔️ Pilih Durasi</h2>
+      <h2>Pilih Durasi</h2>
       <p>Berapa lama pertandingan berlangsung?</p>
       <div class="duration-options">
         <button class="dur-btn shiny-button" id="vsDur1">1 Menit</button>
@@ -273,52 +295,61 @@
         <button class="dur-btn shiny-button" id="vsDur7">7 Menit</button>
         <button class="dur-btn shiny-button" id="vsDur10">10 Menit</button>
       </div>
-      <button class="btn back-btn shiny-button" id="vsDurCancelBtn">✖ Batal</button>
+      <button class="btn back-btn shiny-button" id="vsDurCancelBtn">Batal</button>
     </div>
   </div>
 
-  <!-- ==================== NOTIF TUTORIAL VERSUS ==================== -->
+  <!-- NOTIF TUTORIAL VERSUS -->
   <div id="vsTutorialNotif" class="vs-tutorial-notif">
-    <div class="vs-tutorial-icon">🎮</div>
+    <div class="vs-tutorial-icon">&#127918;</div>
     <div class="vs-tutorial-content">
       <div class="vs-tutorial-title">Siap Bertanding!</div>
       <div class="vs-tutorial-msg" id="vsTutorialMsg"></div>
     </div>
   </div>
 
-  <!-- ==================== POPUP: HASIL VERSUS ==================== -->
+  <!-- POPUP: HASIL VERSUS -->
   <div id="vsResultPopup" class="popup-overlay">
     <div class="popup-box">
-      <h2>⚔️ Hasil Pertandingan</h2>
+      <h2>Hasil Pertandingan</h2>
       <div class="vs-result-winner" id="vsWinnerText"></div>
       <div class="vs-result-scores" id="vsResultP1"></div>
       <div class="vs-result-scores" id="vsResultP2"></div>
-      <button class="btn play-btn shiny-button" id="vsPlayAgainBtn">🔄 Main Lagi</button>
-      <button class="btn back-btn shiny-button" id="vsGoHomeBtn">🏠 Kembali ke Menu</button>
+      <button class="btn play-btn shiny-button" id="vsPlayAgainBtn">Main Lagi</button>
+      <button class="btn back-btn shiny-button" id="vsGoHomeBtn">Kembali ke Menu</button>
     </div>
   </div>
 
   <footer>© 2025 by <strong>Rakha FR</strong> — Reflex Hands Games</footer>
 
-  <!-- JS: load order penting — utils dulu, lalu mode, lalu popups -->
+  <script src="js/profile.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/basic-mode.js"></script>
   <script src="js/time-attack.js"></script>
   <script src="js/popups.js"></script>
   <script>
-    // Listener yang tidak spesifik ke satu mode
     document.getElementById("homePlayBtn").addEventListener("click", () => { playSound(); goToLobby(); });
     document.getElementById("homeOtherBtn").addEventListener("click", () => { playSound(); });
     document.getElementById("homeDonateBtn").addEventListener("click", () => { playSound(); });
-    document.getElementById("profileBtn").addEventListener("click", () => { playSound(); });
+    document.getElementById("profileBtn").addEventListener("click", () => { openProfile(); });
     document.getElementById("lobbyBackBtn").addEventListener("click", () => { playSound(); goToHome(); });
     document.getElementById("taFreezeBtn").addEventListener("click", () => { activateFreeze(); });
+
+    // Difficulty popup
+    document.getElementById("diffCancelBtn").addEventListener("click", () => { playSound(); closeDifficultyPopup(); });
+    document.getElementById("diffNormal").addEventListener("click", () => { selectDifficulty("normal"); });
+    document.getElementById("diffMedium").addEventListener("click", () => { selectDifficulty("medium"); });
+    document.getElementById("diffHard").addEventListener("click", () => { selectDifficulty("hard"); });
+
+    // Duration (Time Attack)
     document.getElementById("durCancelBtn").addEventListener("click", () => { playSound(); closeDurationPopup(); });
     document.getElementById("dur1").addEventListener("click", () => { startTimeAttack(1); });
     document.getElementById("dur3").addEventListener("click", () => { startTimeAttack(3); });
     document.getElementById("dur5").addEventListener("click", () => { startTimeAttack(5); });
     document.getElementById("dur7").addEventListener("click", () => { startTimeAttack(7); });
     document.getElementById("dur10").addEventListener("click", () => { startTimeAttack(10); });
+
+    // Duration (Versus)
     document.getElementById("vsDurCancelBtn").addEventListener("click", () => { playSound(); closeVsDurationPopup(); });
     document.getElementById("vsDur1").addEventListener("click", () => { startVersusMode(1); });
     document.getElementById("vsDur3").addEventListener("click", () => { startVersusMode(3); });

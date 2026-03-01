@@ -20,7 +20,8 @@ function startCountdown(duration, spanId, onEnd) {
   if (countdownInterval) clearInterval(countdownInterval);
   countdownInterval = setInterval(() => {
     timeLeft--;
-    span.textContent = timeLeft;
+    // For fractional seconds, round display
+    span.textContent = Math.ceil(timeLeft);
     if (timeLeft <= 0) {
       clearInterval(countdownInterval);
       span.textContent = "";
@@ -83,21 +84,29 @@ function spawnRandomButton() {
   hideAllButtons();
   stopCountdown();
 
+  const diff = getDiff();
   const randId = buttons[Math.floor(Math.random() * buttons.length)];
   document.getElementById(randId).style.display = "block";
 
-  if (randId === "greenBtn" || randId === "bonusBtn") {
+  if (randId === "greenBtn") {
     penaltyTimer = setTimeout(() => {
       updateScore(-1); updateCombo("reset");
       document.getElementById("soundRed").currentTime = 0;
       document.getElementById("soundRed").play();
       nextWithHold();
-    }, 5000);
-    startCountdown(5, randId === "greenBtn" ? "cdGreen" : "cdBonus");
-  }
-  if (randId === "redBtn") {
-    penaltyTimer = setTimeout(() => { nextWithHold(); }, 3000);
-    startCountdown(3, "cdRed");
+    }, diff.greenTime * 1000);
+    startCountdown(diff.greenTime, "cdGreen");
+  } else if (randId === "bonusBtn") {
+    penaltyTimer = setTimeout(() => {
+      updateScore(-1); updateCombo("reset");
+      document.getElementById("soundRed").currentTime = 0;
+      document.getElementById("soundRed").play();
+      nextWithHold();
+    }, diff.bonusTime * 1000);
+    startCountdown(diff.bonusTime, "cdBonus");
+  } else if (randId === "redBtn") {
+    penaltyTimer = setTimeout(() => { nextWithHold(); }, diff.redTime * 1000);
+    startCountdown(diff.redTime, "cdRed");
   }
 }
 
@@ -149,21 +158,53 @@ function exitBasicMode() {
 // ============================================
 // BASIC MODE — EVENT LISTENERS
 // ============================================
-document.getElementById("playBasicBtn").addEventListener("click", () => { playSound(); startBasicMode(); });
-document.getElementById("exitBasicBtn").addEventListener("click", () => { playSound(); showQuitConfirm("basic"); });
+document.getElementById("playBasicBtn").addEventListener("click", () => {
+  playSound();
+  openDifficultyPopup("basic");
+});
+document.getElementById("exitBasicBtn").addEventListener("click", () => {
+  playSound();
+  showQuitConfirm("basic");
+});
 
-document.getElementById("greenBtn").addEventListener("click", () => {
-  updateScore(1); triggerEffects("soundGreen", "green", "basicGame"); updateCombo(1);
+document.getElementById("greenBtn").addEventListener("click", (e) => {
+  const btn = e.currentTarget;
+  updateScore(1);
+  triggerEffects("soundGreen", "green", "basicGame", btn);
+  updateCombo(1);
+  if (typeof statRecordClick === "function") { statRecordClick("basic"); if (basicBtnShownAt) statRecordReaction(Date.now() - basicBtnShownAt); basicBtnShownAt = 0; }
   if (penaltyTimer) { clearTimeout(penaltyTimer); penaltyTimer = null; }
   nextWithHold();
 });
-document.getElementById("redBtn").addEventListener("click", () => {
-  updateScore(-1); triggerEffects("soundRed", "red", "basicGame"); updateCombo("reset");
+document.getElementById("redBtn").addEventListener("click", (e) => {
+  const btn = e.currentTarget;
+  updateScore(-1);
+  triggerEffects("soundRed", "red", "basicGame", btn);
+  updateCombo("reset");
+  if (typeof statRecordClick === "function") { statRecordClick("basic"); statRecordWrongClick("basic"); basicBtnShownAt = 0; }
   if (penaltyTimer) { clearTimeout(penaltyTimer); penaltyTimer = null; }
   nextWithHold();
 });
-document.getElementById("bonusBtn").addEventListener("click", () => {
-  updateScore(3); triggerEffects("soundBonus", "bonus", "basicGame"); updateCombo(1);
+document.getElementById("bonusBtn").addEventListener("click", (e) => {
+  const btn = e.currentTarget;
+  updateScore(3);
+  triggerEffects("soundBonus", "bonus", "basicGame", btn);
+  updateCombo(1);
+  if (typeof statRecordClick === "function") { statRecordClick("basic"); statRecordBonus(); if (basicBtnShownAt) statRecordReaction(Date.now() - basicBtnShownAt); basicBtnShownAt = 0; }
   if (penaltyTimer) { clearTimeout(penaltyTimer); penaltyTimer = null; }
   nextWithHold();
 });
+// ============================================
+// BASIC MODE — STAT TRACKING HOOKS
+// (appended — these override spawn + click logic)
+// ============================================
+
+// Reaction time tracking
+let basicBtnShownAt = 0;
+
+// Override spawnRandomButton to track when button appears
+const _origSpawnRandomButton = spawnRandomButton;
+spawnRandomButton = function() {
+  basicBtnShownAt = Date.now();
+  _origSpawnRandomButton();
+};

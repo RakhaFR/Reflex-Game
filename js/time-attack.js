@@ -17,7 +17,10 @@ const taButtons = ["taGreenBtn", "taRedBtn", "taBonusBtn"];
 function openDurationPopup()  { document.getElementById("durationPopup").classList.add("active"); }
 function closeDurationPopup() { document.getElementById("durationPopup").classList.remove("active"); }
 
-document.getElementById("playTimeAttackBtn").addEventListener("click", () => { playSound(); openDurationPopup(); });
+document.getElementById("playTimeAttackBtn").addEventListener("click", () => {
+  playSound();
+  openDifficultyPopup("timeattack");
+});
 
 // ============================================
 // TIME ATTACK — START
@@ -87,9 +90,12 @@ function activateFreeze() {
   const snd = document.getElementById("soundFreeze");
   if (snd) { snd.currentTime = 0; snd.play().catch(() => {}); }
 
-  taFrozen = true; taFreezeCooldown = true;
-  const fill      = document.getElementById("timerBarFill");
   const freezeBtn = document.getElementById("taFreezeBtn");
+  triggerFreezeEffect(freezeBtn);
+
+  taFrozen = true; taFreezeCooldown = true;
+  if (typeof statRecordFreeze === "function") statRecordFreeze();
+  const fill = document.getElementById("timerBarFill");
   fill.classList.add("frozen"); fill.classList.remove("warning");
   freezeBtn.disabled = true;
 
@@ -126,6 +132,7 @@ function timeAttackGameOver() {
   taClearAllTimers(); taHideAllButtons();
   if (taFreezeTimeout) { clearTimeout(taFreezeTimeout); taFreezeTimeout = null; }
   taFrozen = false;
+  if (typeof statRecordGameEnd === "function") statRecordGameEnd("ta", taScore, taBestCombo);
   document.getElementById("finalScore").textContent = taScore;
   document.getElementById("finalCombo").textContent = "Best Combo: x" + taBestCombo;
   document.getElementById("gameOverPopup").classList.add("active");
@@ -141,7 +148,10 @@ function exitTimeAttackMode() {
   document.getElementById("home").classList.add("active");
 }
 
-document.getElementById("exitTimeAttackBtn").addEventListener("click", () => { playSound(); showQuitConfirm("timeattack"); });
+document.getElementById("exitTimeAttackBtn").addEventListener("click", () => {
+  playSound();
+  showQuitConfirm("timeattack");
+});
 
 // ============================================
 // TIME ATTACK — SPAWN LOGIC
@@ -149,12 +159,16 @@ document.getElementById("exitTimeAttackBtn").addEventListener("click", () => { p
 function taStartCountdown(duration, spanId, onEnd) {
   const span = document.getElementById(spanId);
   let timeLeft = duration;
-  span.textContent = timeLeft;
+  span.textContent = Math.ceil(timeLeft);
   if (taCountdownInterval) clearInterval(taCountdownInterval);
   taCountdownInterval = setInterval(() => {
     timeLeft--;
-    span.textContent = timeLeft;
-    if (timeLeft <= 0) { clearInterval(taCountdownInterval); span.textContent = ""; if (onEnd) onEnd(); }
+    span.textContent = Math.max(0, Math.ceil(timeLeft));
+    if (timeLeft <= 0) {
+      clearInterval(taCountdownInterval);
+      span.textContent = "";
+      if (onEnd) onEnd();
+    }
   }, 1000);
 }
 
@@ -182,21 +196,29 @@ function taSpawnRandomButton() {
   taSpawning = true;
   taHideAllButtons(); taStopCountdown();
 
+  const diff  = getDiff();
   const randId = taButtons[Math.floor(Math.random() * taButtons.length)];
   document.getElementById(randId).style.display = "block";
 
-  if (randId === "taGreenBtn" || randId === "taBonusBtn") {
+  if (randId === "taGreenBtn") {
     taPenaltyTimer = setTimeout(() => {
       taUpdateScore(-1); taUpdateCombo("reset");
       document.getElementById("soundRed").currentTime = 0;
       document.getElementById("soundRed").play();
       taNextWithHold();
-    }, 5000);
-    taStartCountdown(5, randId === "taGreenBtn" ? "taCdGreen" : "taCdBonus");
-  }
-  if (randId === "taRedBtn") {
-    taPenaltyTimer = setTimeout(() => { taNextWithHold(); }, 3000);
-    taStartCountdown(3, "taCdRed");
+    }, diff.greenTime * 1000);
+    taStartCountdown(diff.greenTime, "taCdGreen");
+  } else if (randId === "taBonusBtn") {
+    taPenaltyTimer = setTimeout(() => {
+      taUpdateScore(-1); taUpdateCombo("reset");
+      document.getElementById("soundRed").currentTime = 0;
+      document.getElementById("soundRed").play();
+      taNextWithHold();
+    }, diff.bonusTime * 1000);
+    taStartCountdown(diff.bonusTime, "taCdBonus");
+  } else if (randId === "taRedBtn") {
+    taPenaltyTimer = setTimeout(() => { taNextWithHold(); }, diff.redTime * 1000);
+    taStartCountdown(diff.redTime, "taCdRed");
   }
 }
 
@@ -218,18 +240,30 @@ function taNextWithHold() {
 // ============================================
 // TIME ATTACK — BUTTON EVENTS
 // ============================================
-document.getElementById("taGreenBtn").addEventListener("click", () => {
-  taUpdateScore(1); triggerEffects("soundGreen", "green", "timeAttackGame"); taUpdateCombo(1);
+document.getElementById("taGreenBtn").addEventListener("click", (e) => {
+  const btn = e.currentTarget;
+  taUpdateScore(1);
+  triggerEffects("soundGreen", "green", "timeAttackGame", btn);
+  taUpdateCombo(1);
+  if (typeof statRecordClick === "function") statRecordClick("ta");
   if (taPenaltyTimer) { clearTimeout(taPenaltyTimer); taPenaltyTimer = null; }
   taNextWithHold();
 });
-document.getElementById("taRedBtn").addEventListener("click", () => {
-  taUpdateScore(-1); triggerEffects("soundRed", "red", "timeAttackGame"); taUpdateCombo("reset");
+document.getElementById("taRedBtn").addEventListener("click", (e) => {
+  const btn = e.currentTarget;
+  taUpdateScore(-1);
+  triggerEffects("soundRed", "red", "timeAttackGame", btn);
+  taUpdateCombo("reset");
+  if (typeof statRecordClick === "function") { statRecordClick("ta"); statRecordWrongClick("ta"); }
   if (taPenaltyTimer) { clearTimeout(taPenaltyTimer); taPenaltyTimer = null; }
   taNextWithHold();
 });
-document.getElementById("taBonusBtn").addEventListener("click", () => {
-  taUpdateScore(3); triggerEffects("soundBonus", "bonus", "timeAttackGame"); taUpdateCombo(1);
+document.getElementById("taBonusBtn").addEventListener("click", (e) => {
+  const btn = e.currentTarget;
+  taUpdateScore(3);
+  triggerEffects("soundBonus", "bonus", "timeAttackGame", btn);
+  taUpdateCombo(1);
+  if (typeof statRecordClick === "function") { statRecordClick("ta"); statRecordBonus(); }
   if (taPenaltyTimer) { clearTimeout(taPenaltyTimer); taPenaltyTimer = null; }
   taNextWithHold();
 });

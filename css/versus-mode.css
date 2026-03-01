@@ -295,7 +295,7 @@
 
 #vsGreenBtn  { background: linear-gradient(#00c851, #007e33); }
 #vsRedBtn    { background: linear-gradient(#ff4444, #cc0000); }
-#vsBonusBtn  { background: linear-gradient(#fff533, #c7c150); color: #333; }
+#vsBonusBtn  { background: linear-gradient(#fff533, #c7c150); }
 #vsHoldBtn   { background: linear-gradient(#aaaaaa, #555555); }
 
 .vs-cd-row {
@@ -342,7 +342,7 @@
    ============================================ */
 #vsFreezeBtn {
   background: linear-gradient(135deg, #00d4ff, #0062aa) !important;
-  color: #001a2e !important;
+  color: #ffffff !important;
   font-size: 18px !important;
 }
 #vsFreezeBtn:hover {

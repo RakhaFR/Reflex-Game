@@ -10,34 +10,28 @@ let vsCountdownInterval = null;
 let vsCombo1 = 0;
 let vsCombo2 = 0;
 
-// Freeze state — siapa yang sedang difreeze
 let vsP1Frozen = false;
 let vsP2Frozen = false;
 let vsP1FreezeTimeout = null;
 let vsP2FreezeTimeout = null;
 
-// Timer state
 let vsTotalSeconds = 0;
 let vsSecondsLeft = 0;
 let vsMainTimer = null;
 
-// Current active button type
 let vsCurrentBtn = null;
 
-// Keyboard bindings
 const VS_KEY_P1 = "a";
 const VS_KEY_P2 = "l";
 
+// Pool — freeze bobot lebih rendah
+const vsButtonPool = ["green", "green", "red", "red", "bonus", "freeze"];
 
 // ============================================
 // VERSUS MODE — DURATION POPUP
 // ============================================
 function openVsDurationPopup()  { document.getElementById("vsDurationPopup").classList.add("active"); }
 function closeVsDurationPopup() { document.getElementById("vsDurationPopup").classList.remove("active"); }
-
-// Pool tombol acak — freeze masuk di sini dengan bobot lebih rendah
-// format: setiap entry = satu kemunculan di pool (bisa duplikat untuk bobot)
-const vsButtonPool = ["green", "green", "red", "red", "bonus", "freeze"];
 
 // ============================================
 // VERSUS MODE — TIMER
@@ -81,9 +75,13 @@ function versusGameOver() {
   document.removeEventListener("keydown", vsKeyHandler);
 
   let winnerText = "";
-  if (vsP1Score > vsP2Score)       winnerText = "🏆 Player 1 Menang!";
-  else if (vsP2Score > vsP1Score)  winnerText = "🏆 Player 2 Menang!";
-  else                              winnerText = "🤝 Seri!";
+  if (vsP1Score > vsP2Score)      winnerText = "🏆 Player 1 Menang!";
+  else if (vsP2Score > vsP1Score) winnerText = "🏆 Player 2 Menang!";
+  else                            winnerText = "🤝 Seri!";
+
+  const vsMaxScore = Math.max(vsP1Score, vsP2Score);
+  const vsMaxCombo = Math.max(vsCombo1, vsCombo2);
+  if (typeof statRecordGameEnd === "function") statRecordGameEnd("vs", vsMaxScore, vsMaxCombo);
 
   document.getElementById("vsWinnerText").textContent = winnerText;
   document.getElementById("vsResultP1").textContent = "Player 1: " + vsP1Score + " poin";
@@ -95,41 +93,50 @@ function versusGameOver() {
 // VERSUS MODE — TUTORIAL NOTIFICATION
 // ============================================
 function showVsTutorialNotif(callback) {
-  const notif = document.getElementById("vsTutorialNotif");
-  const msgEl = document.getElementById("vsTutorialMsg");
+  const notif   = document.getElementById("vsTutorialNotif");
+  const msgEl   = document.getElementById("vsTutorialMsg");
+  const backBtn = document.getElementById("exitVersusBtn");
 
-  // Detect mobile/tablet
+  // Disable back button during tutorial
+  backBtn.disabled = true;
+  backBtn.style.opacity = "0.4";
+  backBtn.style.pointerEvents = "none";
+
   const isMobile = window.matchMedia("(max-width: 768px)").matches || ('ontouchstart' in window);
 
   if (isMobile) {
-    msgEl.innerHTML = `Persiapkan diri untuk menekan tombol <span class="btn-blue">🔵 Biru</span> dan <span class="btn-red">🔴 Merah</span> — bukan yang di tengah layar.<br><br>Skor paling banyak yang didapatkan maka itu pemenangnya!`;
+    msgEl.innerHTML = `Persiapkan diri untuk menekan tombol <span class="btn-blue">Biru</span> dan <span class="btn-red">Merah</span> &mdash; bukan yang di tengah layar.<br><br>Skor paling banyak yang didapatkan maka itu pemenangnya!`;
   } else {
-    msgEl.innerHTML = `Persiapkan posisimu!<br>Player kiri tekan <span class="p1-key">A</span> &nbsp;·&nbsp; Player kanan tekan <span class="p2-key">L</span><br><br>Skor paling banyak yang didapatkan maka itu pemenangnya!`;
+    msgEl.innerHTML = `Persiapkan posisimu!<br>Player kiri tekan <span class="p1-key">A</span>&nbsp;&middot;&nbsp;Player kanan tekan <span class="p2-key">L</span><br><br>Skor paling banyak yang didapatkan maka itu pemenangnya!`;
   }
 
-  // Slide in
   notif.classList.remove("hide");
   notif.classList.add("show");
 
-  // Slide out after 4s then call callback
   setTimeout(() => {
     notif.classList.remove("show");
     notif.classList.add("hide");
     setTimeout(() => {
       notif.classList.remove("hide");
+      // Re-enable back button
+      backBtn.disabled = false;
+      backBtn.style.opacity = "";
+      backBtn.style.pointerEvents = "";
       if (callback) callback();
     }, 450);
   }, 4000);
 }
 
-
+// ============================================
+// VERSUS MODE — HELPERS
+// ============================================
 function vsStartCountdown(duration, onEnd) {
-  let timeLeft = duration;
+  let timeLeft = Math.ceil(duration);
   document.querySelectorAll(".vs-cd-active").forEach(el => el.textContent = timeLeft);
   if (vsCountdownInterval) clearInterval(vsCountdownInterval);
   vsCountdownInterval = setInterval(() => {
     timeLeft--;
-    document.querySelectorAll(".vs-cd-active").forEach(el => el.textContent = timeLeft);
+    document.querySelectorAll(".vs-cd-active").forEach(el => el.textContent = Math.max(0, timeLeft));
     if (timeLeft <= 0) {
       clearInterval(vsCountdownInterval);
       document.querySelectorAll(".vs-cd-active").forEach(el => el.textContent = "");
@@ -153,7 +160,6 @@ function vsHideAllButtons() {
     const el = document.getElementById(id);
     if (el) el.style.display = "none";
   });
-  // Reset semua countdown span ke class biasa (hapus vs-cd-active)
   document.querySelectorAll(".vs-cd-active").forEach(el => {
     el.classList.remove("vs-cd-active");
     el.textContent = "";
@@ -191,28 +197,27 @@ function vsUpdateCombo(player, change) {
 }
 
 // ============================================
-// VERSUS MODE — FREEZE (dipanggil saat tombol freeze diklik)
-// Freeze LAWAN dari player yang klik
+// VERSUS MODE — FREEZE
 // ============================================
 function vsApplyFreeze(clickerPlayer) {
   const targetPlayer = clickerPlayer === 1 ? 2 : 1;
   const isTargetP1   = targetPlayer === 1;
 
-  // Kalau target sudah frozen, tidak perlu apa-apa (tetap lanjut ke hold)
   const snd = document.getElementById("soundFreeze");
   if (snd) { snd.currentTime = 0; snd.play().catch(() => {}); }
 
-  // Tandai visual sisi player yang difreeze
+  // Freeze effect on the freeze button
+  const freezeBtn = document.getElementById("vsFreezeBtn");
+  triggerFreezeEffect(freezeBtn);
+
   const sideId = isTargetP1 ? "vsP1Side" : "vsP2Side";
   const sideEl = document.getElementById(sideId);
   sideEl.classList.add("frozen-side");
 
-  // Tunjukkan label freeze di sisi yang difreeze
   const frozenLabelId = isTargetP1 ? "vsFrozenLabel1" : "vsFrozenLabel2";
   const frozenLabel   = document.getElementById(frozenLabelId);
 
   if (isTargetP1) {
-    // Kalau sudah ada freeze sebelumnya, clear dulu
     if (vsP1FreezeTimeout) { clearTimeout(vsP1FreezeTimeout); vsP1FreezeTimeout = null; }
     vsP1Frozen = true;
   } else {
@@ -220,7 +225,6 @@ function vsApplyFreeze(clickerPlayer) {
     vsP2Frozen = true;
   }
 
-  // Countdown label 5 detik
   let freezeLeft = 5;
   if (frozenLabel) frozenLabel.textContent = "❄️ " + freezeLeft + "s";
 
@@ -254,10 +258,10 @@ function vsSpawnRandomButton() {
   vsHideAllButtons();
   vsStopCountdown();
 
+  const diff = getDiff();
   const type = vsButtonPool[Math.floor(Math.random() * vsButtonPool.length)];
   vsCurrentBtn = type;
 
-  // Tampilkan tombol yang sesuai
   const btnMap = {
     green:  "vsGreenBtn",
     red:    "vsRedBtn",
@@ -267,14 +271,11 @@ function vsSpawnRandomButton() {
   const btnEl = document.getElementById(btnMap[type]);
   if (btnEl) {
     btnEl.style.display = "flex";
-    // Aktifkan countdown span di dalam tombol ini
     btnEl.querySelectorAll(".vs-countdown").forEach(el => el.classList.add("vs-cd-active"));
   }
 
-  // Durasi & penalty
-  if (type === "green" || type === "bonus") {
+  if (type === "green") {
     vsPenaltyTimer = setTimeout(() => {
-      // Timeout: kedua player kena -1, combo reset
       vsP1Score = Math.max(0, vsP1Score - 1);
       vsP2Score = Math.max(0, vsP2Score - 1);
       vsUpdateScores();
@@ -283,19 +284,26 @@ function vsSpawnRandomButton() {
       document.getElementById("soundRed").currentTime = 0;
       document.getElementById("soundRed").play();
       vsNextWithHold();
-    }, 5000);
-    vsStartCountdown(5);
-  }
-
-  if (type === "red") {
-    vsPenaltyTimer = setTimeout(() => { vsNextWithHold(); }, 3000);
-    vsStartCountdown(3);
-  }
-
-  if (type === "freeze") {
-    // Freeze timeout 5 detik — kalau tidak diklik, langsung hold
-    vsPenaltyTimer = setTimeout(() => { vsNextWithHold(); }, 5000);
-    vsStartCountdown(5);
+    }, diff.greenTime * 1000);
+    vsStartCountdown(diff.greenTime);
+  } else if (type === "bonus") {
+    vsPenaltyTimer = setTimeout(() => {
+      vsP1Score = Math.max(0, vsP1Score - 1);
+      vsP2Score = Math.max(0, vsP2Score - 1);
+      vsUpdateScores();
+      vsUpdateCombo(1, "reset");
+      vsUpdateCombo(2, "reset");
+      document.getElementById("soundRed").currentTime = 0;
+      document.getElementById("soundRed").play();
+      vsNextWithHold();
+    }, diff.bonusTime * 1000);
+    vsStartCountdown(diff.bonusTime);
+  } else if (type === "red") {
+    vsPenaltyTimer = setTimeout(() => { vsNextWithHold(); }, diff.redTime * 1000);
+    vsStartCountdown(diff.redTime);
+  } else if (type === "freeze") {
+    vsPenaltyTimer = setTimeout(() => { vsNextWithHold(); }, diff.freezeTime * 1000);
+    vsStartCountdown(diff.freezeTime);
   }
 }
 
@@ -329,23 +337,22 @@ function vsPlayerClick(player) {
   if (!vsCurrentBtn) return;
 
   const isP1 = player === 1;
-
-  // Cek frozen
   if (isP1 && vsP1Frozen) return;
   if (!isP1 && vsP2Frozen) return;
 
   const type = vsCurrentBtn;
-
-  // Lock tombol agar tidak bisa diklik dua kali
   vsCurrentBtn = null;
   if (vsPenaltyTimer) { clearTimeout(vsPenaltyTimer); vsPenaltyTimer = null; }
+
+  const clickBtnEl = document.getElementById(isP1 ? "vsP1ClickBtn" : "vsP2ClickBtn");
 
   if (type === "green") {
     if (isP1) vsP1Score += 1; else vsP2Score += 1;
     vsUpdateScores();
     vsUpdateCombo(player, 1);
     vsUpdateCombo(player === 1 ? 2 : 1, "reset");
-    triggerEffects("soundGreen", "green", "versusGame");
+    triggerEffects("soundGreen", "green", "versusGame", clickBtnEl);
+    if (typeof statRecordClick === "function") statRecordClick("vs");
     vsNextWithHold();
 
   } else if (type === "bonus") {
@@ -353,7 +360,8 @@ function vsPlayerClick(player) {
     vsUpdateScores();
     vsUpdateCombo(player, 1);
     vsUpdateCombo(player === 1 ? 2 : 1, "reset");
-    triggerEffects("soundBonus", "bonus", "versusGame");
+    triggerEffects("soundBonus", "bonus", "versusGame", clickBtnEl);
+    if (typeof statRecordClick === "function") { statRecordClick("vs"); statRecordBonus(); }
     vsNextWithHold();
 
   } else if (type === "red") {
@@ -361,23 +369,19 @@ function vsPlayerClick(player) {
     else      vsP2Score = Math.max(0, vsP2Score - 1);
     vsUpdateScores();
     vsUpdateCombo(player, "reset");
-    triggerEffects("soundRed", "red", "versusGame");
+    triggerEffects("soundRed", "red", "versusGame", clickBtnEl);
+    if (typeof statRecordClick === "function") { statRecordClick("vs"); statRecordWrongClick("vs"); }
     vsNextWithHold();
 
   } else if (type === "freeze") {
-    // Siapa yang klik duluan, dia freeze LAWAN
     vsApplyFreeze(player);
-    // Flash biru
-    const flash = document.getElementById("flashOverlay");
-    flash.className = "";
-    flash.classList.add("active", "blue");
-    setTimeout(() => flash.classList.remove("active", "blue"), 200);
+    if (typeof statRecordFreeze === "function") statRecordFreeze();
     vsNextWithHold();
   }
 }
 
 // ============================================
-// VERSUS MODE — KEYBOARD CONTROL
+// VERSUS MODE — KEYBOARD
 // ============================================
 function vsKeyHandler(e) {
   const key = e.key.toLowerCase();
@@ -425,7 +429,7 @@ function startVersusMode(minutes) {
   document.getElementById("lobby").classList.remove("active");
   document.getElementById("versusGame").classList.add("active");
 
-  // Tampilkan tutorial notif dulu, baru countdown
+  // Tutorial dulu, baru countdown + keylistener
   showVsTutorialNotif(() => {
     document.addEventListener("keydown", vsKeyHandler);
     showCountdownThen(() => {
@@ -452,8 +456,14 @@ function exitVersusMode() {
 // ============================================
 // VERSUS MODE — EVENT LISTENERS
 // ============================================
-document.getElementById("playVersusBtn").addEventListener("click", () => { playSound(); openVsDurationPopup(); });
-document.getElementById("exitVersusBtn").addEventListener("click", () => { playSound(); showQuitConfirm("versus"); });
+document.getElementById("playVersusBtn").addEventListener("click", () => {
+  playSound();
+  openDifficultyPopup("versus");
+});
+document.getElementById("exitVersusBtn").addEventListener("click", () => {
+  playSound();
+  showQuitConfirm("versus");
+});
 
 document.getElementById("vsP1ClickBtn").addEventListener("click", () => { vsPlayerClick(1); });
 document.getElementById("vsP2ClickBtn").addEventListener("click", () => { vsPlayerClick(2); });
@@ -463,7 +473,7 @@ document.getElementById("vsPlayAgainBtn").addEventListener("click", () => {
   document.getElementById("vsResultPopup").classList.remove("active");
   document.getElementById("versusGame").classList.remove("active");
   document.getElementById("lobby").classList.add("active");
-  openVsDurationPopup();
+  openDifficultyPopup("versus");
 });
 document.getElementById("vsGoHomeBtn").addEventListener("click", () => {
   playSound();
