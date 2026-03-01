@@ -26,6 +26,20 @@ document.getElementById("quitYesBtn").addEventListener("click", () => {
     document.getElementById("basicFinalScore").textContent = score;
     document.getElementById("basicFinalCombo").textContent = "Best Combo: x" + basicBestCombo;
     document.getElementById("basicResultPopup").classList.add("active");
+  } else if (quitTargetMode === "versus") {
+    if (vsMainTimer) { clearInterval(vsMainTimer); vsMainTimer = null; }
+    vsClearAllTimers();
+    vsHideAllButtons();
+    vsStopCountdown();
+    if (vsP1FreezeTimeout) { clearTimeout(vsP1FreezeTimeout); vsP1FreezeTimeout = null; }
+    if (vsP2FreezeTimeout) { clearTimeout(vsP2FreezeTimeout); vsP2FreezeTimeout = null; }
+    vsP1Frozen = false; vsP1FreezeCooldown = false;
+    vsP2Frozen = false; vsP2FreezeCooldown = false;
+    document.removeEventListener("keydown", vsKeyHandler);
+    document.getElementById("versusGame").classList.remove("active");
+    document.getElementById("home").classList.add("active");
+    quitTargetMode = null;
+    return;
   } else if (quitTargetMode === "timeattack") {
     if (taMainTimer) { clearInterval(taMainTimer); taMainTimer = null; }
     taClearAllTimers(); taHideAllButtons(); taStopCountdown();
