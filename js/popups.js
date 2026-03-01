@@ -35,8 +35,11 @@ document.getElementById("quitYesBtn").addEventListener("click", () => {
     vsStopCountdown();
     if (vsP1FreezeTimeout) { clearTimeout(vsP1FreezeTimeout); vsP1FreezeTimeout = null; }
     if (vsP2FreezeTimeout) { clearTimeout(vsP2FreezeTimeout); vsP2FreezeTimeout = null; }
+    if (vsP1FreezeTick) { clearInterval(vsP1FreezeTick); vsP1FreezeTick = null; }
+    if (vsP2FreezeTick) { clearInterval(vsP2FreezeTick); vsP2FreezeTick = null; }
     vsP1Frozen = false;
     vsP2Frozen = false;
+    vsP1FreezeSecondsLeft = 0; vsP2FreezeSecondsLeft = 0;
     document.removeEventListener("keydown", vsKeyHandler);
     document.getElementById("versusGame").classList.remove("active");
     document.getElementById("home").classList.add("active");

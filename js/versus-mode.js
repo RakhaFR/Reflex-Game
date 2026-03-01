@@ -14,6 +14,10 @@ let vsP1Frozen = false;
 let vsP2Frozen = false;
 let vsP1FreezeTimeout = null;
 let vsP2FreezeTimeout = null;
+let vsP1FreezeSecondsLeft = 0;
+let vsP2FreezeSecondsLeft = 0;
+let vsP1FreezeTick = null;
+let vsP2FreezeTick = null;
 
 let vsTotalSeconds = 0;
 let vsSecondsLeft = 0;
@@ -72,6 +76,9 @@ function versusGameOver() {
   vsStopCountdown();
   if (vsP1FreezeTimeout) { clearTimeout(vsP1FreezeTimeout); vsP1FreezeTimeout = null; }
   if (vsP2FreezeTimeout) { clearTimeout(vsP2FreezeTimeout); vsP2FreezeTimeout = null; }
+  if (vsP1FreezeTick) { clearInterval(vsP1FreezeTick); vsP1FreezeTick = null; }
+  if (vsP2FreezeTick) { clearInterval(vsP2FreezeTick); vsP2FreezeTick = null; }
+  vsP1FreezeSecondsLeft = 0; vsP2FreezeSecondsLeft = 0;
   document.removeEventListener("keydown", vsKeyHandler);
 
   let winnerText = "";
@@ -217,33 +224,65 @@ function vsApplyFreeze(clickerPlayer) {
   const frozenLabelId = isTargetP1 ? "vsFrozenLabel1" : "vsFrozenLabel2";
   const frozenLabel   = document.getElementById(frozenLabelId);
 
+  // ── Stacking: tambah 5 detik ke sisa waktu jika sudah frozen ──
   if (isTargetP1) {
-    if (vsP1FreezeTimeout) { clearTimeout(vsP1FreezeTimeout); vsP1FreezeTimeout = null; }
+    if (vsP1FreezeTimeout) {
+      // Batalkan timeout lama, stack waktu
+      clearTimeout(vsP1FreezeTimeout);
+      vsP1FreezeTimeout = null;
+      vsP1FreezeSecondsLeft += 5;
+    } else {
+      vsP1FreezeSecondsLeft = 5;
+    }
     vsP1Frozen = true;
+    // Clear tick lama supaya tidak ada 2 interval jalan bersamaan
+    if (vsP1FreezeTick) { clearInterval(vsP1FreezeTick); vsP1FreezeTick = null; }
   } else {
-    if (vsP2FreezeTimeout) { clearTimeout(vsP2FreezeTimeout); vsP2FreezeTimeout = null; }
+    if (vsP2FreezeTimeout) {
+      clearTimeout(vsP2FreezeTimeout);
+      vsP2FreezeTimeout = null;
+      vsP2FreezeSecondsLeft += 5;
+    } else {
+      vsP2FreezeSecondsLeft = 5;
+    }
     vsP2Frozen = true;
+    if (vsP2FreezeTick) { clearInterval(vsP2FreezeTick); vsP2FreezeTick = null; }
   }
 
-  let freezeLeft = 5;
-  if (frozenLabel) frozenLabel.textContent = "❄️ " + freezeLeft + "s";
+  const secondsLeft = () => isTargetP1 ? vsP1FreezeSecondsLeft : vsP2FreezeSecondsLeft;
+  if (frozenLabel) frozenLabel.textContent = "❄️ " + secondsLeft() + "s";
 
-  const freezeTick = setInterval(() => {
-    freezeLeft--;
-    if (freezeLeft <= 0) {
-      clearInterval(freezeTick);
+  // Satu interval per player, hitung mundur dari nilai stacked
+  const tick = setInterval(() => {
+    if (isTargetP1) { vsP1FreezeSecondsLeft--; }
+    else            { vsP2FreezeSecondsLeft--; }
+    const left = secondsLeft();
+    if (left <= 0) {
+      clearInterval(tick);
+      if (isTargetP1) vsP1FreezeTick = null;
+      else            vsP2FreezeTick = null;
       if (frozenLabel) frozenLabel.textContent = "";
     } else {
-      if (frozenLabel) frozenLabel.textContent = "❄️ " + freezeLeft + "s";
+      if (frozenLabel) frozenLabel.textContent = "❄️ " + left + "s";
     }
   }, 1000);
 
+  if (isTargetP1) vsP1FreezeTick = tick;
+  else            vsP2FreezeTick = tick;
+
+  // Timeout berdasarkan total waktu yang tersisa (stacked)
+  const totalMs = secondsLeft() * 1000;
   const ft = setTimeout(() => {
-    if (isTargetP1) { vsP1Frozen = false; vsP1FreezeTimeout = null; }
-    else            { vsP2Frozen = false; vsP2FreezeTimeout = null; }
+    if (isTargetP1) {
+      vsP1Frozen = false; vsP1FreezeTimeout = null; vsP1FreezeSecondsLeft = 0;
+      if (vsP1FreezeTick) { clearInterval(vsP1FreezeTick); vsP1FreezeTick = null; }
+    } else {
+      vsP2Frozen = false; vsP2FreezeTimeout = null; vsP2FreezeSecondsLeft = 0;
+      if (vsP2FreezeTick) { clearInterval(vsP2FreezeTick); vsP2FreezeTick = null; }
+    }
     sideEl.classList.remove("frozen-side");
     if (frozenLabel) frozenLabel.textContent = "";
-  }, 5000);
+  }, totalMs);
 
   if (isTargetP1) vsP1FreezeTimeout = ft;
   else            vsP2FreezeTimeout = ft;
@@ -405,6 +444,9 @@ function startVersusMode(minutes) {
   vsP1Frozen = false; vsP2Frozen = false;
   if (vsP1FreezeTimeout) { clearTimeout(vsP1FreezeTimeout); vsP1FreezeTimeout = null; }
   if (vsP2FreezeTimeout) { clearTimeout(vsP2FreezeTimeout); vsP2FreezeTimeout = null; }
+  if (vsP1FreezeTick) { clearInterval(vsP1FreezeTick); vsP1FreezeTick = null; }
+  if (vsP2FreezeTick) { clearInterval(vsP2FreezeTick); vsP2FreezeTick = null; }
+  vsP1FreezeSecondsLeft = 0; vsP2FreezeSecondsLeft = 0;
   if (vsMainTimer) { clearInterval(vsMainTimer); vsMainTimer = null; }
 
   vsUpdateScores();
@@ -446,7 +488,10 @@ function exitVersusMode() {
   vsStopCountdown();
   if (vsP1FreezeTimeout) { clearTimeout(vsP1FreezeTimeout); vsP1FreezeTimeout = null; }
   if (vsP2FreezeTimeout) { clearTimeout(vsP2FreezeTimeout); vsP2FreezeTimeout = null; }
+  if (vsP1FreezeTick) { clearInterval(vsP1FreezeTick); vsP1FreezeTick = null; }
+  if (vsP2FreezeTick) { clearInterval(vsP2FreezeTick); vsP2FreezeTick = null; }
   vsP1Frozen = false; vsP2Frozen = false;
+  vsP1FreezeSecondsLeft = 0; vsP2FreezeSecondsLeft = 0;
   document.removeEventListener("keydown", vsKeyHandler);
   document.getElementById("vsResultPopup").classList.remove("active");
   document.getElementById("versusGame").classList.remove("active");
