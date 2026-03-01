@@ -1,0 +1,407 @@
+/* ============================================
+   VERSUS MODE — TIMER BAR
+   ============================================ */
+#vsTimerBarWrapper {
+  position: relative;
+  width: 80%;
+  max-width: 600px;
+  margin: 6px auto 10px;
+  height: 28px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.2);
+  box-shadow: 0 0 20px rgba(0,200,255,0.2);
+}
+#vsTimerBarFill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ff6b9d, #00c9ff);
+  border-radius: 14px;
+  transition: width 1s linear, background 0.5s ease;
+}
+#vsTimerBarFill.warning {
+  background: linear-gradient(90deg, #ff8c00, #ff4444);
+  animation: timerPulse 0.5s infinite alternate;
+}
+#vsTimerLabel {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "Orbitron", monospace;
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 6px rgba(0,0,0,0.8);
+  pointer-events: none;
+}
+
+/* ============================================
+   VERSUS MODE — TUTORIAL NOTIFICATION
+   ============================================ */
+.vs-tutorial-notif {
+  position: fixed;
+  top: 20px;
+  right: -420px;
+  width: 380px;
+  max-width: 90vw;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-left: 4px solid #00c9ff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  z-index: 100000;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 20px rgba(0,200,255,0.15);
+  transition: right 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.vs-tutorial-notif.show {
+  right: 20px;
+}
+.vs-tutorial-notif.hide {
+  right: -420px;
+  transition: right 0.4s ease-in;
+}
+.vs-tutorial-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.vs-tutorial-content {
+  flex: 1;
+}
+.vs-tutorial-title {
+  font-family: "Slackey", sans-serif;
+  font-size: 16px;
+  color: #00c9ff;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+.vs-tutorial-msg {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.6;
+}
+.vs-tutorial-msg span.p1-key {
+  background: linear-gradient(135deg, #00c9ff, #0062cc);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 13px;
+}
+.vs-tutorial-msg span.p2-key {
+  background: linear-gradient(135deg, #ff6b9d, #cc0055);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 13px;
+}
+.vs-tutorial-msg span.btn-blue {
+  background: linear-gradient(135deg, #00c9ff, #0062cc);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 12px;
+}
+.vs-tutorial-msg span.btn-red {
+  background: linear-gradient(135deg, #ff6b9d, #cc0055);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .vs-tutorial-notif {
+    top: auto;
+    bottom: 20px;
+    right: -420px;
+    left: auto;
+    width: calc(100vw - 40px);
+  }
+  .vs-tutorial-notif.show { right: 20px; }
+  .vs-tutorial-notif.hide { right: -420px; }
+}
+
+
+#versusGame {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+}
+
+#versusGame h1 {
+  font-size: 30px;
+  margin-bottom: 8px;
+}
+
+/* Area utama: 2 sisi berjajar */
+.vs-arena {
+  display: flex;
+  gap: 0;
+  width: 100%;
+  min-height: 420px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  margin-top: 12px;
+}
+
+/* ============================================
+   VERSUS MODE — TIAP SISI PLAYER
+   ============================================ */
+.vs-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 16px;
+  gap: 12px;
+  transition: background 0.3s ease;
+  position: relative;
+}
+
+#vsP1Side {
+  background: linear-gradient(180deg, #0a1628 0%, #0d2145 100%);
+  border-right: 2px solid rgba(255,255,255,0.1);
+}
+
+#vsP2Side {
+  background: linear-gradient(180deg, #1a0a28 0%, #2d1045 100%);
+}
+
+/* Divider tengah */
+.vs-divider {
+  width: 4px;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,0.3), transparent);
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vs-divider::after {
+  content: "VS";
+  background: #1a1a2e;
+  color: #fff;
+  font-family: "Slackey", sans-serif;
+  font-size: 14px;
+  padding: 8px 4px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* ============================================
+   VERSUS MODE — PLAYER HEADER
+   ============================================ */
+.vs-player-header {
+  text-align: center;
+  width: 100%;
+}
+
+.vs-player-name {
+  font-family: "Slackey", sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+#vsP1Side .vs-player-name { color: #00c9ff; }
+#vsP2Side .vs-player-name { color: #ff6b9d; }
+
+.vs-score {
+  font-size: 48px;
+  font-weight: bold;
+  font-family: "Slackey", sans-serif;
+  line-height: 1;
+}
+
+#vsP1Side .vs-score { color: #00c9ff; text-shadow: 0 0 16px #00c9ff66; }
+#vsP2Side .vs-score { color: #ff6b9d; text-shadow: 0 0 16px #ff6b9d66; }
+
+.vs-key-hint {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 2px;
+}
+
+/* ============================================
+   VERSUS MODE — COMBO BOX
+   ============================================ */
+.vs-combo-box {
+  font-family: "Slackey", cursive;
+  font-size: 28px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 8px #ff0, 0 0 16px #ff0;
+  opacity: 0;
+  transition: opacity 0.3s;
+  min-height: 40px;
+  text-align: center;
+}
+.vs-combo-box .combo-label {
+  display: block;
+  font-size: 12px;
+  color: #ff0;
+}
+.vs-combo-box.pop {
+  font-size: 40px;
+  opacity: 1;
+  transform: scale(1.2);
+}
+.vs-combo-box.combo-big  { font-size: 38px; color: #ff0; }
+.vs-combo-box.combo-glow { animation: glowAnim 1s infinite alternate; }
+
+/* ============================================
+   VERSUS MODE — GAME BUTTON AREA (tengah)
+   ============================================ */
+.vs-game-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 200px;
+}
+
+#vsGreenBtn, #vsRedBtn, #vsBonusBtn, #vsHoldBtn {
+  display: none;
+  width: 180px;
+  font-size: 18px;
+  padding: 16px 20px;
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 12px;
+  font-weight: bold;
+  color: white;
+  border: none;
+  cursor: default;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+#vsGreenBtn  { background: linear-gradient(#00c851, #007e33); }
+#vsRedBtn    { background: linear-gradient(#ff4444, #cc0000); }
+#vsBonusBtn  { background: linear-gradient(#fff533, #c7c150); }
+#vsHoldBtn   { background: linear-gradient(#aaaaaa, #555555); }
+
+.vs-cd-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  width: 100%;
+  padding: 0 4px;
+}
+
+/* ============================================
+   VERSUS MODE — CLICK BUTTONS (sisi player)
+   ============================================ */
+.vs-click-btn {
+  width: 100%;
+  padding: 18px 12px;
+  font-size: 22px;
+  font-family: "Slackey", sans-serif;
+  font-weight: bold;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: transform 0.1s, box-shadow 0.1s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.vs-click-btn:active {
+  transform: scale(0.94);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+#vsP1ClickBtn {
+  background: linear-gradient(135deg, #00c9ff, #0062cc);
+}
+#vsP2ClickBtn {
+  background: linear-gradient(135deg, #ff6b9d, #cc0055);
+}
+
+/* ============================================
+   VERSUS MODE — TOMBOL FREEZE (di tengah, acak)
+   ============================================ */
+#vsFreezeBtn {
+  background: linear-gradient(135deg, #00d4ff, #0062aa) !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+}
+#vsFreezeBtn:hover {
+  filter: brightness(1.1);
+}
+
+/* Label frozen yang muncul di sisi player yang kena freeze */
+.vs-frozen-label {
+  font-size: 22px;
+  font-weight: bold;
+  color: #00d4ff;
+  font-family: "Slackey", sans-serif;
+  text-shadow: 0 0 12px #00d4ff;
+  min-height: 30px;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+/* ============================================
+   VERSUS MODE — FROZEN STATE
+   ============================================ */
+.frozen-side {
+  background: linear-gradient(180deg, #001a2e 0%, #003355 100%) !important;
+  animation: frozenSidePulse 0.8s infinite alternate;
+}
+@keyframes frozenSidePulse {
+  from { box-shadow: inset 0 0 20px rgba(0,200,255,0.2); }
+  to   { box-shadow: inset 0 0 40px rgba(0,200,255,0.5); }
+}
+
+/* ============================================
+   VERSUS MODE — SHAKE
+   ============================================ */
+#versusGame.shake { animation: shakeAnim 0.4s; }
+
+/* ============================================
+   VERSUS MODE — RESULT POPUP
+   ============================================ */
+.vs-result-winner {
+  font-family: "Slackey", sans-serif;
+  font-size: 28px;
+  color: #ff0;
+  text-shadow: 0 0 20px #ff0;
+  margin: 16px 0 8px;
+}
+.vs-result-scores {
+  font-size: 18px;
+  color: #aaa;
+  margin: 4px 0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 600px) {
+  .vs-arena { flex-direction: column; min-height: unset; }
+  .vs-divider { width: 100%; height: 4px; }
+  .vs-divider::after { writing-mode: horizontal-tb; padding: 4px 10px; }
+  .vs-game-center { position: relative; top: unset; left: unset; transform: none; width: 100%; }
+  .vs-arena { gap: 8px; }
+  .vs-side { min-height: 200px; }
+}
