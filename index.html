@@ -41,7 +41,7 @@
       <div class="menu">
         <button class="btn play-btn shiny-button" id="homePlayBtn">PLAY</button>
         <button class="btn other-btn shiny-button" id="homeOtherBtn">OTHER GAMES</button>
-        <button class="btn donate-btn shiny-button" id="homeDonateBtn">DONATE</button>
+        <a href="https://lynk.id/bangriyadi/s/z6l332ojeqrg" style="text-decoration: none;"><button class="btn donate-btn shiny-button" id="homeDonateBtn">DONATE</button></a>
       </div>
       <div class="title">
         <h1>REFLEX HANDS GAMES (BETA)</h1>
@@ -57,24 +57,47 @@
   <div id="lobby" class="screen">
     <button class="profile-btn" id="profileBtn">Profile</button>
     <h1>SELECT MODE!</h1>
+    <div class="lobby-subtitle">Pilih mode permainan favoritmu</div>
     <div class="mode-container">
-      <div class="mode">
-        <img src="assets/picture/basic-mode.jpg" alt="Basic Mode" />
-        <h3>Basic Mode</h3>
-        <button class="btn play-btn shiny-button" id="playBasicBtn">PLAY</button>
+
+      <div class="mode basic-card">
+        <div class="mode-img-wrap">
+          <span class="mode-icon">🟢</span>
+          <img src="assets/picture/basic-mode.jpg" alt="Basic Mode" />
+        </div>
+        <div class="mode-body">
+          <div class="mode-title">Basic Mode</div>
+          <div class="mode-desc">Latih refleksmu — klik tombol yang benar sebelum waktu habis.</div>
+          <button class="mode-play-btn shiny-button" id="playBasicBtn">▶ PLAY</button>
+        </div>
       </div>
-      <div class="mode">
-        <img src="assets/picture/time-mode.jpg" alt="Time Attack" />
-        <h3>Time Attack Mode</h3>
-        <button class="btn play-btn shiny-button" id="playTimeAttackBtn">PLAY</button>
+
+      <div class="mode time-card">
+        <div class="mode-img-wrap">
+          <span class="mode-icon">⏱️</span>
+          <img src="assets/picture/time-mode.jpg" alt="Time Attack" />
+        </div>
+        <div class="mode-body">
+          <div class="mode-title">Time Attack</div>
+          <div class="mode-desc">Raih skor setinggi mungkin sebelum waktu habis.</div>
+          <button class="mode-play-btn shiny-button" id="playTimeAttackBtn">▶ PLAY</button>
+        </div>
       </div>
-      <div class="mode">
-        <img src="assets/picture/versus-mode.jpg" alt="Versus Mode" onerror="this.style.background='#2a1a4a';this.removeAttribute('onerror')" />
-        <h3>Versus Mode</h3>
-        <button class="btn play-btn shiny-button" id="playVersusBtn">PLAY</button>
+
+      <div class="mode versus-card">
+        <div class="mode-img-wrap">
+          <span class="mode-icon">⚔️</span>
+          <img src="assets/picture/versus-mode.jpg" alt="Versus Mode" onerror="this.style.background='#2a1a4a';this.removeAttribute('onerror')" />
+        </div>
+        <div class="mode-body">
+          <div class="mode-title">Versus Mode</div>
+          <div class="mode-desc">Adu kecepatan reflek dengan temanmu secara real-time.</div>
+          <button class="mode-play-btn shiny-button" id="playVersusBtn">▶ PLAY</button>
+        </div>
       </div>
+
     </div>
-    <button class="btn back-btn shiny-button" id="lobbyBackBtn">Back To Main Menu</button>
+    <button class="btn back-btn shiny-button" id="lobbyBackBtn">← Back To Main Menu</button>
   </div>
 
   <!-- BASIC MODE -->
@@ -320,6 +343,37 @@
     </div>
   </div>
 
+  <!-- OTHER GAMES OVERLAY (PS Store Style) -->
+  <div id="otherGamesOverlay">
+    <div class="og-bg" id="ogBg"></div>
+
+    <div class="og-topbar">
+      <span class="og-topbar-title">🎮 Other Games</span>
+      <button class="og-close-btn" id="ogCloseBtn">✕</button>
+    </div>
+
+    <div class="og-main">
+      <button class="og-arrow" id="ogPrevBtn">&#8249;</button>
+      <div class="og-track-wrap">
+        <div class="og-track" id="ogTrack">
+          <!-- cards injected by JS -->
+        </div>
+      </div>
+      <button class="og-arrow" id="ogNextBtn">&#8250;</button>
+    </div>
+
+    <div class="og-info">
+      <div class="og-info-left">
+        <div class="og-info-game-title" id="ogInfoTitle"></div>
+        <div class="og-info-desc" id="ogInfoDesc"></div>
+        <span class="og-info-tag" id="ogInfoTag"></span>
+      </div>
+      <button class="og-visit-btn" id="ogVisitBtn">🔗 Visit Game</button>
+    </div>
+
+    <div class="og-dots" id="ogDots"></div>
+  </div>
+
   <footer>© 2025 by <strong>Rakha FR</strong> — Reflex Hands Games</footer>
 
   <script src="js/profile.js"></script>
@@ -329,7 +383,6 @@
   <script src="js/popups.js"></script>
   <script>
     document.getElementById("homePlayBtn").addEventListener("click", () => { playSound(); goToLobby(); });
-    document.getElementById("homeOtherBtn").addEventListener("click", () => { playSound(); });
     document.getElementById("homeDonateBtn").addEventListener("click", () => { playSound(); });
     document.getElementById("profileBtn").addEventListener("click", () => { openProfile(); });
     document.getElementById("lobbyBackBtn").addEventListener("click", () => { playSound(); goToHome(); });
@@ -358,6 +411,151 @@
     document.getElementById("vsDur10").addEventListener("click", () => { startVersusMode(10); });
   </script>
   <script src="js/versus-mode.js"></script>
+  <!-- OTHER GAMES LOGIC -->
+  <script>
+  (function() {
+    // ── Game data — ganti url/img/title/desc sesuai kebutuhan ──
+    const OG_GAMES = [
+      {
+        title: "Plenger RnG",
+        desc: "Koleksi semua foto yang ada di game dan pamerkan ke teman mu!",
+        tag: "CASUAL • SIMULATION",
+        img: "assets/picture/OG-GAMES/plengerRNG.jpg",
+        url: "https://rakhafr.github.io/PlengerRnG/"
+      },
+      {
+        title: "Geotrade",
+        desc: "Buat perusahaan mu dan tingkatkan jaringan antar kota, jangan sampai pasokan habis!",
+        tag: "COMING SOON",
+        tag: "CASUAL • SANDBOX",
+        img: "assets/picture/OG-GAMES/geoTrade.png",
+        url: "#",
+        comingSoon: true
+      },
+    ];
+
+    let ogCurrent = 0;
+    const overlay  = document.getElementById("otherGamesOverlay");
+    const ogBg     = document.getElementById("ogBg");
+    const ogTrack  = document.getElementById("ogTrack");
+    const ogDots   = document.getElementById("ogDots");
+    const ogTitle  = document.getElementById("ogInfoTitle");
+    const ogDesc   = document.getElementById("ogInfoDesc");
+    const ogTag    = document.getElementById("ogInfoTag");
+    const ogVisit  = document.getElementById("ogVisitBtn");
+    const ogPrev   = document.getElementById("ogPrevBtn");
+    const ogNext   = document.getElementById("ogNextBtn");
+
+    // Build cards
+    OG_GAMES.forEach((g, i) => {
+      const card = document.createElement("div");
+      card.className = "og-card" + (i === 0 ? " active-card" : "") + (g.comingSoon ? " og-coming-soon" : "");
+      card.dataset.idx = i;
+      const csOverlay = g.comingSoon ? `
+          <div class="og-cs-overlay">
+            <div class="og-cs-badge">
+              <span class="og-cs-icon">🔒</span>
+              <span class="og-cs-text">COMING SOON</span>
+            </div>
+          </div>` : "";
+      card.innerHTML = `
+        <div class="og-card-img-wrap">
+          <img src="${g.img}" alt="${g.title}" />
+          ${csOverlay}
+        </div>
+      `;
+      card.addEventListener("click", () => goToSlide(i));
+      ogTrack.appendChild(card);
+
+      const dot = document.createElement("div");
+      dot.className = "og-dot" + (i === 0 ? " active" : "");
+      dot.addEventListener("click", () => goToSlide(i));
+      ogDots.appendChild(dot);
+    });
+
+    function getCardWidth() {
+      const c = ogTrack.querySelector(".og-card");
+      if (!c) return 400;
+      return c.offsetWidth + 20; // width + gap
+    }
+
+    function goToSlide(idx) {
+      ogCurrent = Math.max(0, Math.min(OG_GAMES.length - 1, idx));
+      const g = OG_GAMES[ogCurrent];
+
+      // Update track offset — center active card
+      const trackWrap = document.querySelector(".og-track-wrap");
+      const wrapW = trackWrap.offsetWidth;
+      const cw = getCardWidth();
+      const offset = ogCurrent * cw - (wrapW / 2) + (cw / 2) - 12;
+      ogTrack.style.transform = `translateX(${-offset}px)`;
+
+      // Update card active states
+      ogTrack.querySelectorAll(".og-card").forEach((c, i) => {
+        c.classList.toggle("active-card", i === ogCurrent);
+      });
+
+      // Update dots
+      ogDots.querySelectorAll(".og-dot").forEach((d, i) => {
+        d.classList.toggle("active", i === ogCurrent);
+      });
+
+      // Update info
+      ogTitle.textContent = g.title;
+      ogDesc.textContent  = g.desc;
+      ogTag.textContent   = g.tag;
+
+      // Hide visit button for coming soon games
+      if (g.comingSoon) {
+        ogVisit.style.display = "none";
+      } else {
+        ogVisit.style.display = "";
+        ogVisit.onclick = () => { if (g.url !== "#") window.open(g.url, "_blank"); };
+      }
+
+      // Update bg
+      ogBg.style.backgroundImage = `url('${g.img}')`;
+
+      // Update arrows
+      ogPrev.disabled = ogCurrent === 0;
+      ogNext.disabled = ogCurrent === OG_GAMES.length - 1;
+    }
+
+    ogPrev.addEventListener("click", () => { playSound(); goToSlide(ogCurrent - 1); });
+    ogNext.addEventListener("click", () => { playSound(); goToSlide(ogCurrent + 1); });
+
+    // Keyboard support
+    function onKeyOverlay(e) {
+      if (!overlay.classList.contains("active")) return;
+      if (e.key === "ArrowLeft")  { playSound(); goToSlide(ogCurrent - 1); }
+      if (e.key === "ArrowRight") { playSound(); goToSlide(ogCurrent + 1); }
+      if (e.key === "Escape")     closeOtherGames();
+    }
+    document.addEventListener("keydown", onKeyOverlay);
+
+    // Touch swipe
+    let touchStartX = 0;
+    overlay.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    overlay.addEventListener("touchend", e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) { dx < 0 ? goToSlide(ogCurrent + 1) : goToSlide(ogCurrent - 1); }
+    });
+
+    // Open / close
+    window.openOtherGames = function() {
+      overlay.classList.add("active");
+      goToSlide(0);
+    };
+    window.closeOtherGames = function() {
+      overlay.classList.remove("active");
+    };
+
+    document.getElementById("ogCloseBtn").addEventListener("click", () => { playSound(); closeOtherGames(); });
+
+    // Wire home button
+    document.getElementById("homeOtherBtn").addEventListener("click", () => { playSound(); openOtherGames(); });
+  })();
+  </script>
 </body>
 
 </html>
