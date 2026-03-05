@@ -404,4 +404,9 @@
   .vs-game-center { position: relative; top: unset; left: unset; transform: none; width: 100%; }
   .vs-arena { gap: 8px; }
   .vs-side { min-height: 200px; }
+
+    #vsP1Side {
+    rotate: 180deg;
+    order: -1;
+  }
 }
