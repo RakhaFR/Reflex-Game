@@ -204,18 +204,6 @@ function initLobbyPageLogic() {
 
   let currentIdx  = 0;
 
-  // Meta info per track — sinkron dengan BM_TRACKS di basic-mode.js
-  const tracksMeta = [
-    {
-      num: "01",
-      role: "// OSU STYLE — KEYBOARD REFLEX",
-      title: "PIXEL PANIC PARTY",
-      class: "title-basic",
-      desc: "140 BPM chiptune madness. Tekan tombol yang muncul sebelum ring menyusut habis. Timing is everything.",
-    },
-    // Tambah entry baru kalau ada track baru di BM_TRACKS
-  ];
-
   // ============================================================
   // ── PROFILE MODAL SYSTEM
   // ============================================================
@@ -715,16 +703,18 @@ function initLobbyPageLogic() {
 
     songItems.forEach((item, i) => {
       item.classList.toggle("active", i === currentIdx);
+      // Tetangga langsung (1 di atas, 1 di bawah) ikut maju dikit ke kiri
+      item.classList.toggle("near", i === currentIdx - 1 || i === currentIdx + 1);
       if (i === currentIdx) item.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
 
-    // Sync left info panel
-    const meta = tracksMeta[currentIdx];
+    // Sync left info panel — langsung dari BM_TRACKS, gak ada duplikat lagi
+    const meta = typeof BM_TRACKS !== "undefined" ? BM_TRACKS[currentIdx] : null;
     if (meta) {
-      if (displayNum)   displayNum.textContent  = meta.num;
-      if (displayRole)  displayRole.textContent = meta.role;
-      if (displayTitle) { displayTitle.textContent = meta.title; displayTitle.className = `mode-title ${meta.class}`; }
-      if (displayDesc)  displayDesc.textContent  = meta.desc;
+      if (displayNum)   displayNum.textContent  = String(currentIdx + 1).padStart(2, "0");
+      if (displayRole)  displayRole.textContent = meta.role || "";
+      if (displayTitle) { displayTitle.textContent = meta.title; displayTitle.className = `mode-title ${meta.titleClass || "title-basic"}`; }
+      if (displayDesc)  displayDesc.textContent  = meta.desc || "";
     }
 
     // Sync track index ke basic-mode engine
@@ -744,6 +734,12 @@ function initLobbyPageLogic() {
 
     updateDiffPanels(currentIdx);
   }
+
+  // Set state "near" yang bener pas pertama kali halaman dibuka,
+  // tanpa ikut trigger pindah video/preview/info panel (cukup class-nya aja)
+  songItems.forEach((item, i) => {
+    item.classList.toggle("near", i === currentIdx - 1 || i === currentIdx + 1);
+  });
 
   songItems.forEach((item, i) => {
     item.addEventListener("click", () => {

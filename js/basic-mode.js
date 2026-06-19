@@ -10,9 +10,9 @@
 // A. TRACK LIST — tambah musik baru di sini
 // ============================================================
 // PENTING: tiap track butuh `id` yang UNIK (jangan sama persis
-// dengan track lain), dan kalau nambah track baru di sini, HARUS
-// juga tambah blok <button class="song-item"> + <div class="diff-panel">
-// baru di lobby.html (lihat komentar di sana untuk cara copy-paste-nya).
+// dengan track lain). Itu aja — list di lobby (song-item + diff-panel)
+// di-render OTOMATIS dari array ini oleh bmRenderTrackList() (lihat
+// bagian P di bawah). Gak perlu edit lobby.html sama sekali lagi.
 const BM_TRACKS = [
   {
     id: "pixel_panic",
@@ -22,18 +22,28 @@ const BM_TRACKS = [
     src: "assets/music/Pixel_Panic_Party.mp3",
     duration: 60,          // detik — fallback jika audio metadata belum load
     bg: "assets/video/kamia-live2d.mp4",
+    art: "assets/picture/logo.png",        // album art thumbnail (opsional)
     difficulties: ["normal", "medium", "hard", "extreme"],
+    color: "#00e5ff",      // warna aksen song-item ini saat ke-select
+    role: "// OSU STYLE — KEYBOARD REFLEX",
+    titleClass: "title-basic",
+    desc: "140 BPM chiptune madness. Tekan tombol yang muncul sebelum ring menyusut habis. Timing is everything.",
   },
   // Tambah track baru di sini — pastikan `id` unik & beda dari track lain:
   {
-    id: "aku_suka",                       // ← WAJIB UNIK
+    id: "id_title",                       // ← WAJIB UNIK
     title: "MY SONG TITLE",
     artist: "Artist Name",
     bpm: 160,
     src: "assets/music/Pixel_Panic.mp3",
     duration: 60,
     bg: "assets/video/ocean-live2d.mp4",
+    art: "assets/picture/logo.png",
     difficulties: ["normal", "medium", "hard"],
+    color: "#ff2d78",      // tiap track boleh punya warna aksen sendiri-sendiri
+    role: "// OSU STYLE — KEYBOARD REFLEX",
+    titleClass: "title-basic",
+    desc: "Ganti deskripsi ini sesuai vibe lagunya.",
   },
 ];
 
@@ -518,9 +528,70 @@ Object.defineProperty(window, "basicBestCombo", {
 });
 
 // ============================================================
-// P. EXIT BUTTON & RESULT POPUP LISTENERS
+// P. DYNAMIC TRACK LIST RENDERING — lobby.html
+// ============================================================
+// Render #songListWrapper otomatis dari BM_TRACKS + BM_DIFF, jadi
+// markup <button class="song-item"> dan <div class="diff-panel"> gak
+// perlu lagi ditulis manual dua kali (di sini DAN di lobby.html).
+// Mau nambah track? cukup tambah object baru di BM_TRACKS (bagian A).
+function bmRenderTrackList() {
+  const wrapper = document.getElementById("songListWrapper");
+  if (!wrapper) return; // bukan lagi di lobby.html (mis. di game.html) — skip
+
+  wrapper.innerHTML = "";
+
+  BM_TRACKS.forEach((track, i) => {
+    const accent = track.color || "#00e5ff";
+
+    // ── song-item ──
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "song-item" + (i === 0 ? " active" : "");
+    item.dataset.index    = i;
+    item.dataset.video    = track.bg;
+    item.dataset.trackIdx = i;
+    item.dataset.preview  = track.src;
+    item.style.setProperty("--song-accent", accent);
+    item.innerHTML = `
+      <span class="song-index">${String(i + 1).padStart(2, "0")}</span>
+      <img class="song-album-art" src="${track.art || "assets/picture/logo.png"}" alt="album" onerror="this.style.opacity='0'">
+      <div class="song-details">
+        <span class="song-title">${track.title}</span>
+        <span class="song-artist">${track.artist} // BPM: ${track.bpm} // ${bmFmtTime(track.duration)}</span>
+      </div>
+      <span class="song-status-tag">SELECT</span>
+    `;
+    wrapper.appendChild(item);
+
+    // ── diff-panel (cuma track pertama yang langsung kebuka) ──
+    const panel = document.createElement("div");
+    panel.className = "diff-panel";
+    panel.id = "diffPanel-" + i;
+    panel.style.display = i === 0 ? "block" : "none";
+
+    const diffBtns = (track.difficulties || [])
+      .map((key, di) => {
+        const d = BM_DIFF[key];
+        if (!d) return "";
+        return `<button class="diff-btn${di === 0 ? " active" : ""}" data-diff="${key}">` +
+          `<span class="diff-dot" style="background:${d.color}"></span>${d.label}</button>`;
+      })
+      .join("");
+
+    panel.innerHTML = `
+      <div class="diff-panel-label">// DIFFICULTY</div>
+      <div class="diff-btn-row">${diffBtns}</div>
+    `;
+    wrapper.appendChild(panel);
+  });
+}
+
+// ============================================================
+// Q. EXIT BUTTON & RESULT POPUP LISTENERS
 // ============================================================
 document.addEventListener("DOMContentLoaded", () => {
+  bmRenderTrackList(); // harus jalan duluan, sebelum main.js baca .song-item
+
   document.getElementById("exitBasicBtn")?.addEventListener("click", () => {
     if (typeof playSound === "function") playSound();
     bmTriggerQuit();

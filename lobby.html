@@ -278,51 +278,27 @@
 
       <section class="control-panel-right">
 
-<div class="song-list-container">
-  <div class="song-list-header">TRACK LIST</div>
-  <div class="song-list-wrapper" id="songListWrapper">
-
-    <!-- TRACK 01 (ACTIVE STATE) -->
-    <button class="song-item active" data-index="0"
-      data-video="assets/video/kamia-live2d.mp4"
-      data-track-idx="0"
-      data-preview="assets/music/Pixel_Panic_Party.mp3">
-      <span class="song-index">01</span>
-      <img class="song-album-art" src="assets/picture/logo.png" alt="album" onerror="this.style.opacity='0'">
-      <div class="song-details">
-        <span class="song-title">PIXEL PANIC PARTY</span>
-        <span class="song-artist">Chiptune Frenzy // BPM: 140 // 1:00</span>
-      </div>
-      <span class="song-status-tag">SELECT</span>
-    </button>
-    
-    <!-- PANEL DIFFICULTY BERADA DI BAWAH TRACK YANG SEANG AKTIF -->
-    <div class="diff-panel" id="diffPanel-0">
-      <div class="diff-panel-label">// tempat select elemen difficulty</div>
-      <div class="diff-btn-row">
-        <button class="diff-btn" data-diff="normal"><span class="diff-dot" style="background:#00ff88"></span>NORMAL</button>
-        <button class="diff-btn active" data-diff="medium"><span class="diff-dot" style="background:#ffe500"></span>MEDIUM</button>
-        <button class="diff-btn" data-diff="hard"><span class="diff-dot" style="background:#ff6644"></span>HARD</button>
-        <button class="diff-btn" data-diff="extreme"><span class="diff-dot" style="background:#ff00ff"></span>EXTREME</button>
-      </div>
-    </div>
-
-    <!-- TRACK 02 (INACTIVE - TETEP KELIATAN INFO TRACK NYA DENGAN TEMA GELAP) -->
-    <button class="song-item" data-index="1"
-      data-video="assets/video/another-video.mp4"
-      data-track-idx="1"
-      data-preview="assets/music/track2.mp3">
-      <span class="song-index">02</span>
-      <img class="song-album-art" src="assets/picture/logo.png" alt="album" onerror="this.style.opacity='0'">
-      <div class="song-details">
-        <span class="song-title">CYBER REFLEX MOTION</span>
-        <span class="song-artist">Synthwave Beats // BPM: 128 // 1:30</span>
-      </div>
-      <span class="song-status-tag">SELECT</span>
-    </button>
-
-  </div>
-</div>
+        <div class="song-list-container">
+          <div class="song-list-header">
+            <div class="cd-icon-wrap">
+              <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="#0a0a0a"/>
+                <circle cx="32" cy="32" r="30" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5"/>
+                <path d="M32 2 A30 30 0 0 1 62 32" fill="none" stroke="#00e5ff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+                <circle cx="32" cy="32" r="20" fill="none" stroke="#1a1a1a" stroke-width="1"/>
+                <circle cx="32" cy="32" r="13" fill="none" stroke="#1a1a1a" stroke-width="1"/>
+                <circle cx="32" cy="32" r="6" fill="#00e5ff"/>
+                <circle cx="32" cy="32" r="2.5" fill="#0a0a0a"/>
+              </svg>
+            </div>
+            <span class="song-list-header-text">TRACK LIST</span>
+          </div>
+          <div class="song-list-wrapper" id="songListWrapper">
+            <!-- Track list di-render OTOMATIS oleh JS dari BM_TRACKS
+                 (lihat basic-mode.js → bmRenderTrackList()).
+                 Mau nambah lagu? cukup edit BM_TRACKS, gak perlu sentuh HTML ini. -->
+          </div>
+        </div>
 
         <div class="action-controls-block">
 

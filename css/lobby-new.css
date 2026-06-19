@@ -60,7 +60,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 30px 40px;
+  padding: 10px 15px;
   box-sizing: border-box;
 }
 
@@ -240,89 +240,144 @@
   max-width: 440px;
 }
 
-/* Track Selector Menu List Group */
+/* ==========================================================================
+   TRACK LIST — DIAGONAL CD-STYLE DESIGN
+   ========================================================================== */
+
+/* Container — TRANSPARAN, cuma pembungkus header + list track,
+   gak ada panel/background sendiri (biar nyatu sama bg video) */
 .song-list-container {
-  width: 100%;
-  background: rgba(8, 8, 18, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  overflow: hidden; /* fix overflow-x */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(14px);
+  width: 120%;
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
+  position: relative;
+  right: -1rem;
 }
 
 .song-list-header {
-  font-size: 10px;
-  letter-spacing: 4px;
-  color: rgba(255, 255, 255, 0.3);
-  padding: 12px 16px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px 10px;
+  background: transparent;
+}
+
+/* Spinning CD icon di header */
+.song-list-header .cd-icon-wrap {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+}
+
+.song-list-header .cd-icon-wrap svg {
+  width: 100%;
+  height: 100%;
+  animation: cdSpin 3.5s linear infinite;
+}
+
+@keyframes cdSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.song-list-header-text {
+  font-family: "Slackey", sans-serif;
+  font-size: 22px;
+  color: #f4f4f4;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .song-list-wrapper {
   display: flex;
   flex-direction: column;
-  max-height: 260px;
+  max-height: 320px;
   overflow-y: auto;
-  overflow-x: hidden; /* explicit fix */
+  overflow-x: hidden;     /* WAJIB: ini yang bikin item idle "kepotong" di kanan */
+  background: transparent;
+  padding: 4px 2px 6px;
 }
 
-/* Individual track row */
+/* ── Individual track row: skewed diagonal block, ala osu! song select ──
+   Default = gelap & nyusut+geser ke kanan (overflow-x:hidden di parent
+   yang motong sisi kirinya). Active = warna custom per-track + full lebar.
+   .near = tetangga langsung (atas/bawah) dari item active — maju dikit
+   biar ada efek "fan/cascade", di-toggle dari JS (main.js). */
 .song-item {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  padding: 10px 14px;
-  color: #ffffff;
+  gap: 14px;
+  background: #15151f;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #f4f4f4;
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s ease;
-  width: 100%;
+  width: calc(90% - 14px);
+  margin: 0 14px 0px auto;
+  padding: 10px 18px 10px 22px;
   box-sizing: border-box;
-  min-width: 0; /* overflow fix */
+  min-width: 0;
+  clip-path: polygon(6% 0%, 100% 0%, 100% 100%, 0% 100%);
+  transform: translateX(64px) scale(0.95);
+  transform-origin: right center;
+  z-index: 1;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.song-item:last-of-type {
-  border-bottom: none;
+.song-item:hover {
+  transform: translateX(32px) scale(0.97);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Tetangga langsung item active (1 di atas, 1 di bawah) — posisinya
+   di antara idle (64px) & active (0px), kasih efek nyusun/fan kayak osu! */
+.song-item.near {
+  transform: translateX(36px) scale(0.965);
+  z-index: 2;
+}
+
+.song-item.near:hover {
+  transform: translateX(22px) scale(0.975);
 }
 
 /* Nomor track */
 .song-index {
   font-family: "Orbitron", sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.35);
   flex-shrink: 0;
-  width: 20px;
+  width: 18px;
 }
 
 /* Album art thumbnail */
 .song-album-art {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: 6px;
   object-fit: cover;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 /* Text details */
 .song-details {
   flex: 1;
-  min-width: 0; /* overflow fix */
+  min-width: 0;
 }
 
 .song-title {
   display: block;
   font-weight: 900;
-  font-size: 13px;
-  letter-spacing: 0.3px;
-  margin-bottom: 3px;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  color: #f4f4f4;
+  margin-bottom: 1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -331,7 +386,7 @@
 .song-artist {
   display: block;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.38);
+  color: rgba(255, 255, 255, 0.55);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -340,56 +395,62 @@
 .song-status-tag {
   font-family: "Orbitron", sans-serif;
   font-size: 9px;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+  padding: 5px 12px;
   border-radius: 4px;
   font-weight: 900;
   letter-spacing: 1px;
   flex-shrink: 0;
-  border: 1px solid rgba(255,255,255,0.08);
 }
 
-/* Hover state */
-.song-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/* Active state */
+/* Active state — track terpilih: full lebar + warna custom per-track
+   (di-set lewat --song-accent inline style oleh bmRenderTrackList()) */
 .song-item.active {
-  background: rgba(0, 229, 255, 0.12);
-  border-bottom-color: rgba(0, 229, 255, 0.15);
+  background: var(--song-accent, #00e5ff);
+  border-color: transparent;
+  transform: translateX(0) scale(1);
+  z-index: 3;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
 }
 
-.song-item.active .song-index {
-  color: #00e5ff;
-}
-
-.song-item.active .song-title {
-  color: #00e5ff;
-}
-
-.song-item.active .song-artist {
-  color: rgba(0, 229, 255, 0.6);
+.song-item.active:hover {
+  transform: translateX(0) scale(1);
 }
 
 .song-item.active .song-status-tag {
-  background: rgba(0, 229, 255, 0.2);
-  border-color: #00e5ff;
-  color: #00e5ff;
+  background: #000000;
+  color: var(--song-accent, #00e5ff);
 }
 
 /* Preview playing indicator */
 .song-item.previewing .song-status-tag {
-  background: rgba(255, 229, 0, 0.2);
-  border-color: #ffe500;
-  color: #ffe500;
+  background: #ff9f00;
+  color: #1a1a1a;
   animation: previewPulse 1s ease infinite;
 }
 
 @keyframes previewPulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
+  50%       { opacity: 0.55; }
 }
+
+/* ── Diagonal black slash decorator (kayak di referensi) ── */
+.song-item::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -2px;
+  width: 14px;
+  height: 100%;
+  background: #0a0a0a;
+  clip-path: polygon(100% 100%, 100% 100%, 0% 100%);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   END TRACK LIST REDESIGN
+   ========================================================================== */
 
 /* ── Action Control Stack Area (Play & Under Arrows) ── */
 .action-controls-block {
@@ -1068,10 +1129,13 @@
 /* ==========================================================================
    INLINE DIFFICULTY SELECTOR PANEL (muncul di bawah active song-item)
    ========================================================================== */
-.diff-selector-panel {
-  background: rgba(0, 229, 255, 0.04);
-  border-top: 1px solid rgba(0, 229, 255, 0.12);
-  padding: 10px 14px 12px;
+.diff-panel {
+  width: calc(90% - 14px);
+  margin: -2px 14px 9px auto;
+  padding: 8px 14px 12px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 0 0 10px 10px;
   animation: diffPanelSlide 0.18s ease-out;
 }
 
@@ -1083,27 +1147,28 @@
 .diff-panel-label {
   font-size: 9px;
   letter-spacing: 2px;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255, 255, 255, 0.4);
   font-family: "Orbitron", sans-serif;
   font-weight: 700;
   margin-bottom: 8px;
-  padding-left: 2px;
+  padding-left: 4px;
 }
 
 .diff-btn-row {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  padding-left: 4px;
 }
 
 .diff-btn {
   display: flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 6px;
-  color: rgba(255,255,255,0.55);
+  color: rgba(255, 255, 255, 0.6);
   font-family: "Orbitron", sans-serif;
   font-size: 10px;
   font-weight: 700;
@@ -1114,15 +1179,15 @@
 }
 
 .diff-btn:hover {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
   color: #fff;
 }
 
 .diff-btn.active {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.4);
-  color: #fff;
+  background: #0a0a0a;
+  border-color: #0a0a0a;
+  color: #00e5ff;
 }
 
 .diff-dot {
