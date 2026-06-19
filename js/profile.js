@@ -36,6 +36,7 @@ const PROFILE_DEFAULT = {
     screenFlashEnabled: true,
     particleEffectEnabled: true,
     comboAnimationEnabled: true,
+    keybinds: ["q", "w", "e", "r"],
   }
 };
 

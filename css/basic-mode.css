@@ -1,98 +1,546 @@
-/* ============================================
-   BASIC MODE — GAME AREA
-   ============================================ */
+/* ==========================================================================
+   REFLEXRYTHM — BASIC MODE OSU-STYLE CSS
+   css/basic-mode-osu.css
+   ========================================================================== */
 
-#gameArea {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 40px;
+/* ── Game Screen ── */
+#basicMode {
+  position: fixed;
+  inset: 0;
+  background: #04040a;
+  overflow: hidden;
+  z-index: 200;
+  display: none;
 }
-#gameArea button {
-  display: none; /* default hidden, shown by JS */
-  font-size: 28px;
-  padding: 20px 50px;
-}
+#basicMode.active { display: block; }
 
-/* Button colors — moved from inline style="" */
-#greenBtn {
-  background: linear-gradient(#00c851, #007e33);
-}
-#redBtn {
-  background: linear-gradient(#ff4444, #cc0000);
-}
-#bonusBtn {
-  background: linear-gradient(#fff533, #c7c150);
-}
-#holdBtn {
-  background: linear-gradient(#aaaaaa, #555555);
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-/* Shake */
-#basicGame.shake {
-  animation: shakeAnim 0.4s;
-}
-
-/* ============================================
-   COMBO CONTAINER — BASIC MODE
-   ============================================ */
-#comboContainer {
+/* Background video di game screen (diset src via JS) */
+#bmBgVideo {
   position: absolute;
-  top: 120px;
-  left: 40px;
-  font-family: "Slackey", cursive;
-  font-size: 50px;
-  font-weight: bold;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.25;
+  filter: brightness(0.5) saturate(1.5);
+  z-index: 0;
+}
+#bmBgOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(4,4,10,0.75) 0%,
+    rgba(4,4,10,0.35) 50%,
+    rgba(4,4,10,0.8)  100%
+  );
+  z-index: 1;
+}
+
+/* ── HUD TOP ── */
+#bmHud {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  z-index: 20;
+  gap: 12px;
+}
+
+.bm-hud-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 90px;
+}
+.bm-hud-label {
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.3);
+  font-weight: 700;
+}
+.bm-hud-value {
+  font-family: "Orbitron", sans-serif;
+  font-size: 22px;
+  font-weight: 900;
   color: #fff;
-  text-shadow:
-    0 0 8px #ff0,
-    0 0 16px #ff0;
-  opacity: 0;
+}
+
+#bmScore {
+  color: #00f0ff;
+  text-shadow: 0 0 18px rgba(0,240,255,0.55);
+  font-size: 28px;
+}
+
+/* Music timer — center HUD */
+#bmMusicTimer {
+  font-family: "Orbitron", sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 2px;
+  text-shadow: 0 0 16px rgba(0,240,255,0.5);
+  transition: color .4s, text-shadow .4s;
+}
+
+/* Track title di HUD tengah atas */
+#bmTrackTitle {
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* Diff badge */
+#bmDiffBadge {
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  padding: 2px 12px;
+  border-radius: 20px;
+  border: 1px solid currentColor;
+  opacity: 0.8;
+}
+
+/* Exit button */
+#exitBasicBtn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.4);
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all .2s;
+}
+#exitBasicBtn:hover {
+  background: rgba(255,68,68,0.15);
+  border-color: #ff4444;
+  color: #ff4444;
+}
+
+/* ── ARENA ── */
+#bmArena {
+  position: absolute;
+  inset: 72px 0 80px 0;
+  z-index: 10;
   pointer-events: none;
-  z-index: 5000;
-  transition: all 0.4s ease;
 }
-#comboContainer.pop {
-  top: 60px;
-  left: 100px;
-  font-size: 80px;
-  opacity: 1;
-  transform: scale(1.3);
+
+/* ── NOTE CIRCLE ── */
+.bm-note {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--nc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%) scale(1);
+  box-shadow: 0 0 20px var(--nc), 0 2px 8px rgba(0,0,0,0.6);
+  animation: bmNoteIn 0.14s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
 }
-#comboContainer.show {
-  opacity: 1;
-  transform: scale(1);
+
+@keyframes bmNoteIn {
+  from { transform: translate(-50%,-50%) scale(0.3); opacity: 0; }
+  to   { transform: translate(-50%,-50%) scale(1);   opacity: 1; }
 }
-#comboContainer .combo-label {
-  display: block;
+
+.bm-note-exit {
+  animation: bmNoteOut 0.18s ease-out forwards !important;
+}
+@keyframes bmNoteOut {
+  to { transform: translate(-50%,-50%) scale(1.5); opacity: 0; }
+}
+
+/* Key label di dalam note */
+.bm-key-label {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 900;
+  font-size: 17px;
+  color: rgba(0,0,0,0.72);
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.2);
+}
+
+/* ── SHRINK RING ── */
+.bm-ring {
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  border: 4px solid var(--rc);
+  box-shadow: 0 0 12px var(--rc);
+  pointer-events: none;
+  animation: bmRingShrink var(--dur) linear forwards;
+}
+
+@keyframes bmRingShrink {
+  0%   { inset: -18px; opacity: 1; }
+  80%  { inset: -3px;  opacity: 1; }
+  100% { inset: 1px;   opacity: 0; }
+}
+
+/* ── JUDGE TEXT ── */
+.bm-judge {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translateX(-50%);
+  font-family: "Orbitron", sans-serif;
   font-size: 26px;
-  color: #ff0;
+  font-weight: 900;
+  letter-spacing: 4px;
+  pointer-events: none;
+  z-index: 30;
+  opacity: 0;
+  white-space: nowrap;
 }
-#comboContainer #combo {
+
+.bm-j-perfect  { color: #ffe500; text-shadow: 0 0 24px rgba(255,229,0,0.9); }
+.bm-j-good     { color: #00ff88; text-shadow: 0 0 18px rgba(0,255,136,0.75); }
+.bm-j-early    { color: #00c8ff; text-shadow: 0 0 16px rgba(0,200,255,0.7); }
+.bm-j-miss     { color: #ff4444; text-shadow: 0 0 18px rgba(255,68,68,0.75); }
+.bm-j-wrong    { color: #ff2222; text-shadow: 0 0 26px rgba(255,0,0,1); }
+.bm-j-nice     { color: #a0ffc8; text-shadow: 0 0 14px rgba(160,255,200,0.7); }
+
+@keyframes bmJudgeFloat {
+  0%   { opacity: 1; transform: translateX(-50%) translateY(0)   scale(1.3); }
+  50%  { opacity: 1; transform: translateX(-50%) translateY(-16px) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-32px) scale(0.9); }
+}
+.bm-j-pop {
+  animation: bmJudgeFloat 0.65s ease-out forwards;
+}
+
+/* ── COMBO ── */
+.bm-combo-box {
+  position: absolute;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  z-index: 20;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.bm-combo-lbl {
   display: block;
-  font-size: 42px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 2px;
+}
+#bmComboText {
+  display: block;
+  font-family: "Orbitron", sans-serif;
+  font-size: 38px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255,255,255,0.35);
+}
+.bm-combo-box.bm-fire #bmComboText {
+  color: #ffe500;
+  text-shadow: 0 0 28px rgba(255,200,0,0.9), 0 0 60px rgba(255,80,0,0.4);
+}
+@keyframes bmComboBounce {
+  0%   { transform: translateX(-50%) scale(1.5); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+.bm-pop {
+  animation: bmComboBounce 0.22s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+}
+
+/* ── KEY LEGEND BAR ── */
+#bmKeyLegend {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: linear-gradient(to top, rgba(4,4,10,0.97) 60%, transparent);
+  z-index: 20;
+  padding-bottom: 10px;
+}
+.bm-key-chip {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Orbitron", sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.4);
+  user-select: none;
+  transition: all .1s;
+}
+.bm-key-chip.pressed {
+  background: rgba(0,240,255,0.2);
+  border-color: #00f0ff;
+  color: #00f0ff;
+  box-shadow: 0 0 14px rgba(0,240,255,0.5);
+  transform: scale(0.9);
+}
+.bm-key-sep {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.08);
+  margin: 0 4px;
+}
+
+/* ── RESULT POPUP ── */
+#basicResultPopup {
+  position: fixed;
+  inset: 0;
+  background: rgba(4,4,10,0.92);
+  backdrop-filter: blur(14px);
+  z-index: 9000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#basicResultPopup.active { display: flex; }
+
+.bm-result-box {
+  background: #0a0d18;
+  border: 1px solid rgba(0,240,255,0.25);
+  border-radius: 20px;
+  padding: 36px 48px;
+  text-align: center;
+  min-width: 340px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(0,240,255,0.06);
+}
+.bm-result-label {
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 6px;
+}
+.bm-result-title {
+  font-family: "Slackey", sans-serif;
+  font-size: 32px;
+  color: #00f0ff;
+  margin: 0 0 4px;
+  text-shadow: 0 0 20px rgba(0,240,255,0.6);
+}
+.bm-result-track {
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 28px;
+}
+.bm-result-score {
+  font-family: "Orbitron", sans-serif;
+  font-size: 52px;
+  font-weight: 900;
+  color: #ffe500;
+  text-shadow: 0 0 30px rgba(255,229,0,0.7);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.bm-result-combo {
+  font-family: "Orbitron", sans-serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 32px;
+}
+.bm-result-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.bm-result-btn {
+  font-family: "Orbitron", sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  padding: 12px 26px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  transition: all .2s;
+}
+.bm-result-btn.primary {
+  background: #00f0ff;
+  color: #04040a;
+  box-shadow: 0 0 20px rgba(0,240,255,0.4);
+}
+.bm-result-btn.primary:hover { opacity: .85; }
+.bm-result-btn.secondary {
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.bm-result-btn.secondary:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+/* ── DIFF PANEL di lobby ── */
+.diff-panel {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 10px 12px 12px;
+  margin-top: -4px;
+  animation: diffSlideIn .18s ease-out;
+}
+@keyframes diffSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.diff-panel-label {
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.28);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.diff-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.diff-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.45);
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all .14s;
+}
+.diff-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.diff-btn.active {
+  background: rgba(255,255,255,0.13);
+  border-color: rgba(255,255,255,0.38);
   color: #fff;
 }
-
-.combo-big {
-  font-size: 70px;
-  color: #ff0;
-}
-.combo-glow {
-  animation: glowAnim 1s infinite alternate;
+.diff-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-@keyframes glowAnim {
-  from {
-    text-shadow:
-      0 0 10px #ff0,
-      0 0 20px #ffa500;
-  }
-  to {
-    text-shadow:
-      0 0 20px #ffa500,
-      0 0 40px #ff0;
-  }
+/* Responsive */
+@media (max-width: 600px) {
+  .bm-hud-value, #bmScore { font-size: 18px; }
+  #bmMusicTimer { font-size: 18px; }
+  .bm-judge { font-size: 20px; }
+  #bmComboText { font-size: 28px; }
+  .bm-key-chip { width: 36px; height: 36px; font-size: 12px; }
+  .bm-note { width: 58px; height: 58px; }
+  .bm-key-label { font-size: 14px; }
+}
+
+/* ── Inline HUD element styles (game.html) ── */
+.bm-exit-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.4);
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.bm-exit-btn:hover {
+  background: rgba(255,68,68,0.15);
+  border-color: #ff4444;
+  color: #ff4444;
+}
+.bm-diff-badge {
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  padding: 2px 12px;
+  border-radius: 20px;
+  border: 1px solid currentColor;
+  opacity: 0.85;
+  color: #00ff88;
+}
+.bm-timer {
+  font-family: "Orbitron", sans-serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 2px;
+  text-shadow: 0 0 16px rgba(0,240,255,0.5);
+  transition: color .4s, text-shadow .4s;
+}
+.bm-track-title {
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  text-align: center;
+}
+.bm-hud-lbl {
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.3);
+  font-weight: 700;
+}
+.bm-score-val {
+  font-family: "Orbitron", sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: #00f0ff;
+  text-shadow: 0 0 18px rgba(0,240,255,0.55);
+}
+.bm-combo-lbl {
+  display: block;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 2px;
+}
+#bmComboText {
+  display: block;
+  font-family: "Orbitron", sans-serif;
+  font-size: 38px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255,255,255,0.35);
+}
+.bm-combo-box.bm-fire #bmComboText {
+  color: #ffe500;
+  text-shadow: 0 0 28px rgba(255,200,0,0.9), 0 0 60px rgba(255,80,0,0.4);
 }

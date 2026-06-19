@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live2D Video Motion Tester</title>
+    <style>
+        /* Reset basic margin dan padding */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Memastikan body memenuhi layar dan menyembunyikan scrollbar */
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000; /* Background hitam jika rasio video berbeda */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Container untuk video Live2D */
+        .live2d-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Styling Video agar Full Width & Full Height (Responsive) */
+        .live2d-video {
+            width: 100%;
+            height: 100%;
+            /* 'cover' memastikan video memenuhi layar tanpa merusak aspect ratio (paling cocok untuk wallpaper/background) */
+            /* Jika ingin seluruh video terlihat utuh tanpa terpotong, ganti ke 'contain' */
+            object-fit: cover; 
+            pointer-events: none; /* Mencegah user klik kanan/pause manual pada video */
+        }
+
+        /* Overlay Control Panel untuk kebutuhan Testing */
+        .tester-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+
+        .tester-panel:hover {
+            opacity: 1;
+        }
+
+        .btn {
+            background: #ff2a5f;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #e02150;
+        }
+
+        .status-badge {
+            color: #ccc;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="live2d-container">
+        <video 
+            id="live2dVideo" 
+            class="live2d-video" 
+            autoplay 
+            loop 
+            muted 
+            playsinline>
+            <source src="assets/video/lobby.mp4" type="video/mp4">
+            Browser kamu tidak mendukung video HTML5.
+        </video>
+
+        <div class="tester-panel">
+            <button id="btnToggleFit" class="btn">Switch Fit (Cover/Contain)</button>
+            <button id="btnSpeedUp" class="btn">Speed (1x)</button>
+            <span class="status-badge" id="statusText">Looping Active</span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const video = document.getElementById("live2dVideo");
+            const btnToggleFit = document.getElementById("btnToggleFit");
+            const btnSpeedUp = document.getElementById("btnSpeedUp");
+            const statusText = document.getElementById("statusText");
+
+            // 1. Fit Toggle (Untuk cek kecocokan skala gambar di layar)
+            btnToggleFit.addEventListener("click", () => {
+                if (video.style.objectFit === "contain") {
+                    video.style.objectFit = "cover";
+                    btnToggleFit.textContent = "Fit: Cover";
+                } else {
+                    video.style.objectFit = "contain";
+                    btnToggleFit.textContent = "Fit: Contain";
+                }
+            });
+
+            // 2. Playback Speed Tester (Untuk ngecek kehalusan motion/gigi/ekspresi saat dipercepat)
+            let speeds = [1, 1.25, 1.5, 2, 0.75];
+            let currentSpeedIndex = 0;
+
+            btnSpeedUp.addEventListener("click", () => {
+                currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+                let newSpeed = speeds[currentSpeedIndex];
+                video.playbackRate = newSpeed;
+                btnSpeedUp.textContent = `Speed (${newSpeed}x)`;
+            });
+
+            // 3. Memastikan Autoplay tidak gagal (Fallback handling)
+            video.play().catch(error => {
+                console.log("Autoplay diblokir oleh browser, memerlukan interaksi user.");
+                statusText.textContent = "Click anywhere to play";
+                document.body.addEventListener("click", () => {
+                    video.play();
+                    statusText.textContent = "Looping Active";
+                }, { once: true });
+            });
+        });
+    </script>
+</body>
+</html>

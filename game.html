@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reflex Hands - Play Arena</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/game-layout.css" />
+  <link rel="stylesheet" href="css/basic-mode.css" />
+  <link rel="stylesheet" href="css/basic-mode-osu.css" />
+  <link rel="stylesheet" href="css/time-attack.css" />
+  <link rel="stylesheet" href="css/versus-mode.css" />
+  <link rel="stylesheet" href="css/popups.css" />
+  <link rel="stylesheet" href="css/profile.css" />
+  <link rel="icon" type="image/png" href="assets/picture/logo.png">
+
+  <!--
+    PATCH — harus inline di <head>, dijalankan SEBELUM basic-mode.js di-parse.
+
+    Masalah utama:
+    basic-mode.js baris pertama langsung jalankan:
+      document.getElementById("playBasicBtn").addEventListener(...)
+    "playBasicBtn" TIDAK ADA di game.html → error → JS berhenti →
+    greenBtn/redBtn/bonusBtn tidak pernah dapat event listener → tidak bisa diklik.
+
+    Fix: patch getElementById supaya semua ID yang "hilang" di game.html
+    dikembalikan sebagai dummy element yang aman (tidak throw error),
+    dan ID yang berubah nama di-alias dengan benar.
+  -->
+  <script>
+    (function patchForGamePage() {
+      const _orig = document.getElementById.bind(document);
+
+      // ID yang BERUBAH NAMA di game.html baru
+      const REMAP = {
+        "basicGame": "basicMode"
+      };
+
+      // ID yang ADA DI JS TAPI TIDAK ADA di game.html —
+      // butuh dummy supaya tidak crash
+      const DUMMY_IDS = [
+        "playBasicBtn",   // ada di lobby.html, tidak di game.html
+        "playTimeAttackBtn", // sama
+        "playVersusBtn",     // sama
+        "home",           // sudah jadi halaman terpisah
+        "lobby"           // sudah jadi halaman terpisah
+      ];
+
+      // Buat semua dummy element dan masukkan ke Map
+      const dummyMap = {};
+      DUMMY_IDS.forEach(function(id) {
+        var el = document.createElement("div");
+        el.id = id;
+        el.style.cssText = "display:none;pointer-events:none;position:absolute;";
+
+        // Untuk "home" dan "lobby": saat .classList.add("active") → navigasi ke lobby
+        if (id === "home" || id === "lobby") {
+          var origAdd = el.classList.add.bind(el.classList);
+          el.classList.add = function() {
+            origAdd.apply(el.classList, arguments);
+            for (var i = 0; i < arguments.length; i++) {
+              if (arguments[i] === "active") {
+                window.location.href = "lobby.html";
+                break;
+              }
+            }
+          };
+        }
+
+        // Untuk "playBasicBtn" dll: addEventListener harus tidak throw
+        // (sudah aman karena elemen valid, listener tidak akan pernah dipanggil)
+        dummyMap[id] = el;
+      });
+
+      // Override getElementById
+      document.getElementById = function(id) {
+        if (REMAP[id]) return _orig(REMAP[id]);
+        if (dummyMap[id]) return dummyMap[id];
+        return _orig(id);
+      };
+
+      // Append dummy ke body begitu body tersedia
+      function appendDummies() {
+        Object.values(dummyMap).forEach(function(el) {
+          if (!document.getElementById(el.id) || document.getElementById(el.id) === el) {
+            document.body.appendChild(el);
+          }
+        });
+      }
+
+      if (document.body) {
+        appendDummies();
+      } else {
+        document.addEventListener("DOMContentLoaded", appendDummies, { once: true });
+      }
+    })();
+  </script>
+</head>
+
+<body class="game-play-page">
+
+  <canvas id="particleCanvas"></canvas>
+  <div id="flashOverlay"></div>
+
+  <div id="countdownOverlay" class="countdown-overlay">
+    <div id="countdownText" class="countdown-num"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       BASIC MODE — OSU STYLE
+       ══════════════════════════════════════════════ -->
+  <main id="basicMode" class="screen">
+
+    <!-- Background video -->
+    <video id="bmBgVideo" autoplay loop muted playsinline
+      style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;opacity:.25;filter:brightness(.5) saturate(1.5);z-index:0;pointer-events:none;"></video>
+    <div style="position:fixed;inset:0;background:linear-gradient(to bottom,rgba(4,4,10,.75) 0%,rgba(4,4,10,.3) 50%,rgba(4,4,10,.85) 100%);z-index:1;pointer-events:none;"></div>
+
+    <!-- HUD -->
+    <div id="bmHud" style="position:fixed;top:0;left:0;right:0;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;z-index:20;gap:12px;">
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;">
+        <button id="exitBasicBtn" class="bm-exit-btn">✕ QUIT</button>
+        <span id="bmDiffBadge" class="bm-diff-badge">NORMAL</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+        <span id="bmMusicTimer" class="bm-timer">0:00</span>
+        <span id="bmTrackTitle" class="bm-track-title">—</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+        <span class="bm-hud-lbl">SCORE</span>
+        <span id="bmScore" class="bm-score-val">0</span>
+      </div>
+    </div>
+
+    <!-- Note arena -->
+    <div id="bmArena" style="position:fixed;inset:72px 0 80px 0;z-index:10;pointer-events:none;"></div>
+
+    <!-- Judge text -->
+    <div class="bm-judge" id="bmJudgeText" style="position:fixed;left:50%;top:38%;transform:translateX(-50%);z-index:30;pointer-events:none;"></div>
+
+    <!-- Combo -->
+    <div class="bm-combo-box" id="bmComboContainer" style="position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:20;text-align:center;pointer-events:none;opacity:0;">
+      <span class="bm-combo-lbl">COMBO</span>
+      <span id="bmComboText">x0</span>
+    </div>
+
+    <!-- Key legend -->
+    <div id="bmKeyLegend" style="position:fixed;bottom:0;left:0;right:0;height:76px;display:flex;align-items:center;justify-content:center;gap:7px;background:linear-gradient(to top,rgba(4,4,10,.97) 60%,transparent);z-index:20;padding-bottom:10px;"></div>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════════
+       TIME ATTACK
+       ══════════════════════════════════════════════ -->
+  <main id="timeAttackGame" class="screen game-session">
+    <header class="game-header">
+      <div class="header-left">
+        <button class="btn-back" id="exitTimeAttackBtn">← Exit</button>
+      </div>
+      <div class="game-stats">
+        <div class="stat-box">
+          <span class="stat-label">SCORE</span>
+          <span id="taScore" class="stat-value">0</span>
+        </div>
+      </div>
+      <div class="header-right"></div>
+    </header>
+
+    <div id="timerBarWrapper">
+      <div id="timerBarFill"></div>
+      <span id="taTimerLabel">00:00</span>
+    </div>
+
+    <div id="taComboContainer">
+      <span class="combo-label">COMBO</span>
+      <span id="taCombo">x0</span>
+    </div>
+
+    <section class="game-display-area">
+      <div id="taGameArea" class="target-container">
+        <button id="taGreenBtn" class="game-btn">
+          <span class="btn-label">GREEN</span>
+          <span class="countdown" id="taCdGreen"></span>
+        </button>
+        <button id="taRedBtn" class="game-btn">
+          <span class="btn-label">RED</span>
+          <span class="countdown" id="taCdRed"></span>
+        </button>
+        <button id="taBonusBtn" class="game-btn">
+          <span class="btn-label">BONUS</span>
+          <span class="countdown" id="taCdBonus"></span>
+        </button>
+        <button id="taHoldBtn" class="game-btn">
+          <span class="btn-label">HOLD</span>
+          <span class="countdown" id="taCdHold"></span>
+        </button>
+        <button id="taFreezeBtn" class="game-btn freeze-btn">
+          <span class="btn-label">FREEZE</span>
+          <small id="freezeCooldownLabel">READY</small>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ══════════════════════════════════════════════
+       VERSUS MODE
+       ══════════════════════════════════════════════ -->
+  <main id="versusGame" class="screen game-session">
+    <header class="game-header">
+      <div class="header-left">
+        <button class="btn-back" id="exitVersusBtn">← Exit</button>
+      </div>
+      <div id="vsTimerBarWrapper">
+        <div id="vsTimerBarFill"></div>
+        <span id="vsTimerLabel">00:00</span>
+      </div>
+      <div class="header-right"></div>
+    </header>
+
+    <div class="vs-container">
+      <div id="vsP1Side" class="vs-side-panel">
+        <div class="vs-player-info">PLAYER 1 <small>[A]</small></div>
+        <div id="vsP1Score" class="vs-score-val">0</div>
+        <div id="vsP1ComboContainer" class="vs-combo-box">Combo: <span id="vsP1Combo">0</span></div>
+        <button id="vsP1ClickBtn" class="vs-action-trigger-btn">HIT / DEFEND</button>
+        <div id="vsP1FreezeStatus" class="vs-freeze-indicator"></div>
+      </div>
+      <div class="vs-center-hub">
+        <div id="vsTargetDisplay" class="vs-spawned-target">READY</div>
+      </div>
+      <div id="vsP2Side" class="vs-side-panel">
+        <div class="vs-player-info">PLAYER 2 <small>[L]</small></div>
+        <div id="vsP2Score" class="vs-score-val">0</div>
+        <div id="vsP2ComboContainer" class="vs-combo-box">Combo: <span id="vsP2Combo">0</span></div>
+        <button id="vsP2ClickBtn" class="vs-action-trigger-btn">HIT / DEFEND</button>
+        <div id="vsP2FreezeStatus" class="vs-freeze-indicator"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══════════════════════════════════════════════
+       POPUP: DIFFICULTY
+       ══════════════════════════════════════════════ -->
+  <div id="difficultyPopup" class="popup-overlay">
+    <div class="popup-box diff-popup-box">
+      <h2>Pilih Kesulitan</h2>
+      <p>Seberapa cepat refleksmu?</p>
+      <div class="diff-options">
+        <button class="diff-btn diff-normal shiny-button" id="diffNormal">
+          <div class="diff-icon">🟢</div>
+          <div class="diff-label">Normal</div>
+          <div class="diff-desc">Green/Bonus 5s · Red 3s</div>
+        </button>
+        <button class="diff-btn diff-medium shiny-button" id="diffMedium">
+          <div class="diff-icon">🟡</div>
+          <div class="diff-label">Medium</div>
+          <div class="diff-desc">Semua tombol 3s</div>
+        </button>
+        <button class="diff-btn diff-hard shiny-button" id="diffHard">
+          <div class="diff-icon">🔴</div>
+          <div class="diff-label">Hard</div>
+          <div class="diff-desc">Semua tombol 1.5s</div>
+        </button>
+      </div>
+      <!-- Batal → langsung ke lobby.html, bukan closeDifficultyPopup() -->
+      <button class="btn back-btn shiny-button" id="diffCancelBtn">Batal</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       POPUP: DURASI — TIME ATTACK
+       ══════════════════════════════════════════════ -->
+  <div id="durationPopup" class="popup-overlay">
+    <div class="popup-box">
+      <h2>Pilih Durasi</h2>
+      <p>Berapa lama kamu mau bertahan?</p>
+      <div class="duration-options">
+        <button class="dur-btn shiny-button" id="dur1">1 Menit</button>
+        <button class="dur-btn shiny-button" id="dur3">3 Menit</button>
+        <button class="dur-btn shiny-button" id="dur5">5 Menit</button>
+        <button class="dur-btn shiny-button" id="dur7">7 Menit</button>
+        <button class="dur-btn shiny-button" id="dur10">10 Menit</button>
+      </div>
+      <button class="btn back-btn shiny-button" id="durCancelBtn">Batal</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       POPUP: DURASI — VERSUS
+       ══════════════════════════════════════════════ -->
+  <div id="vsDurationPopup" class="popup-overlay">
+    <div class="popup-box">
+      <h2>Pilih Durasi</h2>
+      <p>Berapa lama pertandingan berlangsung?</p>
+      <div class="duration-options">
+        <button class="dur-btn shiny-button" id="vsDur1">1 Menit</button>
+        <button class="dur-btn shiny-button" id="vsDur3">3 Menit</button>
+        <button class="dur-btn shiny-button" id="vsDur5">5 Menit</button>
+        <button class="dur-btn shiny-button" id="vsDur7">7 Menit</button>
+        <button class="dur-btn shiny-button" id="vsDur10">10 Menit</button>
+      </div>
+      <button class="btn back-btn shiny-button" id="vsDurCancelBtn">Batal</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       POPUP: QUIT CONFIRM
+       ══════════════════════════════════════════════ -->
+  <div id="quitConfirmPopup" class="popup-overlay">
+    <div class="popup-box">
+      <div class="quit-icon">⚠️</div>
+      <h2>Akhiri Permainan?</h2>
+      <p>Progres kamu akan hilang.<br>Yakin ingin berhenti?</p>
+      <div class="quit-buttons">
+        <button class="btn quit-yes-btn shiny-button" id="quitYesBtn">Ya, Akhiri</button>
+        <button class="btn quit-no-btn shiny-button" id="quitNoBtn">Tidak</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       POPUP: HASIL BASIC MODE
+       ══════════════════════════════════════════════ -->
+  <div id="basicResultPopup" class="popup-overlay">
+    <div class="popup-box">
+      <h2>Akhir Permainan</h2>
+      <p>Skor Akhir kamu:</p>
+      <div id="basicFinalScore" class="final-score">0</div>
+      <div id="basicFinalCombo" class="final-combo"></div>
+      <button class="btn play-btn shiny-button" id="basicPlayAgainBtn">Main Lagi</button>
+      <button class="btn back-btn shiny-button" id="basicGoHomeBtn">Kembali ke Menu</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       POPUP: HASIL TIME ATTACK
+       ══════════════════════════════════════════════ -->
+  <div id="gameOverPopup" class="popup-overlay">
+    <div class="popup-box">
+      <h2>Waktu Habis!</h2>
+      <p>Skor Akhir kamu:</p>
+      <div id="finalScore" class="final-score">0</div>
+      <div id="finalCombo" class="final-combo"></div>
+      <button class="btn play-btn shiny-button" id="taPlayAgainBtn">Main Lagi</button>
+      <button class="btn back-btn shiny-button" id="taGoHomeBtn">Kembali ke Menu</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       POPUP: HASIL VERSUS
+       ══════════════════════════════════════════════ -->
+  <div id="vsResultPopup" class="popup-overlay">
+    <div class="popup-box">
+      <h2>Hasil Pertandingan</h2>
+      <div class="vs-result-winner" id="vsWinnerName"></div>
+      <div class="vs-result-scores" id="vsFinalScores"></div>
+      <button class="btn play-btn shiny-button" id="vsPlayAgainBtn">Rematch</button>
+      <button class="btn back-btn shiny-button" id="vsGoHomeBtn">Kembali ke Menu</button>
+    </div>
+  </div>
+
+  <!-- AUDIO -->
+  <audio id="clickSound"     src="assets/audio/click.mp3"     preload="auto"></audio>
+  <audio id="countdownSound" src="assets/audio/countdown.mp3" preload="auto"></audio>
+  <audio id="soundGreen"     src="assets/audio/benar.mp3"   preload="auto"></audio>
+  <audio id="soundRed"       src="assets/audio/salah.mp3"     preload="auto"></audio>
+  <audio id="soundBonus"     src="assets/audio/bonus-points.mp3"     preload="auto"></audio>
+  <audio id="soundFreeze"    src="assets/audio/freeze.mp3"    preload="auto"></audio>
+
+  <!--
+    URUTAN SCRIPT WAJIB:
+    1. profile.js
+    2. utils.js        ← playSound, getDiff, openDifficultyPopup, dll
+    3. basic-mode.js   ← butuh utils.js + dummy "playBasicBtn" sudah ada dari patch
+    4. time-attack.js
+    5. versus-mode.js
+    6. popups.js       ← terakhir, butuh semua mode di atas
+    TIDAK ADA main.js — keyboard listener-nya akan bentrok dengan kontrol game
+  -->
+  <script src="js/profile.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/basic-mode.js"></script>
+  <script src="js/time-attack.js"></script>
+  <script src="js/versus-mode.js"></script>
+  <script src="js/popups.js"></script>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", function() {
+      if (typeof profileInit === "function") profileInit();
+
+      // ── Duration buttons — Time Attack ────────────────────────────
+      document.getElementById("durCancelBtn").addEventListener("click", function() {
+        playSound();
+        if (typeof closeDurationPopup === "function") closeDurationPopup();
+      });
+      [[1,"dur1"],[3,"dur3"],[5,"dur5"],[7,"dur7"],[10,"dur10"]].forEach(function(pair) {
+        document.getElementById(pair[1]).addEventListener("click", function() {
+          if (typeof startTimeAttack === "function") startTimeAttack(pair[0]);
+        });
+      });
+
+      // ── Duration buttons — Versus ─────────────────────────────────
+      document.getElementById("vsDurCancelBtn").addEventListener("click", function() {
+        playSound();
+        if (typeof closeVsDurationPopup === "function") closeVsDurationPopup();
+      });
+      [[1,"vsDur1"],[3,"vsDur3"],[5,"vsDur5"],[7,"vsDur7"],[10,"vsDur10"]].forEach(function(pair) {
+        document.getElementById(pair[1]).addEventListener("click", function() {
+          if (typeof startVersusMode === "function") startVersusMode(pair[0]);
+        });
+      });
+
+      // ── Freeze button ─────────────────────────────────────────────
+      document.getElementById("taFreezeBtn").addEventListener("click", function() {
+        if (typeof activateFreeze === "function") activateFreeze();
+      });
+
+      // ── Exit buttons → langsung ke lobby.html ────────────────────
+      // exitBasicBtn: basic-mode.js sudah pasang listener sendiri (showQuitConfirm)
+      // exitTimeAttackBtn & exitVersusBtn ditambah di sini jika belum ada di JS-nya
+      var exitTA = document.getElementById("exitTimeAttackBtn");
+      if (exitTA && !exitTA._listenerAdded) {
+        exitTA.addEventListener("click", function() {
+          playSound();
+          showQuitConfirm("timeattack");
+        });
+        exitTA._listenerAdded = true;
+      }
+      var exitVS = document.getElementById("exitVersusBtn");
+      if (exitVS && !exitVS._listenerAdded) {
+        exitVS.addEventListener("click", function() {
+          playSound();
+          showQuitConfirm("versus");
+        });
+        exitVS._listenerAdded = true;
+      }
+
+      // ── Router: aktifkan screen sesuai ?mode= ────────────────────
+      var params   = new URLSearchParams(window.location.search);
+      var gameMode = params.get("mode") || "basic";
+      var urlDiff  = params.get("diff");
+      var urlTrack = params.get("track");
+
+      if (gameMode === "timeattack") {
+        document.getElementById("timeAttackGame").classList.add("active");
+        if (typeof openDurationPopup === "function") openDurationPopup();
+      } else if (gameMode === "versus") {
+        document.getElementById("versusGame").classList.add("active");
+        if (typeof openVsDurationPopup === "function") openVsDurationPopup();
+      } else {
+        // Basic OSU — inject diff & track LANGSUNG ke variabel engine,
+        // jangan lewat window.currentDifficulty karena itu lexical var di utils.js
+        // yang tidak bisa di-override dari luar scope-nya.
+        if (urlDiff) {
+          // Override bmDiffKey sebelum startBasicMode() membacanya
+          if (typeof bmDiffKey !== "undefined") bmDiffKey = urlDiff;
+          // Juga set currentDifficulty lewat utils scope kalau bisa
+          if (typeof currentDifficulty !== "undefined") currentDifficulty = urlDiff;
+        }
+        if (urlTrack !== null) {
+          if (typeof bmTrackIdx !== "undefined") bmTrackIdx = parseInt(urlTrack) || 0;
+        }
+        if (typeof startBasicMode === "function") startBasicMode();
+      }
+    });
+  </script>
+
+</body>
+</html>

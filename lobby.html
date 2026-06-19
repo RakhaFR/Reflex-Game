@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ReflexRythm - Lobby</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/lobby-new.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="icon" type="image/png" href="assets/picture/logo.png">
+</head>
+
+<body class="lobby-page">
+
+  <div class="lobby-video-bg">
+    <video id="lobbyBgVideo" src="assets/video/kamia-live2d.mp4" autoplay loop muted></video>
+    <div class="video-overlay"></div>
+  </div>
+
+  <main class="lobby-layout">
+
+    <header class="lobby-header">
+
+      <div class="player-profile-widget" id="lobbyProfileWidget">
+        <div class="widget-avatar-wrapper">
+          <img src="assets/picture/logo.png" alt="Avatar" id="widgetAvatar"
+            onerror="this.src='https://placehold.co/80x80/0d0d1a/ffffff?text=P'">
+        </div>
+        <div class="widget-info">
+          <div class="widget-name" id="widgetUsername">PLAYER</div>
+          <div class="widget-level-row">
+            <span class="lvl-badge" id="widgetLevelNumber">LV 1</span>
+            <div class="xp-bar-container">
+              <div class="xp-bar-fill" id="widgetXpBarFill" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+        <button class="widget-settings-btn" id="widgetSettingsBtn" title="Pengaturan">
+          <i class="fas fa-cog"></i>
+        </button>
+      </div>
+      <div class="brand">
+        <h1 class="game-logo">REFLEX<span class="logo-accent">RYTHM</span></h1>
+        <span class="game-subtitle">CHOOSE YOUR BEAT & REFLEX SESSION</span>
+      </div>
+
+      <a href="index.html" class="back-snake-btn" title="Kembali ke Main Menu">
+        <svg class="snake-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12H7M7 12L12 7M7 12L12 17M21 12C21 8 18 5 14 5C10 5 7 8 7 12" />
+        </svg>
+        <span class="back-text">BACK</span>
+      </a>
+    </header>
+
+    <div id="lobbyProfileModal" class="profile-modal-overlay">
+      <div class="profile-modal-box">
+        <div class="modal-corner-accent top-left"></div>
+        <div class="modal-corner-accent bottom-right"></div>
+
+        <div class="profile-modal-header">
+          <div class="modal-title-group">
+            <span class="modal-main-icon"><i class="fa-solid fa-user-gear"></i></span>
+            <h3 class="modal-title-text">[P] PLAYER PROFILE & CONFIG</h3>
+          </div>
+          <button class="profile-modal-close" id="closeProfileModal">✕ CLOSE</button>
+        </div>
+
+        <div class="profile-modal-tabs">
+          <button class="modal-tab-btn active" data-tab="tabIdentity">
+            <i class="fa-solid fa-id-card"></i> IDENTITY
+          </button>
+          <button class="modal-tab-btn" data-tab="tabStats">
+            <i class="fa-solid fa-chart-simple"></i> STATISTICS
+          </button>
+          <button class="modal-tab-btn" data-tab="tabSettings">
+            <i class="fa-solid fa-sliders"></i> SETTINGS
+          </button>
+        </div>
+
+        <div class="profile-modal-content-wrapper">
+
+          <div class="modal-tab-content active" id="tabIdentity">
+            <div class="identity-tab-layout">
+
+              <div class="avatar-left-block">
+
+                <div class="level-badge-zone">
+                  <span class="lvl-label">LVL</span>
+                  <span class="lvl-number" id="modalLevelNumber">1</span>
+                </div>
+
+                <div class="avatar-glow-frame">
+                  <img src="assets/picture/logo.png" alt="Player Avatar" id="modalProfileImg">
+                </div>
+
+                <div class="avatar-buttons-stack">
+
+                  <input type="file" id="avatarFileInput" accept="image/*" style="display: none !important;">
+
+                  <button class="pact-btn-blueprint" id="changeAvatarBtn">
+                    <i class="fa-solid fa-camera"></i> CHANGE AVATAR
+                  </button>
+
+                  <button class="pact-btn-blueprint pact-danger-blueprint" id="resetProfileDataBtn">
+                    <i class="fa-solid fa-trash"></i> RESET DATA
+                  </button>
+                </div>
+              </div>
+              <div class="identity-right-block">
+                <div class="input-blueprint-group">
+                  <label class="blueprint-field-label" for="modalUsernameInput">// OPERATOR IDENTITY NAME</label>
+                  <div class="username-submit-row">
+                    <input type="text" id="modalUsernameInput" class="blueprint-field-input"
+                      placeholder="Enter new username..." maxlength="14" autocomplete="off">
+                    <button id="saveUsernameBtn" class="pact-btn-save-blueprint">SAVE</button>
+                  </div>
+                  <div class="username-hint-text">CURRENT CODE: <span id="modalUsernameText"
+                      style="color: #fff; font-weight: bold;">PLAYER</span></div>
+                </div>
+
+                <div class="xp-progression-panel">
+                  <div class="xp-text-row" id="modalXpTextRow">
+                    <span>EXP PROGRESSION</span>
+                    <span>0 / 1,000 PTS</span>
+                  </div>
+                  <div class="xp-bar-container">
+                    <div class="xp-bar-fill" id="modalXpBarFill" style="width: 0%;"></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-tab-content" id="tabStats">
+            <div class="stats-blueprint-grid">
+
+              <div class="stats-blueprint-card">
+                <div class="card-blueprint-title">// GLOBAL PERFORMANCE</div>
+                <div class="blueprint-row">
+                  <span>Total Games Played</span>
+                  <span class="b-val" id="modalStatGames">0</span>
+                </div>
+                <div class="blueprint-row">
+                  <span>Total Hit Clicks</span>
+                  <span class="b-val text-neon-green" id="modalStatClicks">0</span>
+                </div>
+                <div class="blueprint-row">
+                  <span>Wrong Clicks Penalty</span>
+                  <span class="b-val" id="modalStatWrongClicks" style="color: #ff4444;">0</span>
+                </div>
+              </div>
+
+              <div class="stats-blueprint-card">
+                <div class="card-blueprint-title">// MECHANICS LOGS</div>
+                <div class="blueprint-row">
+                  <span>Bonus Triggered</span>
+                  <span class="b-val text-neon-yellow" id="modalStatBonus">0</span>
+                </div>
+                <div class="blueprint-row">
+                  <span>Freeze Skills Used</span>
+                  <span class="b-val" id="modalStatFreeze" style="color: #00e5ff;">0</span>
+                </div>
+                <div class="blueprint-row">
+                  <span>Longest Combo</span>
+                  <span class="b-val text-neon-yellow" id="modalStatCombo">x0</span>
+                </div>
+              </div>
+
+              <div class="stats-blueprint-card">
+                <div class="card-blueprint-title">// HIGHEST RECORD MODE</div>
+                <div class="blueprint-row">
+                  <span>Basic Mode Peak</span>
+                  <span class="b-val" id="modalStatHighBasic">0</span>
+                </div>
+                <div class="blueprint-row">
+                  <span>Time Attack Peak</span>
+                  <span class="b-val" id="modalStatHighTA">0</span>
+                </div>
+                <div class="blueprint-row">
+                  <span>Lifetime Score</span>
+                  <span class="b-val text-neon-green" id="modalStatScore">0</span>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="xp-progression-panel" style="margin-top: 14px; text-align: center;">
+              <span
+                style="font-size: 11px; color: #52638a; font-family: 'Orbitron'; display: block; margin-bottom: 2px;">OPERATOR
+                RATING INDEX</span>
+              <span class="text-neon-yellow"
+                style="font-family: 'Orbitron'; font-weight: 900; font-size: 16px; letter-spacing: 2px;">REFLEX
+                ELITE</span>
+            </div>
+          </div>
+
+          <div class="modal-tab-content" id="tabSettings">
+            <div class="settings-blueprint-grid">
+
+              <div class="settings-blueprint-card">
+                <div class="card-blueprint-title">// AUDIO CONTROL</div>
+                <div class="setting-blueprint-row">
+                  <span>Master Volume</span>
+                  <div class="vol-inline-row">
+                    <input type="range" id="masterVolumeSlider" class="vol-slider-blueprint" min="0" max="100"
+                      value="100">
+                    <span id="masterVolumeLabel" class="vol-label-blueprint">100%</span>
+                  </div>
+                </div>
+                <div class="setting-blueprint-row">
+                  <span>Sound Effects (SFX)</span>
+                  <button id="sfxToggleBtn" class="toggle-blueprint-btn">ON</button>
+                </div>
+                <div class="setting-blueprint-row">
+                  <span>Countdown Bleeps</span>
+                  <button id="cdSoundToggleBtn" class="toggle-blueprint-btn">ON</button>
+                </div>
+              </div>
+
+              <div class="settings-blueprint-card">
+                <div class="card-blueprint-title">// VISUAL FEEDBACK</div>
+                <div class="setting-blueprint-row">
+                  <span>Screen Flash FX</span>
+                  <button id="flashToggleBtn" class="toggle-blueprint-btn">ON</button>
+                </div>
+                <div class="setting-blueprint-row">
+                  <span>Particle Bursts</span>
+                  <button id="particleToggleBtn" class="toggle-blueprint-btn">ON</button>
+                </div>
+                <div class="setting-blueprint-row">
+                  <span>Combo Animation</span>
+                  <button id="comboAnimToggleBtn" class="toggle-blueprint-btn">ON</button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Keybind editor — full width di bawah grid -->
+            <div class="settings-blueprint-card" style="margin-top:14px;">
+              <div class="card-blueprint-title">// GAMEPLAY KEYBINDS <span style="font-size:10px;color:#52638a;font-weight:400;">(4 KEYS)</span></div>
+              <div class="keybind-editor-row" id="keybindEditorRow">
+                <!-- Di-render oleh JS saat modal dibuka -->
+              </div>
+              <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:10px;color:#52638a;">Klik key lalu tekan tombol keyboard baru</span>
+                <button id="keybindResetBtn" class="pact-btn-blueprint" style="font-size:10px;padding:5px 12px;">RESET DEFAULT</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="lobby-content-grid">
+
+      <section class="info-panel-left">
+        <div class="mode-info-block" id="modeInfoBlock">
+          <div class="slide-meta">
+            <span class="slide-num">01</span>
+            <span class="char-role">// CHARACTER: KAMIA</span>
+          </div>
+          <h2 class="mode-title title-basic" id="displayModeTitle">BASIC MODE</h2>
+          <p class="mode-description" id="displayModeDesc">Uji kecepatan murni refleks mekanik jari-jarimu melalui
+            ketukan ritme instan tanpa batas waktu terikat.</p>
+        </div>
+
+        <!-- Audio Visualizer -->
+        <div class="lobby-visualizer-wrap">
+          <canvas id="lobbyVisualizer"></canvas>
+        </div>
+      </section>
+
+      <section class="control-panel-right">
+
+<div class="song-list-container">
+  <div class="song-list-header">TRACK LIST</div>
+  <div class="song-list-wrapper" id="songListWrapper">
+
+    <!-- TRACK 01 (ACTIVE STATE) -->
+    <button class="song-item active" data-index="0"
+      data-video="assets/video/kamia-live2d.mp4"
+      data-track-idx="0"
+      data-preview="assets/music/Pixel_Panic_Party.mp3">
+      <span class="song-index">01</span>
+      <img class="song-album-art" src="assets/picture/logo.png" alt="album" onerror="this.style.opacity='0'">
+      <div class="song-details">
+        <span class="song-title">PIXEL PANIC PARTY</span>
+        <span class="song-artist">Chiptune Frenzy // BPM: 140 // 1:00</span>
+      </div>
+      <span class="song-status-tag">SELECT</span>
+    </button>
+    
+    <!-- PANEL DIFFICULTY BERADA DI BAWAH TRACK YANG SEANG AKTIF -->
+    <div class="diff-panel" id="diffPanel-0">
+      <div class="diff-panel-label">// tempat select elemen difficulty</div>
+      <div class="diff-btn-row">
+        <button class="diff-btn" data-diff="normal"><span class="diff-dot" style="background:#00ff88"></span>NORMAL</button>
+        <button class="diff-btn active" data-diff="medium"><span class="diff-dot" style="background:#ffe500"></span>MEDIUM</button>
+        <button class="diff-btn" data-diff="hard"><span class="diff-dot" style="background:#ff6644"></span>HARD</button>
+        <button class="diff-btn" data-diff="extreme"><span class="diff-dot" style="background:#ff00ff"></span>EXTREME</button>
+      </div>
+    </div>
+
+    <!-- TRACK 02 (INACTIVE - TETEP KELIATAN INFO TRACK NYA DENGAN TEMA GELAP) -->
+    <button class="song-item" data-index="1"
+      data-video="assets/video/another-video.mp4"
+      data-track-idx="1"
+      data-preview="assets/music/track2.mp3">
+      <span class="song-index">02</span>
+      <img class="song-album-art" src="assets/picture/logo.png" alt="album" onerror="this.style.opacity='0'">
+      <div class="song-details">
+        <span class="song-title">CYBER REFLEX MOTION</span>
+        <span class="song-artist">Synthwave Beats // BPM: 128 // 1:30</span>
+      </div>
+      <span class="song-status-tag">SELECT</span>
+    </button>
+
+  </div>
+</div>
+
+        <div class="action-controls-block">
+
+          <button id="mainPlayActionBtn" class="osu-play-button">
+            <div class="osu-inner">
+              <span class="osu-icon-indicator">▶</span>
+              <span class="osu-text">START PLAY</span>
+            </div>
+          </button>
+
+          <div class="arrow-navigation-row">
+            <button class="nav-arrow-btn" id="slidePrevBtn" title="Previous Track">
+              <span class="nav-icon">◀</span> PREV
+            </button>
+            <button class="nav-arrow-btn" id="slideNextBtn" title="Next Track">
+              NEXT <span class="nav-icon">▶</span>
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <audio id="clickSound" src="assets/audio/click.mp3"></audio>
+  <audio id="countdownSound" src="assets/audio/countdown.mp3"></audio>
+  <audio id="menuClickSfx" src="assets/audio/click.mp3"></audio>
+  <audio id="lobbyClickSfx" src="assets/audio/click.mp3"></audio>
+
+  <script src="js/utils.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/basic-mode.js"></script>
+  <script src="js/main.js"></script>
+
+</body>
+
+</html>

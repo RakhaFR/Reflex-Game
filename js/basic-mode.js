@@ -1,210 +1,541 @@
-// ============================================
-// BASIC MODE — STATE
-// ============================================
-let score = 0;
-let penaltyTimer = null;
-let holdTimer = null;
-let spawning = false;
-let countdownInterval = null;
-let combo = 0;
-let basicBestCombo = 0;
-const buttons = ["greenBtn", "redBtn", "bonusBtn"];
+// ============================================================
+// REFLEXRYTHM — BASIC MODE (OSU-STYLE ENGINE v2)
+// Musik-driven: game berakhir saat lagu habis
+// Keyboard-only: tiap note dapat key dari keybind pool
+// Timing scoring: Perfect / Good / Early / Miss
+// Difficulty: 1–4 note simultan, dikonfigurasi per diff
+// ============================================================
 
-// ============================================
-// BASIC MODE — HELPERS
-// ============================================
-function startCountdown(duration, spanId, onEnd) {
-  const span = document.getElementById(spanId);
-  let timeLeft = duration;
-  span.textContent = timeLeft;
-  if (countdownInterval) clearInterval(countdownInterval);
-  countdownInterval = setInterval(() => {
-    timeLeft--;
-    // For fractional seconds, round display
-    span.textContent = Math.ceil(timeLeft);
-    if (timeLeft <= 0) {
-      clearInterval(countdownInterval);
-      span.textContent = "";
-      if (onEnd) onEnd();
-    }
-  }, 1000);
+// ============================================================
+// A. TRACK LIST — tambah musik baru di sini
+// ============================================================
+// PENTING: tiap track butuh `id` yang UNIK (jangan sama persis
+// dengan track lain), dan kalau nambah track baru di sini, HARUS
+// juga tambah blok <button class="song-item"> + <div class="diff-panel">
+// baru di lobby.html (lihat komentar di sana untuk cara copy-paste-nya).
+const BM_TRACKS = [
+  {
+    id: "pixel_panic",
+    title: "PIXEL PANIC PARTY",
+    artist: "Chiptune Frenzy",
+    bpm: 140,
+    src: "assets/music/Pixel_Panic_Party.mp3",
+    duration: 60,          // detik — fallback jika audio metadata belum load
+    bg: "assets/video/kamia-live2d.mp4",
+    difficulties: ["normal", "medium", "hard", "extreme"],
+  },
+  // Tambah track baru di sini — pastikan `id` unik & beda dari track lain:
+  {
+    id: "aku_suka",                       // ← WAJIB UNIK
+    title: "MY SONG TITLE",
+    artist: "Artist Name",
+    bpm: 160,
+    src: "assets/music/Pixel_Panic.mp3",
+    duration: 60,
+    bg: "assets/video/ocean-live2d.mp4",
+    difficulties: ["normal", "medium", "hard"],
+  },
+];
+
+// ============================================================
+// B. DIFFICULTY CONFIG
+// ============================================================
+const BM_DIFF = {
+  normal: {
+    label: "NORMAL",
+    color: "#00ff88",
+    noteCount: 1,
+    windowMs: 3800,
+    perfectMs: 500,
+    goodMs: 1000,
+    spawnIntervalMs: 1800,
+  },
+  medium: {
+    label: "MEDIUM",
+    color: "#ffe500",
+    noteCount: 2,
+    windowMs: 2600,
+    perfectMs: 350,
+    goodMs: 700,
+    spawnIntervalMs: 1300,
+  },
+  hard: {
+    label: "HARD",
+    color: "#ff6644",
+    noteCount: 3,
+    windowMs: 1700,
+    perfectMs: 220,
+    goodMs: 480,
+    spawnIntervalMs: 950,
+  },
+  extreme: {
+    label: "EXTREME",
+    color: "#ff00ff",
+    noteCount: 4,
+    windowMs: 1100,
+    perfectMs: 130,
+    goodMs: 280,
+    spawnIntervalMs: 650,
+  },
+};
+
+// ============================================================
+// C. NOTE TYPES
+// ============================================================
+const BM_NOTE_TYPES = [
+  { id: "hit",   color: "#00ff88", ring: "rgba(0,255,136,0.65)",  scoreBase: 100, weight: 5 },
+  { id: "avoid", color: "#ff4444", ring: "rgba(255,68,68,0.65)",  scoreBase: 0,   weight: 3 },
+  { id: "bonus", color: "#ffe500", ring: "rgba(255,229,0,0.65)",  scoreBase: 300, weight: 2 },
+];
+
+function bmPickNoteType() {
+  const total = BM_NOTE_TYPES.reduce((s, t) => s + t.weight, 0);
+  let r = Math.random() * total;
+  for (const t of BM_NOTE_TYPES) { r -= t.weight; if (r <= 0) return t; }
+  return BM_NOTE_TYPES[0];
 }
 
-function stopCountdown() {
-  if (countdownInterval) clearInterval(countdownInterval);
-  document.querySelectorAll("#gameArea .countdown").forEach((el) => (el.textContent = ""));
+// ============================================================
+// D. SPAWN ZONES — 12 posisi dalam % (left, top)
+// ============================================================
+const BM_ZONES = [
+  {x:14,y:18},{x:38,y:13},{x:62,y:18},{x:84,y:16},
+  {x:10,y:46},{x:33,y:50},{x:57,y:45},{x:80,y:48},
+  {x:17,y:73},{x:43,y:76},{x:67,y:72},{x:87,y:70},
+];
+
+// ============================================================
+// E. KEYBIND SYSTEM
+// ============================================================
+const BM_DEFAULT_KEYS = ["q", "w", "e", "r"];
+
+function bmGetKeys() {
+  if (
+    typeof profile !== "undefined" &&
+    Array.isArray(profile?.settings?.keybinds) &&
+    profile.settings.keybinds.length >= 4
+  ) {
+    // Ambil tepat 4 key pertama, lowercase
+    return profile.settings.keybinds.slice(0, 4).map(k => k.toLowerCase());
+  }
+  return BM_DEFAULT_KEYS;
 }
 
-function updateScore(val) {
-  score += val;
-  document.getElementById("score").textContent = score;
+// ============================================================
+// F. STATE
+// ============================================================
+let bmScore       = 0;
+let bmCombo       = 0;
+let bmBestCombo   = 0;
+let bmActiveNotes = [];
+let bmSpawnTimer  = null;
+let bmMusicTimer  = null;   // countdown timer interval (1s tick)
+let bmRunning     = false;
+let bmDiffKey     = "normal";
+let bmTrackIdx    = 0;
+let bmKeyHandler  = null;
+let bmMusicEl     = null;   // <audio> element untuk track aktif
+let bmTimeLeft    = 0;      // detik tersisa
+
+// ============================================================
+// G. DOM REFS
+// ============================================================
+let bmArena, bmScoreEl, bmComboEl, bmComboBox, bmJudgeEl,
+    bmTimerEl, bmTrackTitleEl, bmKeyLegendEl;
+
+function bmInitRefs() {
+  bmArena        = document.getElementById("bmArena");
+  bmScoreEl      = document.getElementById("bmScore");
+  bmComboEl      = document.getElementById("bmComboText");
+  bmComboBox     = document.getElementById("bmComboContainer");
+  bmJudgeEl      = document.getElementById("bmJudgeText");
+  bmTimerEl      = document.getElementById("bmMusicTimer");
+  bmTrackTitleEl = document.getElementById("bmTrackTitle");
+  bmKeyLegendEl  = document.getElementById("bmKeyLegend");
 }
 
-function hideAllButtons() {
-  ["greenBtn", "redBtn", "bonusBtn", "holdBtn"].forEach((id) => {
-    document.getElementById(id).style.display = "none";
+// ============================================================
+// H. KEY LEGEND (baris chip keyboard di bawah layar)
+// ============================================================
+function bmRenderKeyLegend() {
+  if (!bmKeyLegendEl) return;
+  const keys = bmGetKeys(); // selalu 4 key
+  bmKeyLegendEl.innerHTML = "";
+  keys.forEach((k) => {
+    const chip = document.createElement("div");
+    chip.className = "bm-key-chip";
+    chip.id = "bmChip-" + k;
+    chip.textContent = k.toUpperCase();
+    bmKeyLegendEl.appendChild(chip);
   });
 }
 
-function clearAllTimers() {
-  if (penaltyTimer) { clearTimeout(penaltyTimer); penaltyTimer = null; }
-  if (holdTimer)    { clearTimeout(holdTimer);    holdTimer = null;    }
-  spawning = false;
+function bmFlashKey(k) {
+  const chip = document.getElementById("bmChip-" + k);
+  if (!chip) return;
+  chip.classList.add("pressed");
+  setTimeout(() => chip.classList.remove("pressed"), 120);
 }
 
-function updateCombo(change) {
-  const comboText = document.getElementById("combo");
-  const comboBox  = document.getElementById("comboContainer");
+// ============================================================
+// I. SPAWN LOGIC
+// ============================================================
+function bmSpawnWave() {
+  if (!bmRunning) return;
+  const diff   = BM_DIFF[bmDiffKey];
+  const keys   = bmGetKeys();
+  const usedK  = bmActiveNotes.map(n => n.key);
+  const freeK  = keys.filter(k => !usedK.includes(k));
+  const zones  = [...BM_ZONES].sort(() => Math.random() - 0.5);
 
-  if (change === "reset") {
-    combo = 0;
-    comboText.textContent = "x0";
-    comboBox.classList.remove("pop", "combo-big", "combo-glow");
-    comboBox.classList.add("show");
-    setTimeout(() => { comboBox.classList.remove("show"); comboBox.style.opacity = 0; }, 200);
+  for (let i = 0; i < diff.noteCount && i < freeK.length; i++) {
+    bmSpawnNote(zones[i], bmPickNoteType(), freeK[i], diff);
+  }
+}
+
+function bmSpawnNote(zone, type, key, diff) {
+  if (!bmArena) return;
+  const id  = "bm-" + Date.now() + "-" + Math.random().toString(36).slice(2,6);
+  const el  = document.createElement("div");
+  el.className = "bm-note";
+  el.id = id;
+  el.style.cssText = `left:${zone.x}%;top:${zone.y}%;`;
+
+  // Warna note via CSS variable
+  el.style.setProperty("--nc", type.color);
+  el.style.setProperty("--rc", type.ring);
+  el.style.setProperty("--dur", diff.windowMs + "ms");
+
+  // Key label
+  const kl = document.createElement("span");
+  kl.className = "bm-key-label";
+  kl.textContent = key.toUpperCase();
+  el.appendChild(kl);
+
+  // Shrink ring
+  const ring = document.createElement("div");
+  ring.className = "bm-ring";
+  el.appendChild(ring);
+
+  bmArena.appendChild(el);
+
+  const noteData = {
+    id, key, type, el,
+    spawnedAt: Date.now(),
+    windowMs:  diff.windowMs,
+    perfectMs: diff.perfectMs,
+    goodMs:    diff.goodMs,
+    hit: false,
+    expireTimer: setTimeout(() => bmExpire(noteData), diff.windowMs),
+  };
+  bmActiveNotes.push(noteData);
+}
+
+function bmExpire(nd) {
+  if (nd.hit) return;
+  nd.hit = true;
+  // Merah expired = avoid berhasil → NICE
+  if (nd.type.id === "avoid") bmResult("NICE!", 50, true);
+  else                         bmResult("MISS",  0,  false);
+  bmRemoveNote(nd);
+}
+
+function bmRemoveNote(nd) {
+  clearTimeout(nd.expireTimer);
+  nd.el.classList.add("bm-note-exit");
+  setTimeout(() => nd.el?.remove(), 200);
+  bmActiveNotes = bmActiveNotes.filter(n => n.id !== nd.id);
+}
+
+// ============================================================
+// J. KEY HANDLER
+// ============================================================
+function bmOnKey(e) {
+  if (!bmRunning) return;
+  const k = e.key.toLowerCase();
+  // ESC = quit
+  if (k === "escape") { bmTriggerQuit(); return; }
+
+  const nd = bmActiveNotes.find(n => n.key === k && !n.hit);
+  if (!nd) return;
+  e.preventDefault();
+
+  nd.hit = true;
+  clearTimeout(nd.expireTimer);
+  bmFlashKey(k);
+
+  const elapsed   = Date.now() - nd.spawnedAt;
+  const remaining = nd.windowMs - elapsed;
+
+  if (nd.type.id === "avoid") {
+    bmResult("WRONG!", 0, false);
+    bmNoteHitFx(nd.el, "#ff4444");
   } else {
-    combo += change;
-    if (combo > basicBestCombo) basicBestCombo = combo;
-    comboText.textContent = "x" + combo;
-    comboBox.style.opacity = 1;
-    comboBox.classList.add("pop");
-    comboBox.classList.remove("show");
-    if (combo >= 5)  comboBox.classList.add("combo-big");
-    if (combo >= 10) comboBox.classList.add("combo-glow");
-    setTimeout(() => { comboBox.classList.remove("pop"); comboBox.classList.add("show"); }, 300);
+    let judge, pts;
+    const base = nd.type.scoreBase;
+    if (remaining <= 0) {
+      judge = "MISS"; pts = 0;
+    } else if (remaining <= nd.perfectMs) {
+      judge = "PERFECT!"; pts = Math.round(base * 2 * (1 + bmCombo * 0.05));
+    } else if (remaining <= nd.goodMs) {
+      judge = "GOOD"; pts = Math.round(base * 1.2 * (1 + bmCombo * 0.03));
+    } else if (elapsed / nd.windowMs < 0.2) {
+      judge = "EARLY"; pts = Math.round(base * 0.5);
+    } else {
+      judge = "GOOD"; pts = Math.round(base * (1 + bmCombo * 0.03));
+    }
+    bmResult(judge, pts, judge !== "MISS");
+    bmNoteHitFx(nd.el, nd.type.color);
+  }
+  bmRemoveNote(nd);
+}
+
+// ============================================================
+// K. RESULT + HUD UPDATE
+// ============================================================
+function bmResult(judge, pts, combo) {
+  if (pts > 0) {
+    bmScore += pts;
+    if (bmScoreEl) bmScoreEl.textContent = bmScore.toLocaleString();
+  }
+  if (combo) { bmCombo++; if (bmCombo > bmBestCombo) bmBestCombo = bmCombo; }
+  else        bmCombo = 0;
+
+  if (bmComboEl) bmComboEl.textContent = "x" + bmCombo;
+  if (bmComboBox) {
+    bmComboBox.style.opacity = "1";
+    void bmComboBox.offsetWidth;
+    bmComboBox.classList.toggle("bm-fire", bmCombo >= 10);
+    bmComboBox.classList.add("bm-pop");
+    setTimeout(() => bmComboBox.classList.remove("bm-pop"), 220);
+  }
+  if (bmJudgeEl) {
+    const cls = "bm-j-" + judge.replace(/[^a-z]/gi,"").toLowerCase();
+    bmJudgeEl.className = "bm-judge " + cls;
+    bmJudgeEl.textContent = judge;
+    void bmJudgeEl.offsetWidth;
+    bmJudgeEl.classList.add("bm-j-pop");
+  }
+
+  if (typeof statRecordClick === "function") statRecordClick("basic");
+  if (judge === "WRONG!" && typeof statRecordWrongClick === "function") statRecordWrongClick("basic");
+  if (pts > 0 && typeof statRecordBonus === "function" && judge === "PERFECT!") statRecordBonus();
+}
+
+function bmNoteHitFx(el, color) {
+  el.style.transition = "transform .1s ease, box-shadow .1s";
+  el.style.transform  = "translate(-50%,-50%) scale(1.35)";
+  el.style.boxShadow  = `0 0 36px ${color}, 0 0 8px #fff inset`;
+}
+
+// ============================================================
+// L. MUSIC TIMER
+// ============================================================
+function bmFmtTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = String(Math.floor(s % 60)).padStart(2, "0");
+  return `${m}:${sec}`;
+}
+
+function bmStartMusicTimer(duration) {
+  bmTimeLeft = duration;
+  if (bmTimerEl) bmTimerEl.textContent = bmFmtTime(bmTimeLeft);
+
+  bmMusicTimer = setInterval(() => {
+    bmTimeLeft--;
+    if (bmTimerEl) {
+      bmTimerEl.textContent = bmFmtTime(bmTimeLeft);
+      // Warna merah saat <10 detik
+      bmTimerEl.style.color = bmTimeLeft <= 10 ? "#ff4444" : "#fff";
+      if (bmTimeLeft <= 10) bmTimerEl.style.textShadow = "0 0 16px rgba(255,68,68,0.8)";
+      else bmTimerEl.style.textShadow = "0 0 16px rgba(0,240,255,0.5)";
+    }
+    if (bmTimeLeft <= 0) bmGameOver();
+  }, 1000);
+}
+
+// ============================================================
+// M. GAME OVER
+// ============================================================
+function bmGameOver() {
+  bmStopEngine();
+
+  if (typeof statRecordGameEnd === "function")
+    statRecordGameEnd("basic", bmScore, bmBestCombo);
+
+  const popup = document.getElementById("basicResultPopup");
+  if (popup) {
+    const scoreEl = document.getElementById("basicFinalScore");
+    const comboEl = document.getElementById("basicFinalCombo");
+    const trackEl = document.getElementById("basicFinalTrack");
+    if (scoreEl) scoreEl.textContent = bmScore.toLocaleString();
+    if (comboEl) comboEl.textContent = "Best Combo: x" + bmBestCombo;
+    if (trackEl) {
+      const track = BM_TRACKS[bmTrackIdx];
+      trackEl.textContent = track ? track.title : "";
+    }
+    popup.classList.add("active");
   }
 }
 
-// ============================================
-// BASIC MODE — SPAWN LOGIC
-// ============================================
-function spawnRandomButton() {
-  if (spawning) return;
-  spawning = true;
-  hideAllButtons();
-  stopCountdown();
-
-  const diff = getDiff();
-  const randId = buttons[Math.floor(Math.random() * buttons.length)];
-  document.getElementById(randId).style.display = "block";
-
-  if (randId === "greenBtn") {
-    penaltyTimer = setTimeout(() => {
-      updateScore(-1); updateCombo("reset");
-      document.getElementById("soundRed").currentTime = 0;
-      document.getElementById("soundRed").play();
-      nextWithHold();
-    }, diff.greenTime * 1000);
-    startCountdown(diff.greenTime, "cdGreen");
-  } else if (randId === "bonusBtn") {
-    penaltyTimer = setTimeout(() => {
-      updateScore(-1); updateCombo("reset");
-      document.getElementById("soundRed").currentTime = 0;
-      document.getElementById("soundRed").play();
-      nextWithHold();
-    }, diff.bonusTime * 1000);
-    startCountdown(diff.bonusTime, "cdBonus");
-  } else if (randId === "redBtn") {
-    penaltyTimer = setTimeout(() => { nextWithHold(); }, diff.redTime * 1000);
-    startCountdown(diff.redTime, "cdRed");
-  }
-}
-
-function nextWithHold() {
-  if (penaltyTimer) { clearTimeout(penaltyTimer); penaltyTimer = null; }
-  hideAllButtons();
-  stopCountdown();
-
-  document.getElementById("holdBtn").style.display = "block";
-  startCountdown(2, "cdHold");
-
-  if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
-  holdTimer = setTimeout(() => {
-    hideAllButtons(); spawning = false; holdTimer = null; stopCountdown();
-    spawnRandomButton();
-  }, 2000);
-}
-
-// ============================================
-// BASIC MODE — START / EXIT
-// ============================================
+// ============================================================
+// N. START / STOP
+// ============================================================
 function startBasicMode() {
-  clearAllTimers();
-  spawning = false;
-  document.getElementById("lobby").classList.remove("active");
-  document.getElementById("basicGame").classList.add("active");
+  // Kalau kita masih di lobby.html → redirect ke game.html dengan params
+  if (document.getElementById("lobbyProfileWidget") !== null) {
+    // Baca diff dari diff-btn yang active di panel yang sedang tampil
+    const activeDiffBtn = document.querySelector(".diff-panel:not([style*='display: none']) .diff-btn.active")
+      || document.querySelector(".diff-btn.active");
+    const diff  = activeDiffBtn ? activeDiffBtn.getAttribute("data-diff") : (bmDiffKey || "normal");
+    const track = bmTrackIdx ?? 0;
+    window.location.href = `game.html?mode=basic&diff=${diff}&track=${track}`;
+    return;
+  }
 
-  score = 0; combo = 0; basicBestCombo = 0;
-  document.getElementById("score").textContent = 0;
-  document.getElementById("combo").textContent = "x0";
-  document.getElementById("comboContainer").style.opacity = 0;
-  document.getElementById("comboContainer").className = "";
+  // Sudah di game.html — bmDiffKey & bmTrackIdx sudah di-inject oleh router sebelum fungsi ini dipanggil
+  // Validasi fallback kalau ternyata kosong
+  if (!bmDiffKey || !BM_DIFF[bmDiffKey]) bmDiffKey = "normal";
 
-  hideAllButtons();
-  showCountdownThen(() => { spawnRandomButton(); });
+  bmInitRefs();
+
+  bmScore = 0; bmCombo = 0; bmBestCombo = 0;
+  bmActiveNotes = [];
+  bmRunning = false;
+
+  if (bmScoreEl) bmScoreEl.textContent = "0";
+  if (bmComboEl) bmComboEl.textContent = "x0";
+  if (bmComboBox) { bmComboBox.style.opacity = "0"; bmComboBox.className = "bm-combo-box"; }
+  if (bmJudgeEl)  { bmJudgeEl.textContent = ""; bmJudgeEl.className = "bm-judge"; }
+  if (bmArena)    bmArena.innerHTML = "";
+
+  const track = BM_TRACKS[bmTrackIdx] ?? BM_TRACKS[0];
+
+  if (bmTrackTitleEl) bmTrackTitleEl.textContent = track.title;
+
+  bmRenderKeyLegend();
+
+  const badge = document.getElementById("bmDiffBadge");
+  if (badge) {
+    const d = BM_DIFF[bmDiffKey];
+    badge.textContent = d.label;
+    badge.style.color = d.color;
+    badge.style.borderColor = d.color;
+    badge.style.textShadow = `0 0 10px ${d.color}88`;
+  }
+
+  // Aktifkan screen — id di game.html adalah "basicMode" bukan "basicGame"
+  const gameScreen = document.getElementById("basicMode") || document.getElementById("basicGame");
+  if (gameScreen) gameScreen.classList.add("active");
+
+  // Set background video
+  if (bmBgVideo === null) bmBgVideo = document.getElementById("bmBgVideo");
+  if (bmBgVideo) {
+    bmBgVideo.src = track.bg;
+    bmBgVideo.load();
+    bmBgVideo.play().catch(() => {});
+  }
+
+  showCountdownThen(() => {
+    bmRunning = true;
+
+    // Play musik
+    bmMusicEl = document.getElementById("bmTrackAudio");
+    if (!bmMusicEl) {
+      bmMusicEl = document.createElement("audio");
+      bmMusicEl.id = "bmTrackAudio";
+      document.body.appendChild(bmMusicEl);
+    }
+    bmMusicEl.src = track.src;
+    bmMusicEl.volume = typeof profile !== "undefined"
+      ? (profile.settings?.masterVolume ?? 100) / 100 * 0.8
+      : 0.8;
+    bmMusicEl.currentTime = 0;
+    bmMusicEl.play().catch(() => {});
+
+    const startTimers = (dur) => {
+      bmStartMusicTimer(dur);
+      const diff = BM_DIFF[bmDiffKey];
+      bmSpawnWave();
+      bmSpawnTimer = setInterval(bmSpawnWave, diff.spawnIntervalMs);
+    };
+
+    if (bmMusicEl.duration && isFinite(bmMusicEl.duration)) {
+      startTimers(Math.ceil(bmMusicEl.duration));
+    } else {
+      bmMusicEl.addEventListener("loadedmetadata", () => {
+        startTimers(Math.ceil(bmMusicEl.duration));
+      }, { once: true });
+      setTimeout(() => {
+        if (bmTimeLeft === 0) startTimers(track.duration);
+      }, 1000);
+    }
+
+    bmKeyHandler = bmOnKey;
+    document.addEventListener("keydown", bmKeyHandler);
+  });
+}
+
+function bmStopEngine() {
+  bmRunning = false;
+  if (bmSpawnTimer) { clearInterval(bmSpawnTimer); bmSpawnTimer = null; }
+  if (bmMusicTimer) { clearInterval(bmMusicTimer); bmMusicTimer = null; }
+  if (bmKeyHandler) { document.removeEventListener("keydown", bmKeyHandler); bmKeyHandler = null; }
+  if (bmMusicEl)    { bmMusicEl.pause(); bmMusicEl.currentTime = 0; }
+
+  [...bmActiveNotes].forEach(n => { clearTimeout(n.expireTimer); n.el?.remove(); });
+  bmActiveNotes = [];
+  if (bmArena) bmArena.innerHTML = "";
 }
 
 function exitBasicMode() {
-  clearAllTimers();
-  hideAllButtons();
-  combo = 0;
-  document.getElementById("combo").textContent = "x0";
-  document.getElementById("comboContainer").classList.remove("show", "combo-big", "combo-glow");
-  document.getElementById("comboContainer").style.opacity = 0;
-  document.getElementById("basicGame").classList.remove("active");
-  document.getElementById("home").classList.add("active");
+  bmStopEngine();
+  window.location.href = "lobby.html";
 }
 
-// ============================================
-// BASIC MODE — EVENT LISTENERS
-// ============================================
-document.getElementById("playBasicBtn").addEventListener("click", () => {
-  playSound();
-  openDifficultyPopup("basic");
+// ============================================================
+// O. QUIT CONFIRM INTEGRATION
+// ============================================================
+function bmTriggerQuit() {
+  if (typeof showQuitConfirm === "function") showQuitConfirm("basic");
+  else bmGameOver();
+}
+
+// Shims untuk popups.js (yang masih panggil nama lama)
+function clearAllTimers()  { bmStopEngine(); }
+function hideAllButtons()  {}
+function stopCountdown()   {}
+
+Object.defineProperty(window, "score", {
+  get()  { return bmScore; },
+  set(v) { bmScore = v; },
+  configurable: true,
 });
-document.getElementById("exitBasicBtn").addEventListener("click", () => {
-  playSound();
-  showQuitConfirm("basic");
+Object.defineProperty(window, "basicBestCombo", {
+  get()  { return bmBestCombo; },
+  set(v) { bmBestCombo = v; },
+  configurable: true,
 });
 
-document.getElementById("greenBtn").addEventListener("click", (e) => {
-  const btn = e.currentTarget;
-  updateScore(1);
-  triggerEffects("soundGreen", "green", "basicGame", btn);
-  updateCombo(1);
-  if (typeof statRecordClick === "function") { statRecordClick("basic"); if (basicBtnShownAt) statRecordReaction(Date.now() - basicBtnShownAt); basicBtnShownAt = 0; }
-  if (penaltyTimer) { clearTimeout(penaltyTimer); penaltyTimer = null; }
-  nextWithHold();
-});
-document.getElementById("redBtn").addEventListener("click", (e) => {
-  const btn = e.currentTarget;
-  updateScore(-1);
-  triggerEffects("soundRed", "red", "basicGame", btn);
-  updateCombo("reset");
-  if (typeof statRecordClick === "function") { statRecordClick("basic"); statRecordWrongClick("basic"); basicBtnShownAt = 0; }
-  if (penaltyTimer) { clearTimeout(penaltyTimer); penaltyTimer = null; }
-  nextWithHold();
-});
-document.getElementById("bonusBtn").addEventListener("click", (e) => {
-  const btn = e.currentTarget;
-  updateScore(3);
-  triggerEffects("soundBonus", "bonus", "basicGame", btn);
-  updateCombo(1);
-  if (typeof statRecordClick === "function") { statRecordClick("basic"); statRecordBonus(); if (basicBtnShownAt) statRecordReaction(Date.now() - basicBtnShownAt); basicBtnShownAt = 0; }
-  if (penaltyTimer) { clearTimeout(penaltyTimer); penaltyTimer = null; }
-  nextWithHold();
-});
-// ============================================
-// BASIC MODE — STAT TRACKING HOOKS
-// (appended — these override spawn + click logic)
-// ============================================
+// ============================================================
+// P. EXIT BUTTON & RESULT POPUP LISTENERS
+// ============================================================
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("exitBasicBtn")?.addEventListener("click", () => {
+    if (typeof playSound === "function") playSound();
+    bmTriggerQuit();
+  });
 
-// Reaction time tracking
-let basicBtnShownAt = 0;
+  document.getElementById("basicPlayAgainBtn")?.addEventListener("click", () => {
+    if (typeof playSound === "function") playSound();
+    document.getElementById("basicResultPopup")?.classList.remove("active");
+    bmBestCombo = 0;
+    startBasicMode();
+  });
 
-// Override spawnRandomButton to track when button appears
-const _origSpawnRandomButton = spawnRandomButton;
-spawnRandomButton = function() {
-  basicBtnShownAt = Date.now();
-  _origSpawnRandomButton();
-};
+  document.getElementById("basicGoHomeBtn")?.addEventListener("click", () => {
+    if (typeof playSound === "function") playSound();
+    document.getElementById("basicResultPopup")?.classList.remove("active");
+    window.location.href = "lobby.html";
+  });
+});
