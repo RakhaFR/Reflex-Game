@@ -568,8 +568,11 @@ function initLobbyPageLogic() {
     btn.closest(".diff-panel")?.querySelectorAll(".diff-btn")
       .forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    window.currentDifficulty = diff;
-    if (typeof bmDiffKey !== "undefined") window.bmDiffKey = diff;
+    // FIX: assignment langsung ke lexical var, BUKAN window.xxx — karena
+    // currentDifficulty (utils.js) & bmDiffKey (basic-mode.js) adalah
+    // `let` di scope file masing-masing, window.xxx = beda variabel sama sekali.
+    if (typeof currentDifficulty !== "undefined") currentDifficulty = diff;
+    if (typeof bmDiffKey !== "undefined") bmDiffKey = diff;
   });
 
   // ============================================================
@@ -718,7 +721,9 @@ function initLobbyPageLogic() {
     }
 
     // Sync track index ke basic-mode engine
-    if (typeof bmTrackIdx !== "undefined") window.bmTrackIdx = currentIdx;
+    // FIX: bmTrackIdx adalah `let` di basic-mode.js, window.bmTrackIdx = beda
+    // variabel — assignment langsung tanpa window. supaya beneran nyambung.
+    if (typeof bmTrackIdx !== "undefined") bmTrackIdx = currentIdx;
 
     // Change background video
     if (bgVideo) {
@@ -750,17 +755,47 @@ function initLobbyPageLogic() {
     });
   });
 
+  // ============================================================
+  // ── MODE SWITCHER (tombol PREV/NEXT) ──
+  // ============================================================
+  // PREV/NEXT sekarang ganti GAME MODE (Basic / Not Origin Music / dst),
+  // BUKAN ganti track lagi. Track switching ada di Arrow Up/Down keyboard.
+  const modeLabel = document.getElementById("currentModeLabel");
+
+  function renderModeLabel() {
+    if (!modeLabel || typeof BM_GAME_MODES === "undefined") return;
+    const mode = BM_GAME_MODES[bmGameModeIdx] || BM_GAME_MODES[0];
+    modeLabel.textContent = mode.label;
+  }
+  renderModeLabel();
+
+  function switchMode(dir) {
+    if (typeof BM_GAME_MODES === "undefined" || !BM_GAME_MODES.length) return;
+    bmGameModeIdx = (bmGameModeIdx + dir + BM_GAME_MODES.length) % BM_GAME_MODES.length;
+    renderModeLabel();
+  }
+
   document.getElementById("slideNextBtn")?.addEventListener("click", () => {
     triggerLobbyClickSound();
-    changeTrack((currentIdx + 1) % songItems.length);
+    switchMode(1);
   });
 
   document.getElementById("slidePrevBtn")?.addEventListener("click", () => {
     triggerLobbyClickSound();
-    changeTrack((currentIdx - 1 + songItems.length) % songItems.length);
+    switchMode(-1);
   });
 
-  // ── PLAY BUTTON — langsung startBasicMode, no redirect ──
+  // ============================================================
+  // ── TRACK SWITCHER VIA ARROW UP/DOWN ──
+  // ============================================================
+  function switchTrack(dir) {
+    if (!songItems.length) return;
+    const next = (currentIdx + dir + songItems.length) % songItems.length;
+    changeTrack(next);
+    startPreview(songItems[next]);
+  }
+
+  // ── PLAY BUTTON — panggil engine sesuai mode aktif, no redirect ──
   mainPlayBtn?.addEventListener("click", () => {
     if (!songItems.length) return;
     triggerLobbyClickSound();
@@ -774,20 +809,44 @@ function initLobbyPageLogic() {
     setTimeout(() => {
       document.body.style.filter = "";
       document.body.style.pointerEvents = "";
-      if (typeof startBasicMode === "function") startBasicMode();
+
+      // Jalankan engine sesuai mode yang lagi dipilih (PREV/NEXT).
+      // Default tetap startBasicMode kalau BM_GAME_MODES belum diisi.
+      const mode = (typeof BM_GAME_MODES !== "undefined" && BM_GAME_MODES.length)
+        ? BM_GAME_MODES[bmGameModeIdx]
+        : null;
+      const engineFnName = mode?.engine || "startBasicMode";
+      const engineFn = window[engineFnName];
+
+      if (typeof engineFn === "function") {
+        engineFn();
+      } else if (typeof startBasicMode === "function") {
+        // Fallback kalau engine mode itu belum dibuat function-nya
+        startBasicMode();
+      }
     }, 220);
   });
 
-  // Keyboard nav
+  // Keyboard nav — Up/Down = ganti track, Left/Right = ganti mode
   window.addEventListener("keydown", (e) => {
     if (lobbyProfileModal?.classList.contains("active")) {
       if (e.key === "Escape") closeProfileModal?.click();
       return;
     }
-    if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-      e.preventDefault(); document.getElementById("slideNextBtn")?.click();
-    } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-      e.preventDefault(); document.getElementById("slidePrevBtn")?.click();
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      triggerLobbyClickSound();
+      switchTrack(1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      triggerLobbyClickSound();
+      switchTrack(-1);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      document.getElementById("slideNextBtn")?.click();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      document.getElementById("slidePrevBtn")?.click();
     } else if (e.key === " " || e.key === "Enter") {
       e.preventDefault(); mainPlayBtn?.click();
     }

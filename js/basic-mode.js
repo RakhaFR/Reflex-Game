@@ -48,6 +48,42 @@ const BM_TRACKS = [
 ];
 
 // ============================================================
+// A2. GAME MODES — buat tombol PREV/NEXT di lobby
+// ============================================================
+// Next/Prev sekarang switch MODE (bukan track lagi). Track switching
+// pindah ke Arrow Up/Down keyboard.
+// Tambah mode baru di sini, misal "Not Origin Music" atau "Triple Tap
+// Rush" — id harus unik. `engine` adalah nama function start untuk
+// mode itu (mis. startBasicMode, startTripleTapMode, dst — bikin sendiri
+// function-nya nanti kalau mode itu sudah siap).
+const BM_GAME_MODES = [
+  {
+    id: "basic",
+    label: "BASIC MODE",
+    shortLabel: "BASIC",
+    desc: "Mode standar OSU-style: tekan key sebelum ring habis.",
+    engine: "startBasicMode",
+  },
+  // Contoh nambah mode baru:
+  // {
+  //   id: "not_origin",
+  //   label: "NOT ORIGIN MUSIC",
+  //   shortLabel: "N.O.M",
+  //   desc: "Deskripsi mode di sini.",
+  //   engine: "startNotOriginMode",
+  // },
+  // {
+  //   id: "triple_tap",
+  //   label: "TRIPLE TAP RUSH",
+  //   shortLabel: "3xTAP",
+  //   desc: "Deskripsi mode di sini.",
+  //   engine: "startTripleTapMode",
+  // },
+];
+
+let bmGameModeIdx = 0; // index mode aktif saat ini (dipakai PREV/NEXT)
+
+// ============================================================
 // B. DIFFICULTY CONFIG
 // ============================================================
 const BM_DIFF = {

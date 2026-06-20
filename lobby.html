@@ -292,6 +292,10 @@
               </svg>
             </div>
             <span class="song-list-header-text">TRACK LIST</span>
+            <span class="track-switch-hint" title="Gunakan panah atas/bawah untuk ganti track">
+              <kbd class="hint-key">▲</kbd><kbd class="hint-key">▼</kbd>
+              <span class="hint-label">SWITCH</span>
+            </span>
           </div>
           <div class="song-list-wrapper" id="songListWrapper">
             <!-- Track list di-render OTOMATIS oleh JS dari BM_TRACKS
@@ -310,11 +314,15 @@
           </button>
 
           <div class="arrow-navigation-row">
-            <button class="nav-arrow-btn" id="slidePrevBtn" title="Previous Track">
-              <span class="nav-icon">◀</span> PREV
+            <button class="nav-arrow-btn" id="slidePrevBtn" title="Mode Sebelumnya (←)">
+              <span class="nav-icon">◀</span>
             </button>
-            <button class="nav-arrow-btn" id="slideNextBtn" title="Next Track">
-              NEXT <span class="nav-icon">▶</span>
+            <div class="mode-switch-label-wrap" title="Gunakan panah kiri/kanan untuk ganti mode">
+              <span class="mode-switch-hint-label">GAME MODE</span>
+              <span class="mode-switch-current" id="currentModeLabel">BASIC MODE</span>
+            </div>
+            <button class="nav-arrow-btn" id="slideNextBtn" title="Mode Berikutnya (→)">
+              <span class="nav-icon">▶</span>
             </button>
           </div>
 
