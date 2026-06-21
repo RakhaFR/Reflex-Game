@@ -50,72 +50,216 @@
 /* ============================================
    POPUP OVERLAY — BASE
    ============================================ */
+/* ==========================================================================
+   ULTRA PREMIUM ARCADE POPUP THEME (ANTI-POLOS SYSTEM)
+   ========================================================================== */
+
+/* ── OVERLAY DI BELAKANG POPUP ── */
 .popup-overlay {
   display: none;
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(0,0,0,0.75);
+  background: rgba(3, 3, 8, 0.88); /* Lebih gelap pekat */
+  backdrop-filter: blur(8px) saturate(150%);
   z-index: 99999;
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(4px);
 }
 .popup-overlay.active {
   display: flex;
 }
+
+/* ── KOTAK UTAMA (BOX) ── */
 .popup-box {
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
-  border: 2px solid rgba(255,255,255,0.15);
-  border-radius: 24px;
-  padding: 40px;
+  background: linear-gradient(135deg, #0d0d16 0%, #06060b 100%);
+  border: 4px solid #ffaa00; /* Warna dasar kuning/oranye neon arcade */
+  box-shadow: 0px 0px 30px rgba(255, 170, 0, 0.25), 10px 10px 0px #000000;
+  border-radius: 0px; /* Di-pangkas habis membulatnya biar dapet feel industrial */
+  padding: 35px 40px;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(0,200,255,0.1);
-  max-width: 480px;
+  max-width: 460px;
   width: 90%;
-  animation: popupIn 0.3s ease;
-}
-@keyframes popupIn {
-  from { transform: scale(0.8); opacity: 0; }
-  to   { transform: scale(1);   opacity: 1; }
-}
-.popup-box h2 {
-  font-family: "Slackey", sans-serif;
-  font-size: 32px;
-  margin: 0 0 10px;
-  color: #fff;
-}
-.popup-box p {
-  color: #aaa;
-  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  animation: arcadePopupIn 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
 }
 
-/* ============================================
-   RESULT POPUP — SCORE DISPLAY
-   ============================================ */
+/* Dekorasi teks sudut ala system interface */
+.popup-box::before {
+  content: "CRITICAL_MSG //";
+  position: absolute;
+  top: 4px;
+  right: 12px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.2);
+  letter-spacing: 1px;
+}
+
+/* ── TYPOGRAPHY / JUDUL & TEKS ── */
+.popup-box h2 {
+  font-family: "Orbitron", sans-serif; /* Ganti ke Orbitron biar sinkron global */
+  font-size: 26px;
+  font-weight: 900;
+  margin: 0 0 16px;
+  color: #fff;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0px #000000;
+  border-bottom: 2px dashed rgba(255, 255, 255, 0.15);
+  padding-bottom: 12px;
+}
+
+.popup-box p {
+  font-family: "Orbitron", sans-serif;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  letter-spacing: 0.5px;
+  margin-bottom: 25px;
+}
+
+/* ==========================================================================
+   A. KHUSUS MODAL: QUIT CONFIRMATION (WARNING THEME)
+   ========================================================================== */
+#quitConfirmPopup .popup-box {
+  border-color: #ffaa00; /* Tetap oranye peringatan */
+}
+#quitConfirmPopup h2 {
+  color: #ffaa00;
+}
+.quit-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
+  color: #ffaa00; /* Warna kuning oranye warning neon */
+  text-shadow: 0px 0px 15px rgba(255, 170, 0, 0.6);
+  animation: arcadePulse 1.5s infinite ease-in-out;
+}
+.quit-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 15px;
+  width: 100%;
+}
+
+/* Reset layout tombol bawaan */
+.quit-buttons .btn {
+  flex: 1;
+  margin: 0 !important;
+}
+
+/* ==========================================================================
+   B. KHUSUS MODAL: HASIL GAME OVER / CLEAR (CYAN NEON THEME)
+   ========================================================================== */
+#basicResultPopup .popup-box {
+  border-color: #00e5ff; /* Tema Cyan cerah pas lagu kelar */
+  box-shadow: 0px 0px 30px rgba(0, 229, 255, 0.25), 10px 10px 0px #000000;
+}
+#basicResultPopup h2 {
+  color: #00ffaa; /* Judul hijau neon menandakan stage clear */
+}
+
+/* Bungkus Score Display Premium Layout */
 .final-score {
-  font-size: 64px;
-  font-weight: bold;
-  color: #ff0;
   font-family: "Slackey", sans-serif;
-  text-shadow: 0 0 20px #ff0;
+  font-size: 56px;
+  color: #00e5ff !important; /* Biru neon solid */
+  text-shadow: 4px 4px 0px #000000;
+  margin: 10px 0 2px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px dashed rgba(0, 229, 255, 0.3);
+  padding: 12px 0;
 }
 .final-combo {
-  font-size: 22px;
-  color: #aaa;
-  margin-top: 8px;
-}
-.popup-box .play-btn {
-  margin: 20px auto 8px;
-}
-.popup-box .back-btn {
-  margin: 0 auto;
+  font-family: "Orbitron", sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffaa00;
+  letter-spacing: 1px;
+  margin: 0 0 25px 0;
+  text-transform: uppercase;
 }
 
+/* Spacer perbaikan tombol di result box */
+.popup-box .play-btn {
+  margin: 0 auto 12px !important;
+}
+.popup-box .back-btn {
+  margin: 0 auto !important;
+}
+
+/* ==========================================================================
+   C. DESAIN UNIFORM TOMBOL POPUP (SHINY-BUTTON COMPATIBLE)
+   ========================================================================== */
+.popup-box .btn {
+  width: 100% !important;
+  display: block;
+  font-family: "Orbitron", sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  padding: 14px 20px;
+  border: 3px solid #000000 !important;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #000000;
+  border-radius: 0px !important;
+  text-transform: uppercase;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+/* Efek Hover Tombol */
+.popup-box .btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000000;
+}
+.popup-box .btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000;
+}
+
+/* Pewarnaan Aksen Tombol */
+.quit-yes-btn, .back-btn {
+  background: #ff2a5f !important; /* Tombol bermakna "Keluar / Menyerah" berwarna merah */
+}
+.quit-no-btn, .play-btn {
+  background: #00ff88 !important; /* Tombol bermakna "Lanjut / Main Lagi" berwarna hijau stabilo */
+  color: #000000 !important;
+}
+
+.quit-no-btn:hover, .play-btn:hover {
+  background: #00e57c !important;
+}
+.quit-yes-btn:hover, .back-btn:hover {
+  background: #e62253 !important;
+}
+
+/* ==========================================================================
+   D. ANIMASI & UTILITIES 
+   ========================================================================== */
+@keyframes arcadePopupIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+    filter: brightness(1.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes arcadePulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.85; filter: drop-shadow(0 0 8px #ffaa00); }
+}
 /* ============================================
    DURATION POPUP
    ============================================ */
-.duration-options {
+/* .duration-options {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -140,97 +284,8 @@
 .dur-btn:hover {
   transform: scale(1.08);
   box-shadow: 0 6px 20px rgba(0,180,255,0.6);
-}
+} */
 
-/* ============================================
-   QUIT CONFIRM POPUP
-   ============================================ */
-.quit-icon {
-  font-size: 52px;
-  margin-bottom: 8px;
-  animation: pulse 1.5s infinite;
-}
-.quit-buttons {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-top: 20px;
-}
-.quit-yes-btn {
-  background: linear-gradient(#00c851, #007e33);
-  width: 160px;
-}
-.quit-no-btn {
-  background: linear-gradient(#ff4444, #cc0000);
-  width: 160px;
-}
-
-/* ============================================
-   DIFFICULTY POPUP
-   ============================================ */
-.diff-popup-box {
-  max-width: 540px !important;
-}
-.diff-popup-box h2 {
-  font-size: 28px;
-  margin-bottom: 6px;
-}
-.diff-options {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-bottom: 22px;
-}
-.diff-btn {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 22px;
-  border: none;
-  border-radius: 16px;
-  cursor: pointer;
-  font-family: "Slackey", sans-serif;
-  text-align: left;
-  transition: transform 0.15s, box-shadow 0.15s;
-  position: relative;
-  overflow: hidden;
-}
-.diff-btn:hover {
-  transform: scale(1.03);
-}
-.diff-icon {
-  font-size: 28px;
-  flex-shrink: 0;
-}
-.diff-label {
-  font-size: 20px;
-  font-weight: bold;
-  color: #fff;
-  letter-spacing: 1px;
-}
-.diff-desc {
-  font-size: 12px;
-  color: rgba(255,255,255,0.75);
-  margin-top: 3px;
-  font-family: Arial, sans-serif;
-  font-weight: normal;
-}
-.diff-normal {
-  background: linear-gradient(135deg, #00c851, #005c20);
-  box-shadow: 0 4px 20px rgba(0,200,80,0.35);
-}
-.diff-medium {
-  background: linear-gradient(135deg, #ff9500, #b35900);
-  box-shadow: 0 4px 20px rgba(255,150,0,0.35);
-}
-.diff-hard {
-  background: linear-gradient(135deg, #ff3333, #880000);
-  box-shadow: 0 4px 20px rgba(255,50,50,0.4);
-}
-.diff-btn .diff-label-wrap {
-  display: flex;
-  flex-direction: column;
-}
 
 /* ============================================
    BUTTON HIT EFFECTS

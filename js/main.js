@@ -108,6 +108,51 @@ function initLoadingScreen() {
 /* ==========================================================================
    B. CORE ENGINE: INDEX.HTML INTERACTION INTERCEPTOR
    ========================================================================== */
+// ============================================================
+// OTHER GAMES — data buat modal PS5-style di index.html
+// ============================================================
+// Mau nambah/ubah game? cukup edit array ini, card-nya di-render
+// otomatis sama renderOgGames() — gak perlu sentuh index.html.
+const OG_GAMES = [
+  {
+    title: "Plenger RnG",
+    desc: "Koleksi semua foto yang ada di game dan pamerkan ke teman mu!",
+    tag: "CASUAL • SIMULATION",
+    img: "assets/picture/OG-GAMES/plengerRNG.jpg",
+    url: "https://rakhafr.github.io/PlengerRnG/",
+  },
+  {
+    title: "Geotrade",
+    desc: "Buat perusahaan mu dan tingkatkan jaringan antar kota, jangan sampai pasokan habis!",
+    tag: "CASUAL • SANDBOX",
+    img: "assets/picture/OG-GAMES/geoTrade.png",
+    url: "#",
+    comingSoon: true,
+  },
+];
+
+// ============================================================
+// BACKGROUND MUSIC — helper autoplay (dipakai index.html & lobby.html)
+// ============================================================
+// Browser modern nge-block autoplay-with-sound sebelum user pernah
+// interaksi sama halaman. Kita coba play duluan, kalau keblokir,
+// nunggu interaksi pertama (klik/keydown/touch) buat nyoba lagi.
+function setupBgMusicAutoplay(el, volume = 0.5) {
+  if (!el) return;
+  el.volume = volume;
+  const tryPlay = () => el.play().catch(() => {});
+  tryPlay();
+  const resumeOnce = () => {
+    tryPlay();
+    ["click", "keydown", "touchstart"].forEach((ev) =>
+      document.removeEventListener(ev, resumeOnce),
+    );
+  };
+  ["click", "keydown", "touchstart"].forEach((ev) =>
+    document.addEventListener(ev, resumeOnce, { once: true }),
+  );
+}
+
 function initIndexPageLogic() {
   const modal = document.getElementById("modalOtherGames");
   const btnOpen = document.getElementById("btnMainOtherGames");
@@ -130,15 +175,22 @@ function initIndexPageLogic() {
     }
   }
 
+  // PENTING: window.open() / pindah tab baru WAJIB sinkron di dalam handler
+  // klik asli, gak boleh ditunda lewat setTimeout — browser modern nge-block
+  // popup yang dipanggil di luar call-stack klik user (makanya dulu tombol
+  // sosial/donate kelihatan "gak bisa diklik", padahal sebenernya kebuka-nya
+  // yang diblok). Solusinya: link-link itu sekarang pakai target="_blank"
+  // native di HTML, JS di sini cuma mainin SFX-nya aja, gak ikut campur
+  // navigasinya sama sekali.
   function navigateWithSfx(e, url, isNewTab = false) {
+    if (isNewTab) {
+      triggerMenuClickSound();
+      return; // biarin <a target="_blank"> jalan sendiri secara native
+    }
     e.preventDefault();
     triggerMenuClickSound();
     setTimeout(() => {
-      if (isNewTab) {
-        window.open(url, "_blank");
-      } else {
-        window.location.href = url;
-      }
+      window.location.href = url;
     }, 150);
   }
 
@@ -176,17 +228,61 @@ function initIndexPageLogic() {
 
   const btnDonate = document.getElementById("btnMainDonate");
   if (btnDonate) {
-    btnDonate.addEventListener("click", (e) =>
-      navigateWithSfx(e, "https://lynk.id/bangriyadi/s/z6l332ojeqrg", true),
-    );
+    // btnDonate sekarang punya target="_blank" native di HTML —
+    // ini cuma buat mainin SFX-nya, navigasinya dibiarin native.
+    btnDonate.addEventListener("click", (e) => navigateWithSfx(e, null, true));
   }
 
-  // Sosmed Links Interceptors
+  // Sosmed Links — sama kayak donate, native target="_blank" di HTML,
+  // JS cuma numpang mainin SFX klik.
   document.querySelectorAll(".social-circle-link").forEach((link) => {
-    link.addEventListener("click", (e) => {
-      navigateWithSfx(e, link.getAttribute("href"), true);
-    });
+    link.addEventListener("click", (e) => navigateWithSfx(e, null, true));
   });
+
+  // ============================================================
+  // OTHER GAMES MODAL — render kartu PS5-style dari OG_GAMES
+  // ============================================================
+  function renderOgGames() {
+    const row = document.getElementById("ogGamesRow");
+    if (!row) return;
+    row.innerHTML = "";
+
+    OG_GAMES.forEach((game) => {
+      const locked = !!game.comingSoon;
+      const card = document.createElement(locked ? "div" : "a");
+      card.className = "og-game-card" + (locked ? " og-locked" : "");
+      if (!locked) {
+        card.href = game.url;
+        card.target = "_blank";
+        card.rel = "noopener noreferrer";
+        card.addEventListener("click", () => triggerMenuClickSound());
+      } else {
+        card.tabIndex = 0;
+      }
+
+      card.innerHTML = `
+        <div class="og-card-art">
+          <img src="${game.img}" alt="${game.title}" onerror="this.style.opacity='0'">
+          ${locked ? '<div class="og-coming-soon-ribbon">COMING SOON</div>' : ""}
+          <div class="og-card-art-fade"></div>
+        </div>
+        <div class="og-card-info">
+          <span class="og-card-tag">${game.tag}</span>
+          <span class="og-card-title">${game.title}</span>
+          <span class="og-card-desc">${game.desc}</span>
+        </div>
+      `;
+      row.appendChild(card);
+    });
+  }
+  renderOgGames();
+
+  // ============================================================
+  // BACKGROUND MUSIC (bawaan) — autoplay, dengan fallback kalau
+  // browser nge-block autoplay-with-sound (umum di Chrome/Safari),
+  // bakal coba lagi begitu user pertama kali interaksi sama halaman.
+  // ============================================================
+  setupBgMusicAutoplay(document.getElementById("bgMusic"));
 }
 
 /* ==========================================================================
@@ -196,6 +292,15 @@ function initLobbyPageLogic() {
   const songItems   = Array.from(document.querySelectorAll(".song-item"));
   const bgVideo     = document.getElementById("lobbyBgVideo");
   const mainPlayBtn = document.getElementById("mainPlayActionBtn");
+
+  // Musik bawaan — nyala otomatis pas lobby pertama dibuka, terus
+  // di-stop begitu user milih track musik sendiri (lihat stopBgMusic()
+  // yang dipanggil di click handler song-item di bawah).
+  const bgMusic = document.getElementById("bgMusic");
+  setupBgMusicAutoplay(bgMusic);
+  function stopBgMusic() {
+    if (bgMusic && !bgMusic.paused) bgMusic.pause();
+  }
 
   const displayNum   = document.querySelector(".slide-num");
   const displayRole  = document.querySelector(".char-role");
@@ -749,6 +854,7 @@ function initLobbyPageLogic() {
   songItems.forEach((item, i) => {
     item.addEventListener("click", () => {
       triggerLobbyClickSound();
+      stopBgMusic(); // musik bawaan berhenti begitu user milih track sendiri
       changeTrack(i);
       // Start 15s preview
       startPreview(item);

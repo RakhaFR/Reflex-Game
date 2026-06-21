@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="css/versus-mode.css" />
   <link rel="stylesheet" href="css/popups.css" />
   <link rel="stylesheet" href="css/profile.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="icon" type="image/png" href="assets/picture/logo.png">
 
   <!--
@@ -49,7 +50,7 @@
 
       // Buat semua dummy element dan masukkan ke Map
       const dummyMap = {};
-      DUMMY_IDS.forEach(function(id) {
+      DUMMY_IDS.forEach(function (id) {
         var el = document.createElement("div");
         el.id = id;
         el.style.cssText = "display:none;pointer-events:none;position:absolute;";
@@ -57,7 +58,7 @@
         // Untuk "home" dan "lobby": saat .classList.add("active") → navigasi ke lobby
         if (id === "home" || id === "lobby") {
           var origAdd = el.classList.add.bind(el.classList);
-          el.classList.add = function() {
+          el.classList.add = function () {
             origAdd.apply(el.classList, arguments);
             for (var i = 0; i < arguments.length; i++) {
               if (arguments[i] === "active") {
@@ -74,7 +75,7 @@
       });
 
       // Override getElementById
-      document.getElementById = function(id) {
+      document.getElementById = function (id) {
         if (REMAP[id]) return _orig(REMAP[id]);
         if (dummyMap[id]) return dummyMap[id];
         return _orig(id);
@@ -82,7 +83,7 @@
 
       // Append dummy ke body begitu body tersedia
       function appendDummies() {
-        Object.values(dummyMap).forEach(function(el) {
+        Object.values(dummyMap).forEach(function (el) {
           if (!document.getElementById(el.id) || document.getElementById(el.id) === el) {
             document.body.appendChild(el);
           }
@@ -115,10 +116,13 @@
     <!-- Background video -->
     <video id="bmBgVideo" autoplay loop muted playsinline
       style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;opacity:.25;filter:brightness(.5) saturate(1.5);z-index:0;pointer-events:none;"></video>
-    <div style="position:fixed;inset:0;background:linear-gradient(to bottom,rgba(4,4,10,.75) 0%,rgba(4,4,10,.3) 50%,rgba(4,4,10,.85) 100%);z-index:1;pointer-events:none;"></div>
+    <div
+      style="position:fixed;inset:0;background:linear-gradient(to bottom,rgba(4,4,10,.75) 0%,rgba(4,4,10,.3) 50%,rgba(4,4,10,.85) 100%);z-index:1;pointer-events:none;">
+    </div>
 
     <!-- HUD -->
-    <div id="bmHud" style="position:fixed;top:0;left:0;right:0;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;z-index:20;gap:12px;">
+    <div id="bmHud"
+      style="position:fixed;top:0;left:0;right:0;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;z-index:20;gap:12px;">
       <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;">
         <button id="exitBasicBtn" class="bm-exit-btn">✕ QUIT</button>
         <span id="bmDiffBadge" class="bm-diff-badge">NORMAL</span>
@@ -137,16 +141,20 @@
     <div id="bmArena" style="position:fixed;inset:72px 0 80px 0;z-index:10;pointer-events:none;"></div>
 
     <!-- Judge text -->
-    <div class="bm-judge" id="bmJudgeText" style="position:fixed;left:50%;top:38%;transform:translateX(-50%);z-index:30;pointer-events:none;"></div>
+    <div class="bm-judge" id="bmJudgeText"
+      style="position:fixed;left:50%;top:38%;transform:translateX(-50%);z-index:30;pointer-events:none;"></div>
 
     <!-- Combo -->
-    <div class="bm-combo-box" id="bmComboContainer" style="position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:20;text-align:center;pointer-events:none;opacity:0;">
+    <div class="bm-combo-box" id="bmComboContainer"
+      style="position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:20;text-align:center;pointer-events:none;opacity:0;">
       <span class="bm-combo-lbl">COMBO</span>
       <span id="bmComboText">x0</span>
     </div>
 
     <!-- Key legend -->
-    <div id="bmKeyLegend" style="position:fixed;bottom:0;left:0;right:0;height:76px;display:flex;align-items:center;justify-content:center;gap:7px;background:linear-gradient(to top,rgba(4,4,10,.97) 60%,transparent);z-index:20;padding-bottom:10px;"></div>
+    <div id="bmKeyLegend"
+      style="position:fixed;bottom:0;left:0;right:0;height:76px;display:flex;align-items:center;justify-content:center;gap:7px;background:linear-gradient(to top,rgba(4,4,10,.97) 60%,transparent);z-index:20;padding-bottom:10px;">
+    </div>
 
   </main>
 
@@ -240,35 +248,6 @@
   </main>
 
   <!-- ══════════════════════════════════════════════
-       POPUP: DIFFICULTY
-       ══════════════════════════════════════════════ -->
-  <div id="difficultyPopup" class="popup-overlay">
-    <div class="popup-box diff-popup-box">
-      <h2>Pilih Kesulitan</h2>
-      <p>Seberapa cepat refleksmu?</p>
-      <div class="diff-options">
-        <button class="diff-btn diff-normal shiny-button" id="diffNormal">
-          <div class="diff-icon">🟢</div>
-          <div class="diff-label">Normal</div>
-          <div class="diff-desc">Green/Bonus 5s · Red 3s</div>
-        </button>
-        <button class="diff-btn diff-medium shiny-button" id="diffMedium">
-          <div class="diff-icon">🟡</div>
-          <div class="diff-label">Medium</div>
-          <div class="diff-desc">Semua tombol 3s</div>
-        </button>
-        <button class="diff-btn diff-hard shiny-button" id="diffHard">
-          <div class="diff-icon">🔴</div>
-          <div class="diff-label">Hard</div>
-          <div class="diff-desc">Semua tombol 1.5s</div>
-        </button>
-      </div>
-      <!-- Batal → langsung ke lobby.html, bukan closeDifficultyPopup() -->
-      <button class="btn back-btn shiny-button" id="diffCancelBtn">Batal</button>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════
        POPUP: DURASI — TIME ATTACK
        ══════════════════════════════════════════════ -->
   <div id="durationPopup" class="popup-overlay">
@@ -309,7 +288,7 @@
        ══════════════════════════════════════════════ -->
   <div id="quitConfirmPopup" class="popup-overlay">
     <div class="popup-box">
-      <div class="quit-icon">⚠️</div>
+      <div class="quit-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
       <h2>Akhiri Permainan?</h2>
       <p>Progres kamu akan hilang.<br>Yakin ingin berhenti?</p>
       <div class="quit-buttons">
@@ -361,12 +340,12 @@
   </div>
 
   <!-- AUDIO -->
-  <audio id="clickSound"     src="assets/audio/click.mp3"     preload="auto"></audio>
+  <audio id="clickSound" src="assets/audio/click.mp3" preload="auto"></audio>
   <audio id="countdownSound" src="assets/audio/countdown.mp3" preload="auto"></audio>
-  <audio id="soundGreen"     src="assets/audio/benar.mp3"   preload="auto"></audio>
-  <audio id="soundRed"       src="assets/audio/salah.mp3"     preload="auto"></audio>
-  <audio id="soundBonus"     src="assets/audio/bonus-points.mp3"     preload="auto"></audio>
-  <audio id="soundFreeze"    src="assets/audio/freeze.mp3"    preload="auto"></audio>
+  <audio id="soundGreen" src="assets/audio/benar.mp3" preload="auto"></audio>
+  <audio id="soundRed" src="assets/audio/salah.mp3" preload="auto"></audio>
+  <audio id="soundBonus" src="assets/audio/bonus-points.mp3" preload="auto"></audio>
+  <audio id="soundFreeze" src="assets/audio/freeze.mp3" preload="auto"></audio>
 
   <!--
     URUTAN SCRIPT WAJIB:
@@ -386,33 +365,33 @@
   <script src="js/popups.js"></script>
 
   <script>
-    window.addEventListener("DOMContentLoaded", function() {
+    window.addEventListener("DOMContentLoaded", function () {
       if (typeof profileInit === "function") profileInit();
 
       // ── Duration buttons — Time Attack ────────────────────────────
-      document.getElementById("durCancelBtn").addEventListener("click", function() {
+      document.getElementById("durCancelBtn").addEventListener("click", function () {
         playSound();
         if (typeof closeDurationPopup === "function") closeDurationPopup();
       });
-      [[1,"dur1"],[3,"dur3"],[5,"dur5"],[7,"dur7"],[10,"dur10"]].forEach(function(pair) {
-        document.getElementById(pair[1]).addEventListener("click", function() {
+      [[1, "dur1"], [3, "dur3"], [5, "dur5"], [7, "dur7"], [10, "dur10"]].forEach(function (pair) {
+        document.getElementById(pair[1]).addEventListener("click", function () {
           if (typeof startTimeAttack === "function") startTimeAttack(pair[0]);
         });
       });
 
       // ── Duration buttons — Versus ─────────────────────────────────
-      document.getElementById("vsDurCancelBtn").addEventListener("click", function() {
+      document.getElementById("vsDurCancelBtn").addEventListener("click", function () {
         playSound();
         if (typeof closeVsDurationPopup === "function") closeVsDurationPopup();
       });
-      [[1,"vsDur1"],[3,"vsDur3"],[5,"vsDur5"],[7,"vsDur7"],[10,"vsDur10"]].forEach(function(pair) {
-        document.getElementById(pair[1]).addEventListener("click", function() {
+      [[1, "vsDur1"], [3, "vsDur3"], [5, "vsDur5"], [7, "vsDur7"], [10, "vsDur10"]].forEach(function (pair) {
+        document.getElementById(pair[1]).addEventListener("click", function () {
           if (typeof startVersusMode === "function") startVersusMode(pair[0]);
         });
       });
 
       // ── Freeze button ─────────────────────────────────────────────
-      document.getElementById("taFreezeBtn").addEventListener("click", function() {
+      document.getElementById("taFreezeBtn").addEventListener("click", function () {
         if (typeof activateFreeze === "function") activateFreeze();
       });
 
@@ -421,7 +400,7 @@
       // exitTimeAttackBtn & exitVersusBtn ditambah di sini jika belum ada di JS-nya
       var exitTA = document.getElementById("exitTimeAttackBtn");
       if (exitTA && !exitTA._listenerAdded) {
-        exitTA.addEventListener("click", function() {
+        exitTA.addEventListener("click", function () {
           playSound();
           showQuitConfirm("timeattack");
         });
@@ -429,7 +408,7 @@
       }
       var exitVS = document.getElementById("exitVersusBtn");
       if (exitVS && !exitVS._listenerAdded) {
-        exitVS.addEventListener("click", function() {
+        exitVS.addEventListener("click", function () {
           playSound();
           showQuitConfirm("versus");
         });
@@ -437,9 +416,9 @@
       }
 
       // ── Router: aktifkan screen sesuai ?mode= ────────────────────
-      var params   = new URLSearchParams(window.location.search);
+      var params = new URLSearchParams(window.location.search);
       var gameMode = params.get("mode") || "basic";
-      var urlDiff  = params.get("diff");
+      var urlDiff = params.get("diff");
       var urlTrack = params.get("track");
 
       if (gameMode === "timeattack") {
@@ -467,4 +446,5 @@
   </script>
 
 </body>
+
 </html>

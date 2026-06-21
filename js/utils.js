@@ -42,7 +42,17 @@ function getDiff() {
 // ============================================
 // PARTICLE BURST SYSTEM
 // ============================================
-const canvas = document.getElementById("particleCanvas");
+// Sebagian halaman (mis. index.html) gak punya <canvas id="particleCanvas">
+// di HTML-nya — dulu ini bikin baris di bawah crash (null.getContext)
+// dan diam-diam ngebunuh SISA file utils.js ini (playSound dkk masih
+// kepanggil krn hoisting, tapi semua efek partikel/shake/flash mati).
+// Sekarang kalau canvas-nya gak ada, kita buat sendiri.
+let canvas = document.getElementById("particleCanvas");
+if (!canvas) {
+  canvas = document.createElement("canvas");
+  canvas.id = "particleCanvas";
+  document.body.appendChild(canvas);
+}
 const ctx = canvas.getContext("2d");
 canvas.style.position = "fixed";
 canvas.style.top = "0";
