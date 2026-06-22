@@ -137,11 +137,20 @@ const OG_GAMES = [
 // Browser modern nge-block autoplay-with-sound sebelum user pernah
 // interaksi sama halaman. Kita coba play duluan, kalau keblokir,
 // nunggu interaksi pertama (klik/keydown/touch) buat nyoba lagi.
+//
+// PENTING — fungsi ini mengembalikan cancel():
+//   const cancelBgResume = setupBgMusicAutoplay(el);
+//   cancelBgResume(); // hapus listener sebelum stop, biar gak re-play
+//
+// Tanpa cancel() dulu, urutannya: element-handler (pause) → event
+// bubble ke document → resumeOnce fires → play lagi. Itu sebabnya
+// butuh 2 klik buat beneran matiin music sebelumnya.
 function setupBgMusicAutoplay(el, volume = 0.5) {
-  if (!el) return;
+  if (!el) return () => {};
   el.volume = volume;
   const tryPlay = () => el.play().catch(() => {});
   tryPlay();
+
   const resumeOnce = () => {
     tryPlay();
     ["click", "keydown", "touchstart"].forEach((ev) =>
@@ -149,8 +158,16 @@ function setupBgMusicAutoplay(el, volume = 0.5) {
     );
   };
   ["click", "keydown", "touchstart"].forEach((ev) =>
-    document.addEventListener(ev, resumeOnce, { once: true }),
+    document.addEventListener(ev, resumeOnce),
   );
+
+  // Kembalikan fungsi cancel — panggil ini sebelum pause biar
+  // resumeOnce gak sempet re-fire lewat event bubble.
+  return function cancelBgResume() {
+    ["click", "keydown", "touchstart"].forEach((ev) =>
+      document.removeEventListener(ev, resumeOnce),
+    );
+  };
 }
 
 function initIndexPageLogic() {
@@ -294,12 +311,18 @@ function initLobbyPageLogic() {
   const mainPlayBtn = document.getElementById("mainPlayActionBtn");
 
   // Musik bawaan — nyala otomatis pas lobby pertama dibuka, terus
-  // di-stop begitu user milih track musik sendiri (lihat stopBgMusic()
-  // yang dipanggil di click handler song-item di bawah).
+  // di-stop begitu user milih track musik sendiri.
+  // cancelBgResume() WAJIB dipanggil duluan sebelum pause — kalau
+  // enggak, event bubble dari klik/keydown bakal trigger resumeOnce
+  // setelah pause, jadi musik nyala lagi (makanya dulu butuh 2 klik).
   const bgMusic = document.getElementById("bgMusic");
-  setupBgMusicAutoplay(bgMusic);
+  const cancelBgResume = setupBgMusicAutoplay(bgMusic);
+  let bgMusicStopped = false;
   function stopBgMusic() {
-    if (bgMusic && !bgMusic.paused) bgMusic.pause();
+    if (bgMusicStopped) return;
+    bgMusicStopped = true;
+    cancelBgResume();            // cabut listener dulu, BARU pause
+    if (bgMusic) bgMusic.pause();
   }
 
   const displayNum   = document.querySelector(".slide-num");
@@ -819,6 +842,12 @@ function initLobbyPageLogic() {
     // Sync left info panel — langsung dari BM_TRACKS, gak ada duplikat lagi
     const meta = typeof BM_TRACKS !== "undefined" ? BM_TRACKS[currentIdx] : null;
     if (meta) {
+      // Set --track-accent di :root → otomatis update border-left
+      // mode-info-block, warna slide-num, dan warna mode-title sekaligus.
+      document.documentElement.style.setProperty(
+        "--track-accent", meta.color || "#00e5ff"
+      );
+
       if (displayNum)   displayNum.textContent  = String(currentIdx + 1).padStart(2, "0");
       if (displayRole)  displayRole.textContent = meta.role || "";
       if (displayTitle) { displayTitle.textContent = meta.title; displayTitle.className = `mode-title ${meta.titleClass || "title-basic"}`; }
@@ -850,6 +879,11 @@ function initLobbyPageLogic() {
   songItems.forEach((item, i) => {
     item.classList.toggle("near", i === currentIdx - 1 || i === currentIdx + 1);
   });
+
+  // Set warna aksen awal (track 0) sebelum user klik apapun
+  if (typeof BM_TRACKS !== "undefined" && BM_TRACKS[0]?.color) {
+    document.documentElement.style.setProperty("--track-accent", BM_TRACKS[0].color);
+  }
 
   songItems.forEach((item, i) => {
     item.addEventListener("click", () => {
@@ -936,6 +970,7 @@ function handlePlayButtonClick() {
   function switchTrack(dir) {
     if (!songItems.length) return;
     const next = (currentIdx + dir + songItems.length) % songItems.length;
+    stopBgMusic(); // arrow-key switch juga harus stop bgMusic
     changeTrack(next);
     startPreview(songItems[next]);
   }

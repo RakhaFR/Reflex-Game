@@ -168,12 +168,18 @@
   background: rgba(0, 0, 0, 0.5);
   padding: 14px 18px;
   border-radius: 12px;
-  border-left: 4px solid #00e5ff;
+  /* Warna border-left ikut warna aksen track yang lagi aktif (di-set JS) */
+  border-left: 4px solid var(--track-accent, #00e5ff);
   backdrop-filter: blur(8px);
+  /* Transisi halus tiap ganti track */
+  transition: border-color 0.3s ease;
 }
 
+/* Kelas modifier lama (hardcoded per-mode) sudah digantikan oleh
+   --track-accent, dibiarin di sini sebagai alias biar backward-compat
+   kalau ada bagian kode lain yang masih pakai class ini. */
 .mode-info-block-basic {
-  border-left: 4px solid #00ff66;
+  border-left: 4px solid var(--track-accent, #00ff66);
 }
 
 .slide-meta {
@@ -185,12 +191,13 @@
 
 .slide-num {
   font-size: 15px;
-  color: #00e5ff;
+  color: var(--track-accent, #00e5ff);
   font-weight: 900;
+  transition: color 0.3s ease;
 }
 
 .slide-num-basic {
-  color: #00ff66;
+  color: var(--track-accent, #00ff66);
 }
 
 .char-role {
@@ -205,9 +212,15 @@
   margin: 2px 0 6px 0;
   text-transform: uppercase;
   text-shadow: 3px 3px 0px #000;
+  color: var(--track-accent, #00ff66);
+  transition: color 0.3s ease;
 }
 
-.title-basic   { color: #00ff66; }
+/* Kelas warna lama — sekarang cukup sebagai alias/override kalau dibutuhkan.
+   Karena --track-accent udah handle warna per-track dari BM_TRACKS.color,
+   class ini gak perlu dipasang manual lagi di JS (changeTrack otomatis update
+   variable-nya). */
+.title-basic   { color: var(--track-accent, #00ff66); }
 /* .title-time    { color: #00c8ff; } */
 /* .title-versus  { color: #ff2255; } */
 
