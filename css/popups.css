@@ -256,83 +256,15 @@
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.08); opacity: 0.85; filter: drop-shadow(0 0 8px #ffaa00); }
 }
-/* ============================================
-   DURATION POPUP
-   ============================================ */
-/* .duration-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-.dur-btn {
-  background: linear-gradient(135deg, #00c9ff, #0062cc);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 14px 22px;
-  font-size: 18px;
-  font-weight: bold;
-  font-family: "Slackey", sans-serif;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,150,255,0.4);
-  transition: transform 0.15s, box-shadow 0.15s;
-  position: relative;
-  overflow: hidden;
-}
-.dur-btn:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(0,180,255,0.6);
-} */
-
+/* DURATION POPUP dihapus — itu cuma dipakai Time Attack & Versus
+   yang sekarang sudah dihapus total dari game */
 
 /* ============================================
-   BUTTON HIT EFFECTS
+   BUTTON HIT EFFECTS & IDLE PULSE — DIHAPUS
+   ============================================
+   .btn-hit, .btn-freeze-hit, dan idlePulse* dulu dipakai oleh
+   mekanik tombol statis (#greenBtn, #taGreenBtn, #vsGreenBtn, dst)
+   dari Time Attack & Versus mode. Basic Mode (OSU-style) sekarang
+   punya efek visual sendiri (bmNoteHitFx, shrink ring) di
+   basic-mode.css/basic-mode.js, jadi blok ini sudah tidak relevan.
    ============================================ */
-@keyframes btnHitAnim {
-  0%   { transform: scale(1); filter: brightness(1); }
-  20%  { transform: scale(0.88); filter: brightness(1.8); }
-  50%  { transform: scale(1.12); filter: brightness(1.4); }
-  100% { transform: scale(1);   filter: brightness(1); }
-}
-@keyframes btnFreezeHitAnim {
-  0%   { transform: scale(1); filter: brightness(1) hue-rotate(0deg); box-shadow: none; }
-  20%  { transform: scale(0.85); filter: brightness(2) hue-rotate(180deg); box-shadow: 0 0 40px #00d4ff, 0 0 80px #00d4ff; }
-  60%  { transform: scale(1.15); filter: brightness(1.5); box-shadow: 0 0 20px #00d4ff; }
-  100% { transform: scale(1); filter: brightness(1); box-shadow: none; }
-}
-
-.btn-hit {
-  animation: btnHitAnim 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards !important;
-  pointer-events: none;
-}
-.btn-freeze-hit {
-  animation: btnFreezeHitAnim 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards !important;
-  pointer-events: none;
-}
-
-/* ============================================
-   GAME BTN — BASE PULSE IDLE
-   ============================================ */
-@keyframes idlePulseGreen {
-  0%,100% { box-shadow: 0 4px 6px rgba(0,0,0,0.4), 0 0 0 rgba(0,200,80,0); }
-  50%     { box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 20px rgba(0,200,80,0.6); }
-}
-@keyframes idlePulseRed {
-  0%,100% { box-shadow: 0 4px 6px rgba(0,0,0,0.4), 0 0 0 rgba(255,60,60,0); }
-  50%     { box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 20px rgba(255,60,60,0.6); }
-}
-@keyframes idlePulseBonus {
-  0%,100% { box-shadow: 0 4px 6px rgba(0,0,0,0.4), 0 0 0 rgba(255,230,0,0); }
-  50%     { box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 24px rgba(255,230,0,0.7); }
-}
-@keyframes idlePulseFreeze {
-  0%,100% { box-shadow: 0 4px 6px rgba(0,0,0,0.4), 0 0 0 rgba(0,200,255,0); }
-  50%     { box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 24px rgba(0,200,255,0.7); }
-}
-
-#greenBtn, #taGreenBtn, #vsGreenBtn  { animation: idlePulseGreen 2s infinite; }
-#redBtn,   #taRedBtn,   #vsRedBtn    { animation: idlePulseRed   2s infinite; }
-#bonusBtn, #taBonusBtn, #vsBonusBtn  { animation: idlePulseBonus 1.5s infinite; }
-#taFreezeBtn, #vsFreezeBtn           { animation: idlePulseFreeze 2s infinite; }

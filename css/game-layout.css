@@ -1,11 +1,20 @@
 /* ============================================
-   GAME SESSION — SHARED LAYOUT (basic / time-attack / versus)
-   (Ditambahkan karena struktur baru game.html pakai class/id ini
-    tapi belum ada CSS-nya sama sekali)
+   GAME SESSION — SHARED LAYOUT
+   ============================================
+   Catatan: file ini dulu berisi style untuk game-header,
+   stat-box, target-container, .game-btn generik, dan freeze
+   effect — semua itu peninggalan mekanik Time Attack & Versus
+   (tombol hijau/merah/bonus/freeze statis) yang sudah dihapus
+   total dari project. Basic Mode (OSU-style) sekarang punya HUD
+   dan note styling sendiri di basic-mode.css.
+
+   Yang tersisa di file ini cuma #basicMode.active (base layout
+   screen) — sisanya (countdown overlay, shake, flash) sudah
+   didefinisikan ulang di popups.css dengan cascade yang menang,
+   jadi dihapus dari sini supaya gak ada duplikat/dead code.
    ============================================ */
-#basicMode.active,
-#timeAttackGame.active,
-#versusGame.active {
+
+#basicMode.active {
   min-height: 100svh;
   width: 100%;
   display: flex;
@@ -16,234 +25,9 @@
 }
 
 /* ============================================
-   GAME HEADER (ikon back + score)
-   ============================================ */
-.game-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 700px;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-.header-left,
-.header-right {
-  flex: 1;
-  display: flex;
-}
-.header-right {
-  justify-content: flex-end;
-}
-
-.btn-back {
-  background: #111116;
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  padding: 10px 18px;
-  font-family: "Slackey", sans-serif;
-  font-size: 13px;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.btn-back:hover {
-  border-color: #ff0055;
-  color: #ff0055;
-  transform: scale(1.05);
-}
-
-/* ============================================
-   SCORE / STAT BOX
-   ============================================ */
-.game-stats {
-  display: flex;
-  gap: 12px;
-}
-.stat-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(13, 13, 20, 0.75);
-  backdrop-filter: blur(8px);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 6px 24px;
-  min-width: 90px;
-}
-.stat-label {
-  font-family: "Orbitron", monospace;
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: rgba(255, 255, 255, 0.5);
-}
-.stat-value {
-  font-family: "Slackey", sans-serif;
-  font-size: 26px;
-  color: #fff;
-  text-shadow: 2px 2px 0 #000;
-}
-
-/* ============================================
-   GAME DISPLAY AREA / TARGET CONTAINER
-   ============================================ */
-.game-display-area {
-  width: 100%;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.target-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-/* ============================================
-   GAME BUTTON — BASE (warna diatur per-mode di file lain)
-   ============================================ */
-.game-btn {
-  display: none; /* ditampilkan via JS (style.display) */
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: none;
-  border-radius: 18px;
-  cursor: pointer;
-  color: #fff;
-  font-family: "Slackey", sans-serif;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-  transition: transform 0.1s ease, filter 0.1s ease;
-}
-.game-btn:hover {
-  filter: brightness(1.08);
-}
-.game-btn:active {
-  transform: scale(0.95);
-}
-
-.btn-key-hint {
-  display: inline-block;
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 6px;
-  padding: 2px 10px;
-  font-size: 12px;
-  letter-spacing: 1px;
-  font-family: "Orbitron", monospace;
-}
-.btn-label {
-  font-size: 22px;
-  letter-spacing: 3px;
-}
-
-/* Hit animation (dipakai triggerEffects di utils.js) */
-@keyframes btnHitPop {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.12); }
-  100% { transform: scale(1); }
-}
-.btn-arcade-hit {
-  animation: btnHitPop 0.3s ease;
-}
-
-/* ============================================
-   COUNTDOWN OVERLAY (3..2..1..GO!)
-   ============================================ */
-.countdown-overlay {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 99999;
-}
-.countdown-overlay.active {
-  display: flex;
-}
-
-.countdown-num {
-  font-family: "Slackey", sans-serif;
-  font-size: 100px;
-  color: #fff;
-  text-shadow: 0 0 30px rgba(0, 200, 255, 0.8);
-}
-.countdown-num.pop-in {
-  animation: countdownPopIn 1s ease;
-}
-.countdown-num.go {
-  color: #00ff88;
-  text-shadow: 0 0 30px rgba(0, 255, 136, 0.9);
-  animation: countdownGo 0.9s ease;
-}
-@keyframes countdownPopIn {
-  0%   { transform: scale(0.3); opacity: 0; }
-  50%  { transform: scale(1.25); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-@keyframes countdownGo {
-  0%   { transform: scale(0.5); opacity: 0; }
-  40%  { transform: scale(1.3); opacity: 1; }
-  100% { transform: scale(1); opacity: 0; }
-}
-
-
-/* ==========================================================================
-   EFEK GAMEPLAY: SHAKE, FLASH, & BUTTON GLOW
-   ========================================================================== */
-
-/* Efek Guncangan pada Container Game */
-.shake {
-  animation: shakeAnim 0.15s linear infinite;
-}
-
-@keyframes arcadeShake {
-  0% { transform: translate(2px, 1px) rotate(0deg) scale(1.02); }
-  20% { transform: translate(-1px, -2px) rotate(-1deg) scale(1.02); }
-  40% { transform: translate(-3px, 0px) rotate(1deg) scale(1.02); }
-  60% { transform: translate(0px, 2px) rotate(0deg) scale(1.02); }
-  80% { transform: translate(2px, -1px) rotate(1deg) scale(1.02); }
-  100% { transform: translate(-1px, 1px) rotate(0deg) scale(1.02); }
-}
-/* Efek Kilatan Layar (Flash Overlay) */
-.flash-overlay {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 99;
-  opacity: 0;
-}
-.flash-overlay.flash-active {
-  animation: flashAnim 0.2s ease-out;
-}
-
-@keyframes flashAnim {
-  0% { opacity: 0.5; }
-  100% { opacity: 0; }
-}
-
-/* Update pada animasi tombol diklik (.btn-arcade-hit) agar memiliki efek cahaya/glow */
-.btn-arcade-hit {
-  animation: btnHitPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  box-shadow: 0 0 25px currentColor, inset 0 0 15px rgba(255, 255, 255, 0.6) !important;
-  filter: brightness(1.4);
-}
-
-/* ============================================
    RESPONSIVE
    ============================================ */
 @media (max-width: 520px) {
-  .game-header { max-width: 100%; }
-  .stat-box { min-width: 70px; padding: 6px 14px; }
-  .stat-value { font-size: 20px; }
-  .btn-label { font-size: 16px; }
-  .countdown-num { font-size: 70px; }
+  /* placeholder — basic-mode-osu.css sudah handle responsive
+     untuk HUD/note/key-legend sendiri di breakpoint yang sama */
 }
-
-

@@ -6,11 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reflex Hands - Play Arena</title>
   <link rel="stylesheet" href="css/base.css" />
-  <link rel="stylesheet" href="css/game-layout.css" />
   <link rel="stylesheet" href="css/basic-mode.css" />
-  <link rel="stylesheet" href="css/basic-mode-osu.css" />
-  <link rel="stylesheet" href="css/time-attack.css" />
-  <link rel="stylesheet" href="css/versus-mode.css" />
   <link rel="stylesheet" href="css/popups.css" />
   <link rel="stylesheet" href="css/profile.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -29,7 +25,7 @@
     dikembalikan sebagai dummy element yang aman (tidak throw error),
     dan ID yang berubah nama di-alias dengan benar.
   -->
-  <script>
+<script>
     (function patchForGamePage() {
       const _orig = document.getElementById.bind(document);
 
@@ -39,13 +35,13 @@
       };
 
       // ID yang ADA DI JS TAPI TIDAK ADA di game.html —
-      // butuh dummy supaya tidak crash
+      // Disesuaikan agar elemen TA dan Versus diarahkan ke dummy/fungsi notoriginal
       const DUMMY_IDS = [
-        "playBasicBtn",   // ada di lobby.html, tidak di game.html
-        "playTimeAttackBtn", // sama
-        "playVersusBtn",     // sama
-        "home",           // sudah jadi halaman terpisah
-        "lobby"           // sudah jadi halaman terpisah
+        "playBasicBtn",      // ada di lobby.html, tidak di game.html
+        "playTimeAttackBtn", // dialihkan ke dummy aman / notoriginal behavior
+        "playVersusBtn",     // dialihkan ke dummy aman / notoriginal behavior
+        "home",              // sudah jadi halaman terpisah
+        "lobby"              // sudah jadi halaman terpisah
       ];
 
       // Buat semua dummy element dan masukkan ke Map
@@ -54,6 +50,11 @@
         var el = document.createElement("div");
         el.id = id;
         el.style.cssText = "display:none;pointer-events:none;position:absolute;";
+
+        // Menambahkan penanda fungsi 'notoriginal' sebagai metadata command pada dummy element TA & Versus
+        if (id === "playTimeAttackBtn" || id === "playVersusBtn") {
+          el.dataset.command = "notoriginal";
+        }
 
         // Untuk "home" dan "lobby": saat .classList.add("active") → navigasi ke lobby
         if (id === "home" || id === "lobby") {
@@ -159,131 +160,6 @@
   </main>
 
   <!-- ══════════════════════════════════════════════
-       TIME ATTACK
-       ══════════════════════════════════════════════ -->
-  <main id="timeAttackGame" class="screen game-session">
-    <header class="game-header">
-      <div class="header-left">
-        <button class="btn-back" id="exitTimeAttackBtn">← Exit</button>
-      </div>
-      <div class="game-stats">
-        <div class="stat-box">
-          <span class="stat-label">SCORE</span>
-          <span id="taScore" class="stat-value">0</span>
-        </div>
-      </div>
-      <div class="header-right"></div>
-    </header>
-
-    <div id="timerBarWrapper">
-      <div id="timerBarFill"></div>
-      <span id="taTimerLabel">00:00</span>
-    </div>
-
-    <div id="taComboContainer">
-      <span class="combo-label">COMBO</span>
-      <span id="taCombo">x0</span>
-    </div>
-
-    <section class="game-display-area">
-      <div id="taGameArea" class="target-container">
-        <button id="taGreenBtn" class="game-btn">
-          <span class="btn-label">GREEN</span>
-          <span class="countdown" id="taCdGreen"></span>
-        </button>
-        <button id="taRedBtn" class="game-btn">
-          <span class="btn-label">RED</span>
-          <span class="countdown" id="taCdRed"></span>
-        </button>
-        <button id="taBonusBtn" class="game-btn">
-          <span class="btn-label">BONUS</span>
-          <span class="countdown" id="taCdBonus"></span>
-        </button>
-        <button id="taHoldBtn" class="game-btn">
-          <span class="btn-label">HOLD</span>
-          <span class="countdown" id="taCdHold"></span>
-        </button>
-        <button id="taFreezeBtn" class="game-btn freeze-btn">
-          <span class="btn-label">FREEZE</span>
-          <small id="freezeCooldownLabel">READY</small>
-        </button>
-      </div>
-    </section>
-  </main>
-
-  <!-- ══════════════════════════════════════════════
-       VERSUS MODE
-       ══════════════════════════════════════════════ -->
-  <main id="versusGame" class="screen game-session">
-    <header class="game-header">
-      <div class="header-left">
-        <button class="btn-back" id="exitVersusBtn">← Exit</button>
-      </div>
-      <div id="vsTimerBarWrapper">
-        <div id="vsTimerBarFill"></div>
-        <span id="vsTimerLabel">00:00</span>
-      </div>
-      <div class="header-right"></div>
-    </header>
-
-    <div class="vs-container">
-      <div id="vsP1Side" class="vs-side-panel">
-        <div class="vs-player-info">PLAYER 1 <small>[A]</small></div>
-        <div id="vsP1Score" class="vs-score-val">0</div>
-        <div id="vsP1ComboContainer" class="vs-combo-box">Combo: <span id="vsP1Combo">0</span></div>
-        <button id="vsP1ClickBtn" class="vs-action-trigger-btn">HIT / DEFEND</button>
-        <div id="vsP1FreezeStatus" class="vs-freeze-indicator"></div>
-      </div>
-      <div class="vs-center-hub">
-        <div id="vsTargetDisplay" class="vs-spawned-target">READY</div>
-      </div>
-      <div id="vsP2Side" class="vs-side-panel">
-        <div class="vs-player-info">PLAYER 2 <small>[L]</small></div>
-        <div id="vsP2Score" class="vs-score-val">0</div>
-        <div id="vsP2ComboContainer" class="vs-combo-box">Combo: <span id="vsP2Combo">0</span></div>
-        <button id="vsP2ClickBtn" class="vs-action-trigger-btn">HIT / DEFEND</button>
-        <div id="vsP2FreezeStatus" class="vs-freeze-indicator"></div>
-      </div>
-    </div>
-  </main>
-
-  <!-- ══════════════════════════════════════════════
-       POPUP: DURASI — TIME ATTACK
-       ══════════════════════════════════════════════ -->
-  <div id="durationPopup" class="popup-overlay">
-    <div class="popup-box">
-      <h2>Pilih Durasi</h2>
-      <p>Berapa lama kamu mau bertahan?</p>
-      <div class="duration-options">
-        <button class="dur-btn shiny-button" id="dur1">1 Menit</button>
-        <button class="dur-btn shiny-button" id="dur3">3 Menit</button>
-        <button class="dur-btn shiny-button" id="dur5">5 Menit</button>
-        <button class="dur-btn shiny-button" id="dur7">7 Menit</button>
-        <button class="dur-btn shiny-button" id="dur10">10 Menit</button>
-      </div>
-      <button class="btn back-btn shiny-button" id="durCancelBtn">Batal</button>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════
-       POPUP: DURASI — VERSUS
-       ══════════════════════════════════════════════ -->
-  <div id="vsDurationPopup" class="popup-overlay">
-    <div class="popup-box">
-      <h2>Pilih Durasi</h2>
-      <p>Berapa lama pertandingan berlangsung?</p>
-      <div class="duration-options">
-        <button class="dur-btn shiny-button" id="vsDur1">1 Menit</button>
-        <button class="dur-btn shiny-button" id="vsDur3">3 Menit</button>
-        <button class="dur-btn shiny-button" id="vsDur5">5 Menit</button>
-        <button class="dur-btn shiny-button" id="vsDur7">7 Menit</button>
-        <button class="dur-btn shiny-button" id="vsDur10">10 Menit</button>
-      </div>
-      <button class="btn back-btn shiny-button" id="vsDurCancelBtn">Batal</button>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════
        POPUP: QUIT CONFIRM
        ══════════════════════════════════════════════ -->
   <div id="quitConfirmPopup" class="popup-overlay">
@@ -312,32 +188,6 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════
-       POPUP: HASIL TIME ATTACK
-       ══════════════════════════════════════════════ -->
-  <div id="gameOverPopup" class="popup-overlay">
-    <div class="popup-box">
-      <h2>Waktu Habis!</h2>
-      <p>Skor Akhir kamu:</p>
-      <div id="finalScore" class="final-score">0</div>
-      <div id="finalCombo" class="final-combo"></div>
-      <button class="btn play-btn shiny-button" id="taPlayAgainBtn">Main Lagi</button>
-      <button class="btn back-btn shiny-button" id="taGoHomeBtn">Kembali ke Menu</button>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════
-       POPUP: HASIL VERSUS
-       ══════════════════════════════════════════════ -->
-  <div id="vsResultPopup" class="popup-overlay">
-    <div class="popup-box">
-      <h2>Hasil Pertandingan</h2>
-      <div class="vs-result-winner" id="vsWinnerName"></div>
-      <div class="vs-result-scores" id="vsFinalScores"></div>
-      <button class="btn play-btn shiny-button" id="vsPlayAgainBtn">Rematch</button>
-      <button class="btn back-btn shiny-button" id="vsGoHomeBtn">Kembali ke Menu</button>
-    </div>
-  </div>
 
   <!-- AUDIO -->
   <audio id="clickSound" src="assets/audio/click.mp3" preload="auto"></audio>
@@ -352,95 +202,53 @@
     1. profile.js
     2. utils.js        ← playSound, getDiff, openDifficultyPopup, dll
     3. basic-mode.js   ← butuh utils.js + dummy "playBasicBtn" sudah ada dari patch
-    4. time-attack.js
-    5. versus-mode.js
+    4. 
+    5. 
     6. popups.js       ← terakhir, butuh semua mode di atas
     TIDAK ADA main.js — keyboard listener-nya akan bentrok dengan kontrol game
   -->
   <script src="js/profile.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/basic-mode.js"></script>
-  <script src="js/time-attack.js"></script>
-  <script src="js/versus-mode.js"></script>
   <script src="js/popups.js"></script>
 
-  <script>
+<script>
     window.addEventListener("DOMContentLoaded", function () {
       if (typeof profileInit === "function") profileInit();
 
-      // ── Duration buttons — Time Attack ────────────────────────────
-      document.getElementById("durCancelBtn").addEventListener("click", function () {
-        playSound();
-        if (typeof closeDurationPopup === "function") closeDurationPopup();
-      });
-      [[1, "dur1"], [3, "dur3"], [5, "dur5"], [7, "dur7"], [10, "dur10"]].forEach(function (pair) {
-        document.getElementById(pair[1]).addEventListener("click", function () {
-          if (typeof startTimeAttack === "function") startTimeAttack(pair[0]);
-        });
-      });
-
-      // ── Duration buttons — Versus ─────────────────────────────────
-      document.getElementById("vsDurCancelBtn").addEventListener("click", function () {
-        playSound();
-        if (typeof closeVsDurationPopup === "function") closeVsDurationPopup();
-      });
-      [[1, "vsDur1"], [3, "vsDur3"], [5, "vsDur5"], [7, "vsDur7"], [10, "vsDur10"]].forEach(function (pair) {
-        document.getElementById(pair[1]).addEventListener("click", function () {
-          if (typeof startVersusMode === "function") startVersusMode(pair[0]);
-        });
-      });
-
-      // ── Freeze button ─────────────────────────────────────────────
-      document.getElementById("taFreezeBtn").addEventListener("click", function () {
-        if (typeof activateFreeze === "function") activateFreeze();
-      });
-
-      // ── Exit buttons → langsung ke lobby.html ────────────────────
-      // exitBasicBtn: basic-mode.js sudah pasang listener sendiri (showQuitConfirm)
-      // exitTimeAttackBtn & exitVersusBtn ditambah di sini jika belum ada di JS-nya
-      var exitTA = document.getElementById("exitTimeAttackBtn");
-      if (exitTA && !exitTA._listenerAdded) {
-        exitTA.addEventListener("click", function () {
-          playSound();
-          showQuitConfirm("timeattack");
-        });
-        exitTA._listenerAdded = true;
-      }
-      var exitVS = document.getElementById("exitVersusBtn");
-      if (exitVS && !exitVS._listenerAdded) {
-        exitVS.addEventListener("click", function () {
-          playSound();
-          showQuitConfirm("versus");
-        });
-        exitVS._listenerAdded = true;
-      }
-
-      // ── Router: aktifkan screen sesuai ?mode= ────────────────────
+      // ── Router: Mendeteksi Mode dan Konfigurasi Track/Difficulty ────────────────────
       var params = new URLSearchParams(window.location.search);
       var gameMode = params.get("mode") || "basic";
       var urlDiff = params.get("diff");
       var urlTrack = params.get("track");
 
-      if (gameMode === "timeattack") {
-        document.getElementById("timeAttackGame").classList.add("active");
-        if (typeof openDurationPopup === "function") openDurationPopup();
-      } else if (gameMode === "versus") {
-        document.getElementById("versusGame").classList.add("active");
-        if (typeof openVsDurationPopup === "function") openVsDurationPopup();
+      // Inject diff & track LANGSUNG ke variabel engine
+      if (urlDiff) {
+        // Override bmDiffKey sebelum engine membacanya
+        if (typeof bmDiffKey !== "undefined") bmDiffKey = urlDiff;
+        // Juga set currentDifficulty lewat utils scope kalau bisa
+        if (typeof currentDifficulty !== "undefined") currentDifficulty = urlDiff;
+      }
+      
+      if (urlTrack !== null) {
+        if (typeof bmTrackIdx !== "undefined") bmTrackIdx = parseInt(urlTrack) || 0;
+      }
+      
+      // Pengkondisian Router berdasarkan Game Mode
+      if (gameMode === "notoriginal") {
+        // Jika mode "notoriginal" dipilih, jalankan fungsinya jika sudah tersedia
+        if (typeof startNotOriginalMode === "function") {
+          startNotOriginalMode();
+        } else if (typeof startBasicMode === "function") {
+          // Fallback otomatis ke Basic Mode jika fungsi belum dibuat/di-define
+          console.warn("Fungsi startNotOriginalMode() belum dibuat. Menggunakan fallback ke Basic Mode.");
+          startBasicMode();
+        }
       } else {
-        // Basic OSU — inject diff & track LANGSUNG ke variabel engine,
-        // jangan lewat window.currentDifficulty karena itu lexical var di utils.js
-        // yang tidak bisa di-override dari luar scope-nya.
-        if (urlDiff) {
-          // Override bmDiffKey sebelum startBasicMode() membacanya
-          if (typeof bmDiffKey !== "undefined") bmDiffKey = urlDiff;
-          // Juga set currentDifficulty lewat utils scope kalau bisa
-          if (typeof currentDifficulty !== "undefined") currentDifficulty = urlDiff;
+        // Default / Basic Mode
+        if (typeof startBasicMode === "function") {
+          startBasicMode();
         }
-        if (urlTrack !== null) {
-          if (typeof bmTrackIdx !== "undefined") bmTrackIdx = parseInt(urlTrack) || 0;
-        }
-        if (typeof startBasicMode === "function") startBasicMode();
       }
     });
   </script>

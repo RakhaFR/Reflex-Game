@@ -2,7 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Orbitron&display=swap");
 
 /* ============================================
-   BASE & LAYOUT
+   BASE & LAYOUT CORE
    ============================================ */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -17,9 +17,7 @@ body {
   font-family: Arial, sans-serif;
   min-height: 100vh;
   min-height: 100svh;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  /* display: flex & justify-content dihapus agar tidak merusak flow lobby-layout 100vw */
   background: url("../assets/picture/background.jpg") no-repeat center center fixed;
   background-size: cover;
   color: white;
@@ -33,11 +31,9 @@ body {
   max-width: 1300px;
   padding: 0;
 }
-/* Each screen sets its own display type when active */
 .screen.active {
   display: block;
 }
-/* Screens that use flex when active override this in their own CSS */
 
 /* ============================================
    TYPOGRAPHY
@@ -70,76 +66,7 @@ footer {
 }
 
 /* ============================================
-   BUTTONS — BASE
-   ============================================ */
-.btn {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: 12px 0;
-  padding: 14px 28px;
-  font-size: 20px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  color: white;
-  width: 100%;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-  transition: transform 0.15s;
-}
-.btn:hover {
-  transform: scale(1.05);
-}
-
-/* Button color variants */
-.play-btn   { background: linear-gradient(#00c851, #007e33); }
-.other-btn  { background: linear-gradient(#ff4444, #cc0000); }
-.donate-btn { background: linear-gradient(#33b5e5, #0099cc); }
-.back-btn {
-  background: #666;
-  margin: 25px auto 0;
-  width: 260px;
-  display: block;
-}
-
-/* Inline countdown inside buttons */
-.btn .countdown {
-  display: block;
-  font-size: 14px;
-  margin-top: 6px;
-  color: #fff;
-  opacity: 0.8;
-}
-
-/* Shiny animation */
-@keyframes shine {
-  0%   { left: -100%; }
-  100% { left: 100%; }
-}
-/* .shiny-button {
-  position: relative;
-  overflow: hidden;
-}
-.shiny-button::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    120deg,
-    rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.4) 50%,
-    rgba(255,255,255,0) 100%
-  );
-  animation: shine 1.5s infinite;
-} */
-
-/* ============================================
-   FLASH OVERLAY
+   GAME RENDER ENGINE — FLASH OVERLAY
    ============================================ */
 #flashOverlay {
   position: fixed;
@@ -157,7 +84,7 @@ footer {
 #flashOverlay.blue    { background: rgba(0, 180, 255, 0.6); }
 
 /* ============================================
-   SHAKE ANIMATION (shared)
+   GAMEPLAY SHAKE ANIMATION
    ============================================ */
 @keyframes shakeAnim {
   0%   { transform: translate(0px, 0px); }
@@ -168,14 +95,20 @@ footer {
 }
 
 /* ============================================
-   RESPONSIVE — BASE
+   PARTICLE CANVAS SCREEN
    ============================================ */
-@media (max-width: 390px) {
-  #comboContainer .combo-label { display: block; font-size: 11px; color: #ff0; }
-  #comboContainer #combo       { display: block; font-size: 15px; color: #fff; }
+#particleCanvas {
+  position: fixed;
+  top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9998;
+  width: 100vw;
+  height: 100vh;
 }
 
-/* Screens that need centered vertical layout (game screens) */
+/* ============================================
+   RESPONSIVE LAYOUT GAMEPLAY SCREEN
+   ============================================ */
 #basicGame.active,
 #timeAttackGame.active {
   min-height: 100svh;
@@ -196,19 +129,7 @@ footer {
 }
 
 /* ============================================
-   PARTICLE CANVAS
-   ============================================ */
-#particleCanvas {
-  position: fixed;
-  top: 0; left: 0;
-  pointer-events: none;
-  z-index: 9998;
-  width: 100vw;
-  height: 100vh;
-}
-/* Generic .active class for non-screen toggle elements */
-/* ============================================
-   LOADING SCREEN
+   LOADING SCREEN ENGINE
    ============================================ */
 #loadingScreen {
   --hue: 200;
@@ -236,7 +157,6 @@ footer {
   width: 280px;
 }
 
-/* Scale up the SVG loader */
 .loading-inner .loader {
   width: 80px;
   height: 80px;
@@ -264,7 +184,6 @@ footer {
   transition: color 0.3s;
 }
 
-/* Progress bar */
 .loading-bar-wrap {
   width: 100%;
   height: 4px;
@@ -291,7 +210,7 @@ footer {
 }
 
 /* ============================================
-   LOADER SVG ANIMATIONS (from template)
+   LOADER SVG ANIMATIONS
    ============================================ */
 .loader {
   --dur: 2s;

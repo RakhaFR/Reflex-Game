@@ -351,9 +351,9 @@ function initLobbyPageLogic() {
 
     const widgetAvatar  = document.getElementById("widgetAvatar");
     const modalProfileImg = document.getElementById("modalProfileImg");
-    const avatarSrc = profile.identity.avatar?.startsWith("data:image")
-      ? profile.identity.avatar
-      : "assets/picture/logo.png";
+    const avatarSrc = (profile.identity.avatar === "default" || !profile.identity.avatar)
+      ? "assets/picture/logo.png"
+      : profile.identity.avatar;
     if (widgetAvatar)    widgetAvatar.src    = avatarSrc;
     if (modalProfileImg) modalProfileImg.src = avatarSrc;
 
@@ -373,9 +373,9 @@ function initLobbyPageLogic() {
       document.getElementById("modalStatScore").textContent      = profile.stats.lifetimeScore || 0;
     if (document.getElementById("modalStatHighBasic"))
       document.getElementById("modalStatHighBasic").textContent  = profile.stats.records.highestBasicScore || 0;
-    if (document.getElementById("modalStatHighTA"))
-      document.getElementById("modalStatHighTA").textContent     = profile.stats.records.highestTimeAttackScore || 0;
-
+    if (document.getElementById("modalStatHighNotOriginal")) {
+      document.getElementById("modalStatHighNotOriginal").textContent = profile.stats.records.highestNotOriginalScore || 0;
+    }
     const masterVolumeSlider = document.getElementById("masterVolumeSlider");
     const masterVolumeLabel  = document.getElementById("masterVolumeLabel");
     if (masterVolumeSlider && masterVolumeLabel) {
@@ -866,31 +866,70 @@ function initLobbyPageLogic() {
   // ============================================================
   // PREV/NEXT sekarang ganti GAME MODE (Basic / Not Origin Music / dst),
   // BUKAN ganti track lagi. Track switching ada di Arrow Up/Down keyboard.
-  const modeLabel = document.getElementById("currentModeLabel");
+  // Contoh blueprint jika lu mau update array modenya nanti:
+let lobbyModeIdx = 0;
 
-  function renderModeLabel() {
-    if (!modeLabel || typeof BM_GAME_MODES === "undefined") return;
-    const mode = BM_GAME_MODES[bmGameModeIdx] || BM_GAME_MODES[0];
-    modeLabel.textContent = mode.label;
-  }
+const BM_GAME_MODES = [
+  { id: "basic", label: "BASIC MODE", engine: "startBasicMode" },
+  // { id: "notoriginal", label: "NOT ORIGINAL MODE", engine: "startNotOriginalEngine" } 
+  // ↑ Menggantikan slot TA & Versus lama. Tinggal lepas komentar kalau file JS-nya sudah ada!
+];
+
+const modeLabel = document.getElementById("currentModeLabel");
+
+function renderModeLabel() {
+  if (!modeLabel || typeof BM_GAME_MODES === "undefined") return;
+  const mode = BM_GAME_MODES[lobbyModeIdx] || BM_GAME_MODES[0];
+  modeLabel.textContent = mode.label;
+}
+
+function switchMode(dir) {
+  if (typeof BM_GAME_MODES === "undefined" || !BM_GAME_MODES.length) return;
+  
+  // Mengubah index lokal lobbyModeIdx, bukan bmGameModeIdx lagi
+  lobbyModeIdx = (lobbyModeIdx + dir + BM_GAME_MODES.length) % BM_GAME_MODES.length;
   renderModeLabel();
+}
 
-  function switchMode(dir) {
-    if (typeof BM_GAME_MODES === "undefined" || !BM_GAME_MODES.length) return;
-    bmGameModeIdx = (bmGameModeIdx + dir + BM_GAME_MODES.length) % BM_GAME_MODES.length;
-    renderModeLabel();
+// ── Event Listener Tombol Slider ────────────────────────────
+document.getElementById("slideNextBtn")?.addEventListener("click", () => {
+  if (typeof triggerLobbyClickSound === "function") triggerLobbyClickSound();
+  switchMode(1);
+});
+
+document.getElementById("slidePrevBtn")?.addEventListener("click", () => {
+  if (typeof triggerLobbyClickSound === "function") triggerLobbyClickSound();
+  switchMode(-1);
+});
+
+// Jalankan render pertama kali saat lobby dimuat
+renderModeLabel();
+
+
+// ============================================================
+// ── PATCH TOMBOL PLAY UTAMA (Memicu Engine) ──
+// ============================================================
+// Pastikan bagian fungsi saat tombol PLAY/START diklik di main.js lu disesuaikan seperti ini:
+function handlePlayButtonClick() {
+  const currentMode = BM_GAME_MODES[lobbyModeIdx];
+  
+  if (!currentMode) {
+    if (typeof startBasicMode === "function") startBasicMode();
+    return;
   }
 
-  document.getElementById("slideNextBtn")?.addEventListener("click", () => {
-    triggerLobbyClickSound();
-    switchMode(1);
-  });
+  // Jalankan fungsi berdasarkan mode yang sedang aktif di slider lobby
+  const engineFnName = currentMode.engine;
+  const engineFn = window[engineFnName];
 
-  document.getElementById("slidePrevBtn")?.addEventListener("click", () => {
-    triggerLobbyClickSound();
-    switchMode(-1);
-  });
-
+  if (typeof engineFn === "function") {
+    engineFn();
+  } else {
+    // Fallback otomatis jika engine (misal startNotOriginalEngine) belum didefinisikan
+    console.warn(`Engine ${engineFnName} belum siap. Fallback otomatis ke Basic Mode.`);
+    if (typeof startBasicMode === "function") startBasicMode();
+  }
+}
   // ============================================================
   // ── TRACK SWITCHER VIA ARROW UP/DOWN ──
   // ============================================================

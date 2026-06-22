@@ -11,14 +11,23 @@ function playSound() {
   sound.play().catch((err) => console.log(err));
 }
 
+// Disesuaikan agar aman mendukung struktur multi-halaman (lobby.html / index.html)
 function goToLobby() {
-  document.getElementById("home").classList.remove("active");
-  document.getElementById("lobby").classList.add("active");
+  if (document.getElementById("lobby")) {
+    document.getElementById("home")?.classList.remove("active");
+    document.getElementById("lobby").classList.add("active");
+  } else {
+    window.location.href = "lobby.html";
+  }
 }
 
 function goToHome() {
-  document.getElementById("lobby").classList.remove("active");
-  document.getElementById("home").classList.add("active");
+  if (document.getElementById("home")) {
+    document.getElementById("lobby")?.classList.remove("active");
+    document.getElementById("home").classList.add("active");
+  } else {
+    window.location.href = "index.html"; // atau lokasi main menu lu
+  }
 }
 
 // ============================================

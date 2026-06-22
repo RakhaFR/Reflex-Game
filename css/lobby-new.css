@@ -172,6 +172,10 @@
   backdrop-filter: blur(8px);
 }
 
+.mode-info-block-basic {
+  border-left: 4px solid #00ff66;
+}
+
 .slide-meta {
   display: flex;
   align-items: center;
@@ -183,6 +187,10 @@
   font-size: 15px;
   color: #00e5ff;
   font-weight: 900;
+}
+
+.slide-num-basic {
+  color: #00ff66;
 }
 
 .char-role {
@@ -200,8 +208,8 @@
 }
 
 .title-basic   { color: #00ff66; }
-.title-time    { color: #00c8ff; }
-.title-versus  { color: #ff2255; }
+/* .title-time    { color: #00c8ff; } */
+/* .title-versus  { color: #ff2255; } */
 
 .mode-description {
   font-size: 12px;

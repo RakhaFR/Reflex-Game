@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/lobby-new.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="css/layout.css">
   <link rel="icon" type="image/png" href="assets/picture/logo.png">
 </head>
 
@@ -176,9 +175,10 @@
                   <span>Basic Mode Peak</span>
                   <span class="b-val" id="modalStatHighBasic">0</span>
                 </div>
+
                 <div class="blueprint-row">
-                  <span>Time Attack Peak</span>
-                  <span class="b-val" id="modalStatHighTA">0</span>
+                  <span>Not Original Peak</span>
+                  <span class="b-val" id="modalStatHighNotOriginal">0</span>
                 </div>
                 <div class="blueprint-row">
                   <span>Lifetime Score</span>
@@ -241,13 +241,15 @@
 
             <!-- Keybind editor — full width di bawah grid -->
             <div class="settings-blueprint-card" style="margin-top:14px;">
-              <div class="card-blueprint-title">// GAMEPLAY KEYBINDS <span style="font-size:10px;color:#52638a;font-weight:400;">(4 KEYS)</span></div>
+              <div class="card-blueprint-title">// GAMEPLAY KEYBINDS <span
+                  style="font-size:10px;color:#52638a;font-weight:400;">(4 KEYS)</span></div>
               <div class="keybind-editor-row" id="keybindEditorRow">
                 <!-- Di-render oleh JS saat modal dibuka -->
               </div>
               <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
                 <span style="font-size:10px;color:#52638a;">Klik key lalu tekan tombol keyboard baru</span>
-                <button id="keybindResetBtn" class="pact-btn-blueprint" style="font-size:10px;padding:5px 12px;">RESET DEFAULT</button>
+                <button id="keybindResetBtn" class="pact-btn-blueprint" style="font-size:10px;padding:5px 12px;">RESET
+                  DEFAULT</button>
               </div>
             </div>
 
@@ -260,9 +262,9 @@
     <div class="lobby-content-grid">
 
       <section class="info-panel-left">
-        <div class="mode-info-block" id="modeInfoBlock">
+        <div class="mode-info-block mode-info-block-basic" id="modeInfoBlock">
           <div class="slide-meta">
-            <span class="slide-num">01</span>
+            <span class="slide-num slide-num-basic">01</span>
             <span class="char-role">// CHARACTER: KAMIA</span>
           </div>
           <h2 class="mode-title title-basic" id="displayModeTitle">BASIC MODE</h2>
@@ -282,13 +284,14 @@
           <div class="song-list-header">
             <div class="cd-icon-wrap">
               <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="32" cy="32" r="30" fill="#0a0a0a"/>
-                <circle cx="32" cy="32" r="30" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5"/>
-                <path d="M32 2 A30 30 0 0 1 62 32" fill="none" stroke="#00e5ff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
-                <circle cx="32" cy="32" r="20" fill="none" stroke="#1a1a1a" stroke-width="1"/>
-                <circle cx="32" cy="32" r="13" fill="none" stroke="#1a1a1a" stroke-width="1"/>
-                <circle cx="32" cy="32" r="6" fill="#00e5ff"/>
-                <circle cx="32" cy="32" r="2.5" fill="#0a0a0a"/>
+                <circle cx="32" cy="32" r="30" fill="#0a0a0a" />
+                <circle cx="32" cy="32" r="30" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5" />
+                <path d="M32 2 A30 30 0 0 1 62 32" fill="none" stroke="#00e5ff" stroke-width="3" stroke-linecap="round"
+                  opacity="0.8" />
+                <circle cx="32" cy="32" r="20" fill="none" stroke="#1a1a1a" stroke-width="1" />
+                <circle cx="32" cy="32" r="13" fill="none" stroke="#1a1a1a" stroke-width="1" />
+                <circle cx="32" cy="32" r="6" fill="#00e5ff" />
+                <circle cx="32" cy="32" r="2.5" fill="#0a0a0a" />
               </svg>
             </div>
             <span class="song-list-header-text">TRACK LIST</span>

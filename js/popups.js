@@ -36,70 +36,31 @@ document.getElementById("quitYesBtn").addEventListener("click", () => {
       popup.classList.add("active");
     }
 
-  } else if (quitTargetMode === "versus") {
-    if (typeof vsMainTimer !== "undefined" && vsMainTimer) {
-      clearInterval(vsMainTimer); vsMainTimer = null;
-    }
-    if (typeof vsClearAllTimers === "function") vsClearAllTimers();
-    if (typeof vsHideAllButtons === "function") vsHideAllButtons();
-    if (typeof vsStopCountdown  === "function") vsStopCountdown();
-    if (typeof vsP1FreezeTimeout !== "undefined" && vsP1FreezeTimeout) {
-      clearTimeout(vsP1FreezeTimeout); vsP1FreezeTimeout = null;
-    }
-    if (typeof vsP2FreezeTimeout !== "undefined" && vsP2FreezeTimeout) {
-      clearTimeout(vsP2FreezeTimeout); vsP2FreezeTimeout = null;
-    }
-    if (typeof vsP1FreezeTick !== "undefined" && vsP1FreezeTick) {
-      clearInterval(vsP1FreezeTick); vsP1FreezeTick = null;
-    }
-    if (typeof vsP2FreezeTick !== "undefined" && vsP2FreezeTick) {
-      clearInterval(vsP2FreezeTick); vsP2FreezeTick = null;
-    }
-    if (typeof vsP1Frozen !== "undefined") vsP1Frozen = false;
-    if (typeof vsP2Frozen !== "undefined") vsP2Frozen = false;
-    if (typeof vsP1FreezeSecondsLeft !== "undefined") vsP1FreezeSecondsLeft = 0;
-    if (typeof vsP2FreezeSecondsLeft !== "undefined") vsP2FreezeSecondsLeft = 0;
-    if (typeof vsKeyHandler === "function")
-      document.removeEventListener("keydown", vsKeyHandler);
-    document.getElementById("versusGame")?.classList.remove("active");
-    document.getElementById("home")?.classList.add("active");
-    quitTargetMode = null;
-    return;
-
-  } else if (quitTargetMode === "timeattack") {
-    if (typeof taMainTimer !== "undefined" && taMainTimer) {
-      clearInterval(taMainTimer); taMainTimer = null;
-    }
-    if (typeof taClearAllTimers === "function") taClearAllTimers();
-    if (typeof taHideAllButtons === "function") taHideAllButtons();
-    if (typeof taStopCountdown  === "function") taStopCountdown();
-    if (typeof taFreezeTimeout !== "undefined" && taFreezeTimeout) {
-      clearTimeout(taFreezeTimeout); taFreezeTimeout = null;
-    }
-    if (typeof taFrozen      !== "undefined") taFrozen = false;
-    if (typeof taFreezeCooldown !== "undefined") taFreezeCooldown = false;
+  // ==========================================================================
+  // LOGIC UNTUK MODE BARU (NOT ORIGINAL MODE) — TEMPORARY COMMENTED
+  // ==========================================================================
+  } else if (quitTargetMode === "notoriginal") {
+    // Nanti kalau engine notoriginal udah jadi, tinggal uncomment baris di bawah ini:
+    /*
+    if (typeof stopNotOriginalEngine === "function") stopNotOriginalEngine();
+    
     if (typeof statRecordGameEnd === "function")
-      statRecordGameEnd("ta", typeof taScore !== "undefined" ? taScore : 0,
-                               typeof taBestCombo !== "undefined" ? taBestCombo : 0);
+      statRecordGameEnd("notoriginal", window.score ?? 0, window.notOriginalBestCombo ?? 0);
 
-    const finalScore = document.getElementById("finalScore");
-    const finalCombo = document.getElementById("finalCombo");
-    if (finalScore) finalScore.textContent = typeof taScore !== "undefined" ? taScore : 0;
-    if (finalCombo) finalCombo.textContent = "Best Combo: x" + (typeof taBestCombo !== "undefined" ? taBestCombo : 0);
-    document.getElementById("gameOverPopup")?.classList.add("active");
+    // Contoh pemicu popup result khusus mode ini (jika ada):
+    const popup = document.getElementById("notOriginalResultPopup");
+    if (popup) {
+      document.getElementById("notOriginalFinalScore").textContent = (window.score ?? 0).toLocaleString();
+      document.getElementById("notOriginalFinalCombo").textContent = "Best Combo: x" + (window.notOriginalBestCombo ?? 0);
+      popup.classList.add("active");
+    }
+    */
+    
+    // Fallback sementara biar gak stuck pas testing quit di mode notoriginal:
+    console.log("Quit dipicu dari mode: notoriginal. Mengembalikan state ke lobby/home.");
+    // Jika belum ada pop-up result, bisa langsung lempar ke home/lobby:
+    // document.getElementById("home")?.classList.add("active");
   }
 
   quitTargetMode = null;
-});
-
-// ── Time Attack result popup ──
-document.getElementById("taPlayAgainBtn")?.addEventListener("click", () => {
-  playSound();
-  document.getElementById("gameOverPopup")?.classList.remove("active");
-  if (typeof openDurationPopup === "function") openDurationPopup();
-});
-
-document.getElementById("taGoHomeBtn")?.addEventListener("click", () => {
-  playSound();
-  if (typeof exitTimeAttackMode === "function") exitTimeAttackMode();
 });
