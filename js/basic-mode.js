@@ -330,16 +330,16 @@ function bmOnKey(e) {
     } else {
       judge = "GOOD"; pts = Math.round(base * (1 + bmCombo * 0.03));
     }
-    bmResult(judge, pts, judge !== "MISS");
+    bmResult(judge, pts, judge !== "MISS", nd.type.id);
     bmNoteHitFx(nd.el, nd.type.color);
   }
   bmRemoveNote(nd);
 }
 
 // ============================================================
-// K. RESULT + HUD UPDATE
+// K. RESULT + HUD UPDATE (FIXED BONUS TRACKER)
 // ============================================================
-function bmResult(judge, pts, combo) {
+function bmResult(judge, pts, combo, noteType = null) {
   if (pts > 0) {
     bmScore += pts;
     if (bmScoreEl) bmScoreEl.textContent = bmScore.toLocaleString();
@@ -363,9 +363,21 @@ function bmResult(judge, pts, combo) {
     bmJudgeEl.classList.add("bm-j-pop");
   }
 
-  if (typeof statRecordClick === "function") statRecordClick("basic");
-  if (judge === "WRONG!" && typeof statRecordWrongClick === "function") statRecordWrongClick("basic");
-  if (pts > 0 && typeof statRecordBonus === "function" && judge === "PERFECT!") statRecordBonus();
+  // Ambil ID mode aktif saat ini (misal: "basic" atau "notoriginal")
+  const currentModeId = BM_GAME_MODES[bmGameModeIdx]?.id || "basic";
+
+  // 1. Rekam klik biasa/salah ke profile
+  if (typeof statRecordClick === "function") statRecordClick(currentModeId);
+  if (judge === "WRONG!" && typeof statRecordWrongClick === "function") statRecordWrongClick(currentModeId);
+  
+  // 2. FIXED: Rekam bonus jika tipe note yang dipukul adalah "bonus" DAN hit-nya berhasil (bukan MISS/WRONG)
+  if (pts > 0 && typeof statRecordBonus === "function") {
+    if (noteType === "bonus" || judge === "PERFECT!") {
+      statRecordBonus();
+      // Paksa UI langsung sinkron saat itu juga jika fungsi updater tersedia
+      if (typeof triggerLobbyDOMUpdate === "function") triggerLobbyDOMUpdate();
+    }
+  }
 }
 
 function bmNoteHitFx(el, color) {
