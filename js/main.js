@@ -306,7 +306,23 @@ function initIndexPageLogic() {
    C. CORE ENGINE: LOBBY.HTML SLIDER & TRACK ENGINE
    ========================================================================== */
 function initLobbyPageLogic() {
-  const songItems   = Array.from(document.querySelectorAll(".song-item"));
+  // songItems sebagai live getter — selalu baca dari DOM terkini.
+  // JANGAN diubah jadi const Array.from() karena setelah mode switch
+  // (nomRenderTrackList / bmRenderTrackList) elemen lama sudah diganti,
+  // sehingga array lama tidak sinkron dan class active/near salah tempat.
+  const getSongItems = () => Array.from(document.querySelectorAll(".song-item"));
+  // Alias agar kode di bawah yang pakai songItems.xxx tidak perlu diubah satu-satu
+  const songItems = new Proxy([], {
+    get(_, prop) {
+      const live = getSongItems();
+      if (prop === "length") return live.length;
+      if (prop === "forEach") return live.forEach.bind(live);
+      if (prop === "filter") return live.filter.bind(live);
+      if (prop === "map") return live.map.bind(live);
+      if (!isNaN(prop)) return live[prop];
+      return live[prop];
+    }
+  });
   const bgVideo     = document.getElementById("lobbyBgVideo");
   const mainPlayBtn = document.getElementById("mainPlayActionBtn");
 
@@ -346,77 +362,125 @@ function initLobbyPageLogic() {
     btn.classList.toggle("off", !isEnabled);
   }
 
-  function syncLobbyProfileDOM() {
-    if (typeof profile === "undefined") return;
+window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
+  if (typeof profile === "undefined") return;
 
-    const computedLevel      = Math.max(1, Math.floor((profile.stats.lifetimeScore || 0) / 1000) + 1);
-    const currentExpInLevel  = (profile.stats.lifetimeScore || 0) % 1000;
-    const expWidthPercentage = (currentExpInLevel / 1000) * 100;
+  // --- 1. PROSES KALKULASI DATA UTAMA ---
+  const computedLevel      = Math.max(1, Math.floor((profile.stats.lifetimeScore || 0) / 25000) + 1);
+  const currentExpInLevel  = (profile.stats.lifetimeScore || 0) % 25000;
+  const expWidthPercentage = (currentExpInLevel / 25000) * 100;
 
-    const widgetLevelNumber = document.getElementById("widgetLevelNumber");
-    const widgetXpBarFill   = document.getElementById("widgetXpBarFill");
-    const widgetUsername    = document.getElementById("widgetUsername");
-    if (widgetLevelNumber) widgetLevelNumber.textContent = "LV " + computedLevel;
-    if (widgetXpBarFill)   widgetXpBarFill.style.width   = `${expWidthPercentage}%`;
-    if (widgetUsername)    widgetUsername.textContent     = profile.identity.username.toUpperCase();
+  // --- 2. SINKRONISASI WIDGET LOBBY UTAMA ---
+  const widgetLevelNumber = document.getElementById("widgetLevelNumber");
+  const widgetXpBarFill   = document.getElementById("widgetXpBarFill");
+  const widgetUsername    = document.getElementById("widgetUsername");
+  if (widgetLevelNumber) widgetLevelNumber.textContent = "LV " + computedLevel;
+  if (widgetXpBarFill)   widgetXpBarFill.style.width   = `${expWidthPercentage}%`;
+  if (widgetUsername)    widgetUsername.textContent     = profile.identity.username.toUpperCase();
 
-    const modalLevelNumber  = document.getElementById("modalLevelNumber");
-    const modalXpBarFill    = document.getElementById("modalXpBarFill");
-    const modalXpTextRow    = document.getElementById("modalXpTextRow");
-    const modalUsernameText = document.getElementById("modalUsernameText");
-    const modalUsernameInput= document.getElementById("modalUsernameInput");
-    if (modalLevelNumber)  modalLevelNumber.textContent  = computedLevel;
-    if (modalXpBarFill)    modalXpBarFill.style.width    = `${expWidthPercentage}%`;
-    if (modalXpTextRow)    modalXpTextRow.innerHTML      = `<span>EXP PROGRESSION</span><span>${currentExpInLevel.toLocaleString()} / 1,000 PTS</span>`;
-    if (modalUsernameText) modalUsernameText.textContent = profile.identity.username.toUpperCase();
-    if (modalUsernameInput && !modalUsernameInput.matches(":focus"))
-      modalUsernameInput.value = profile.identity.username;
+  // --- 3. SINKRONISASI MODAL IDENTITY ---
+  const modalLevelNumber  = document.getElementById("modalLevelNumber");
+  const modalXpBarFill    = document.getElementById("modalXpBarFill");
+  const modalXpTextRow    = document.getElementById("modalXpTextRow");
+  const modalUsernameText = document.getElementById("modalUsernameText");
+  const modalUsernameInput= document.getElementById("modalUsernameInput");
+  if (modalLevelNumber)  modalLevelNumber.textContent  = computedLevel;
+  if (modalXpBarFill)    modalXpBarFill.style.width    = `${expWidthPercentage}%`;
+  if (modalXpTextRow)    modalXpTextRow.innerHTML      = `<span>EXP PROGRESSION</span><span>${currentExpInLevel.toLocaleString()} / 25,000 PTS</span>`;
+  if (modalUsernameText) modalUsernameText.textContent = profile.identity.username.toUpperCase();
+  if (modalUsernameInput && !modalUsernameInput.matches(":focus"))
+    modalUsernameInput.value = profile.identity.username;
 
-    const widgetAvatar  = document.getElementById("widgetAvatar");
-    const modalProfileImg = document.getElementById("modalProfileImg");
-    const avatarSrc = (profile.identity.avatar === "default" || !profile.identity.avatar)
-      ? "assets/picture/logo.png"
-      : profile.identity.avatar;
-    if (widgetAvatar)    widgetAvatar.src    = avatarSrc;
-    if (modalProfileImg) modalProfileImg.src = avatarSrc;
+  // --- 4. DATA PER KATEGORI NOTORIGIN & STATISTICS ---
+  const bm  = profile.stats.basic       || { clicks: 0, wrongClicks: 0, gamesPlayed: 0 };
+  const nom = profile.stats.notoriginal || { clicks: 0, wrongClicks: 0, gamesPlayed: 0 };
 
-    if (document.getElementById("modalStatGames"))
-      document.getElementById("modalStatGames").textContent      = profile.stats.totalGamesPlayed || 0;
-    if (document.getElementById("modalStatClicks"))
-      document.getElementById("modalStatClicks").textContent     = profile.stats.totalClicks || 0;
-    if (document.getElementById("modalStatWrongClicks"))
-      document.getElementById("modalStatWrongClicks").textContent= profile.stats.totalWrongClicks || 0;
-    if (document.getElementById("modalStatBonus"))
-      document.getElementById("modalStatBonus").textContent      = profile.stats.totalBonusTriggered || 0;
-    if (document.getElementById("modalStatFreeze"))
-      document.getElementById("modalStatFreeze").textContent     = profile.stats.totalFreezeUsed || 0;
-    if (document.getElementById("modalStatCombo"))
-      document.getElementById("modalStatCombo").textContent      = "x" + (profile.stats.records.longestCombo || 0);
-    if (document.getElementById("modalStatScore"))
-      document.getElementById("modalStatScore").textContent      = profile.stats.lifetimeScore || 0;
-    if (document.getElementById("modalStatHighBasic"))
-      document.getElementById("modalStatHighBasic").textContent  = profile.stats.records.highestBasicScore || 0;
-    if (document.getElementById("modalStatHighNotOriginal")) {
-      document.getElementById("modalStatHighNotOriginal").textContent = profile.stats.records.highestNotOriginalScore || 0;
-    }
-    const masterVolumeSlider = document.getElementById("masterVolumeSlider");
-    const masterVolumeLabel  = document.getElementById("masterVolumeLabel");
-    if (masterVolumeSlider && masterVolumeLabel) {
-      masterVolumeSlider.value   = profile.settings.masterVolume;
-      masterVolumeLabel.textContent = profile.settings.masterVolume + "%";
-    }
-    syncToggleState("sfxToggleBtn",      profile.settings.sfxEnabled);
-    syncToggleState("cdSoundToggleBtn",  profile.settings.countdownSoundEnabled);
-    syncToggleState("flashToggleBtn",    profile.settings.screenFlashEnabled);
-    syncToggleState("particleToggleBtn", profile.settings.particleEffectEnabled);
-    syncToggleState("comboAnimToggleBtn",profile.settings.comboAnimationEnabled);
-
-    // Sync keybind editor kalau tab Settings sedang aktif
-    const settingsTab = document.getElementById("tabSettings");
-    if (settingsTab?.classList.contains("active")) {
-      if (typeof renderKeybindEditor === "function") renderKeybindEditor();
-    }
+  // Helper accuracy
+  function calcAcc(clicks, wrong) {
+    if (!clicks) return "N/A";
+    return Math.round(((clicks - wrong) / clicks) * 100) + "%";
   }
+
+  // Per-mode: Basic
+  const $set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  $set("statBmGames",    bm.gamesPlayed);
+  $set("statBmClicks",   bm.clicks);
+  $set("statBmWrong",    bm.wrongClicks);
+  $set("statBmAccuracy", calcAcc(bm.clicks, bm.wrongClicks));
+
+  // Per-mode: N.O.M
+  $set("statNomGames",    nom.gamesPlayed);
+  $set("statNomClicks",   nom.clicks);
+  $set("statNomWrong",    nom.wrongClicks);
+  $set("statNomAccuracy", calcAcc(nom.clicks, nom.wrongClicks));
+
+  // Overall totals
+  $set("modalStatGames",       profile.stats.totalGamesPlayed  || 0);
+  $set("modalStatClicks",      profile.stats.totalClicks       || 0);
+  $set("modalStatWrongClicks", profile.stats.totalWrongClicks  || 0);
+  $set("modalStatBonus",       profile.stats.totalBonusTriggered || 0);
+  $set("modalStatCombo",       "x" + (profile.stats.records.longestCombo || 0));
+  $set("modalStatScore",       (profile.stats.lifetimeScore    || 0).toLocaleString());
+  $set("modalStatHighBasic",   (profile.stats.records.highestBasicScore || 0).toLocaleString());
+  if (document.getElementById("modalStatHighNotOriginal"))
+    $set("modalStatHighNotOriginal", (profile.stats.records.highestNotOriginalScore || 0).toLocaleString());
+  $set("statTotalAccuracy", calcAcc(profile.stats.totalClicks || 0, profile.stats.totalWrongClicks || 0));
+
+  // --- 5. RENDER GRAFIK — PER MODE + OVERALL RATIO ---
+  function setBar(barId, valId, pct) {
+    const bar = document.getElementById(barId);
+    const val = document.getElementById(valId);
+    if (bar) bar.style.width = pct + "%";
+    if (val) val.textContent = pct + "%";
+  }
+
+  // Basic Mode bars
+  const bmTotal = (bm.clicks || 0) + (bm.wrongClicks || 0);
+  if (bmTotal > 0) {
+    setBar("graphBmHit",   "graphBmHitVal",   Math.round((bm.clicks       / bmTotal) * 100));
+    setBar("graphBmWrong", "graphBmWrongVal",  Math.round((bm.wrongClicks  / bmTotal) * 100));
+  } else {
+    setBar("graphBmHit", "graphBmHitVal", 0);
+    setBar("graphBmWrong", "graphBmWrongVal", 0);
+  }
+
+  // N.O.M bars
+  const nomTotal = (nom.clicks || 0) + (nom.wrongClicks || 0);
+  if (nomTotal > 0) {
+    setBar("graphNomHit",   "graphNomHitVal",  Math.round((nom.clicks      / nomTotal) * 100));
+    setBar("graphNomWrong", "graphNomWrongVal", Math.round((nom.wrongClicks / nomTotal) * 100));
+  } else {
+    setBar("graphNomHit", "graphNomHitVal", 0);
+    setBar("graphNomWrong", "graphNomWrongVal", 0);
+  }
+
+  // Overall ratio (clicks vs bonus vs wrong)
+  const totalActions = (profile.stats.totalClicks || 0) + (profile.stats.totalBonusTriggered || 0) + (profile.stats.totalWrongClicks || 0);
+  if (totalActions > 0) {
+    setBar("graphBarClicks", "graphValClicks", Math.round(((profile.stats.totalClicks       || 0) / totalActions) * 100));
+    setBar("graphBarBonus",  "graphValBonus",  Math.round(((profile.stats.totalBonusTriggered || 0) / totalActions) * 100));
+    setBar("graphBarWrong",  "graphValWrong",  Math.round(((profile.stats.totalWrongClicks  || 0) / totalActions) * 100));
+  } else {
+    setBar("graphBarClicks", "graphValClicks", 0);
+    setBar("graphBarBonus",  "graphValBonus",  0);
+    setBar("graphBarWrong",  "graphValWrong",  0);
+  }
+
+  // --- 6. SINKRONISASI ENGINE SETTINGS SINKRON (NO MISSING FUNCTIONS) ---
+  const masterVolumeSlider = document.getElementById("masterVolumeSlider");
+  const masterVolumeLabel  = document.getElementById("masterVolumeLabel");
+  if (masterVolumeSlider && masterVolumeLabel) {
+    masterVolumeSlider.value   = profile.settings.masterVolume;
+    masterVolumeLabel.textContent = profile.settings.masterVolume + "%";
+  }
+  syncToggleState("sfxToggleBtn",      profile.settings.sfxEnabled);
+  syncToggleState("cdSoundToggleBtn",  profile.settings.countdownSoundEnabled);
+  syncToggleState("particleToggleBtn", profile.settings.particleEffectEnabled);
+  syncToggleState("comboAnimToggleBtn",profile.settings.comboAnimationEnabled);
+}
+
+// NOTE: Settings toggle listeners dihandle oleh profile.js → initLobbyProfileEvents().
+// Jangan duplikasi listener di sini — akan menyebabkan double-toggle per klik.
 
   // Self-contained toast
   function showLobbyToast(msg, type) {
@@ -449,6 +513,45 @@ function initLobbyPageLogic() {
   }
 
   syncLobbyProfileDOM();
+
+  // ============================================================
+  // ── SETTINGS TOGGLE & VOLUME SLIDER HANDLERS
+  // Dipasang di sini (main.js) bukan di profile.js karena
+  // syncToggleState & syncLobbyProfileDOM hanya tersedia setelah
+  // main.js selesai di-parse — profile.js load duluan jadi tidak bisa.
+  // ============================================================
+  (function initSettingsHandlers() {
+    const volSlider = document.getElementById("masterVolumeSlider");
+    const volLabel  = document.getElementById("masterVolumeLabel");
+    if (volSlider) {
+      volSlider.addEventListener("input", () => {
+        profile.settings.masterVolume = parseInt(volSlider.value);
+        if (volLabel) volLabel.textContent = volSlider.value + "%";
+        profileSave(profile);
+        if (typeof applySoundSettings === "function") applySoundSettings();
+      });
+    }
+
+    const toggleConfigs = [
+      { id: "sfxToggleBtn",       key: "sfxEnabled" },
+      { id: "cdSoundToggleBtn",   key: "countdownSoundEnabled" },
+      { id: "particleToggleBtn",  key: "particleEffectEnabled" },
+      { id: "comboAnimToggleBtn", key: "comboAnimationEnabled" },
+    ];
+    toggleConfigs.forEach(({ id, key }) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.addEventListener("click", () => {
+        triggerLobbyClickSound();
+        profile.settings[key] = !profile.settings[key];
+        // Update tombol langsung — tidak lewat triggerLobbyDOMUpdate()
+        // karena kita sudah di dalam main.js dan punya syncToggleState di sini.
+        syncToggleState(id, profile.settings[key]);
+        profileSave(profile);
+        if (typeof applySoundSettings === "function") applySoundSettings();
+      });
+    });
+  })();
 
   // Avatar upload
   const changeAvatarBtn = document.getElementById("changeAvatarBtn");
@@ -548,22 +651,7 @@ function initLobbyPageLogic() {
     if (bv) bv.volume = (val / 100) * 0.4;
   });
 
-  // Toggle settings
-  function bindToggle(id, key) {
-    document.getElementById(id)?.addEventListener("click", () => {
-      if (typeof profile === "undefined") return;
-      triggerLobbyClickSound();
-      profile.settings[key] = !profile.settings[key];
-      if (typeof profileSave === "function") profileSave(profile);
-      syncToggleState(id, profile.settings[key]);
-      if (typeof applySoundSettings === "function") applySoundSettings();
-    });
-  }
-  bindToggle("sfxToggleBtn",       "sfxEnabled");
-  bindToggle("cdSoundToggleBtn",   "countdownSoundEnabled");
-  bindToggle("flashToggleBtn",     "screenFlashEnabled");
-  bindToggle("particleToggleBtn",  "particleEffectEnabled");
-  bindToggle("comboAnimToggleBtn", "comboAnimationEnabled");
+  // Toggle handlers sudah dipindah ke initSettingsHandlers() di atas.
 
   // ============================================================
   // ── KEYBIND EDITOR
@@ -726,6 +814,18 @@ function initLobbyPageLogic() {
   resizeViz();
   window.addEventListener("resize", resizeViz);
 
+  // Flag gesture pertama — AudioContext hanya boleh dibuat setelah ini true
+  window._userHasInteracted = false;
+  const _markInteracted = () => {
+    window._userHasInteracted = true;
+    ["click", "keydown", "touchstart"].forEach(ev =>
+      document.removeEventListener(ev, _markInteracted)
+    );
+  };
+  ["click", "keydown", "touchstart"].forEach(ev =>
+    document.addEventListener(ev, _markInteracted, { once: true })
+  );
+
   function stopPreview() {
     clearTimeout(previewTimer);
     previewTimer = null;
@@ -741,6 +841,13 @@ function initLobbyPageLogic() {
 
     if (vizCanvas) vizCanvas.classList.remove("active");
     if (vizCtx && vizCanvas) vizCtx.clearRect(0, 0, vizCanvas.width, vizCanvas.height);
+
+    // Stop bgVideo juga — sinkron dengan audio agar tidak terus muter
+    const bv = document.getElementById("lobbyBgVideo");
+    if (bv) {
+      bv.pause();
+      bv.style.opacity = "0.1";
+    }
 
     if (currentPreviewItem) {
       const tag = currentPreviewItem.querySelector(".song-status-tag");
@@ -794,7 +901,9 @@ function initLobbyPageLogic() {
     if (tag) tag.textContent = "♪ PREVIEW";
     songItem.classList.add("previewing");
 
-    // Setup AudioContext
+    // Setup AudioContext — hanya buat setelah ada gesture user.
+    // AudioContext yang dibuat sebelum gesture akan suspended dan Chrome throw warning.
+    if (!window._userHasInteracted) return;
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === "suspended") audioCtx.resume();
 
@@ -817,12 +926,18 @@ function initLobbyPageLogic() {
     previewAudio.play().then(() => {
       if (vizCanvas) vizCanvas.classList.add("active");
       drawVisualizer();
+      // Resume bgVideo yang mungkin di-pause saat preview sebelumnya habis
+      const bv = document.getElementById("lobbyBgVideo");
+      if (bv && bv.paused && bv.src) {
+        bv.style.opacity = "1";
+        bv.play().catch(() => {});
+      }
     }).catch(() => {});
 
-    // Stop setelah 15 detik
+    // Stop setelah 20 detik — audio dan bgVideo berhenti bersamaan
     previewTimer = setTimeout(() => {
       stopPreview();
-    }, 15000);
+    }, 20000);
   }
 
   // ============================================================
@@ -831,6 +946,7 @@ function initLobbyPageLogic() {
   function changeTrack(index) {
     if (!songItems.length) return;
     currentIdx = index;
+    localStorage.setItem("rhg_active_track", index);
 
     songItems.forEach((item, i) => {
       item.classList.toggle("active", i === currentIdx);
@@ -839,8 +955,15 @@ function initLobbyPageLogic() {
       if (i === currentIdx) item.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
 
-    // Sync left info panel — langsung dari BM_TRACKS, gak ada duplikat lagi
-    const meta = typeof BM_TRACKS !== "undefined" ? BM_TRACKS[currentIdx] : null;
+    // Sync left info panel — baca dari track list mode yang aktif sekarang
+    // (bukan hardcode BM_TRACKS, agar N.O.M track 02 tidak ambil data basic mode)
+    const activeTrackList = (() => {
+      const modeId = typeof BM_GAME_MODES !== "undefined" && BM_GAME_MODES[bmGameModeIdx]?.id;
+      if (modeId === "notoriginal" && typeof NOM_TRACKS !== "undefined") return NOM_TRACKS;
+      if (typeof BM_TRACKS !== "undefined") return BM_TRACKS;
+      return null;
+    })();
+    const meta = activeTrackList ? activeTrackList[currentIdx] : null;
     if (meta) {
       // Set --track-accent di :root → otomatis update border-left
       // mode-info-block, warna slide-num, dan warna mode-title sekaligus.
@@ -854,10 +977,14 @@ function initLobbyPageLogic() {
       if (displayDesc)  displayDesc.textContent  = meta.desc || "";
     }
 
-    // Sync track index ke basic-mode engine
-    // FIX: bmTrackIdx adalah `let` di basic-mode.js, window.bmTrackIdx = beda
-    // variabel — assignment langsung tanpa window. supaya beneran nyambung.
-    if (typeof bmTrackIdx !== "undefined") bmTrackIdx = currentIdx;
+    // Sync track index ke engine yang aktif sekarang
+    // FIX: assignment langsung (bukan window.xxx) agar beneran nyambung ke `let` di masing-masing file
+    const activeModeId = typeof BM_GAME_MODES !== "undefined" && BM_GAME_MODES[bmGameModeIdx]?.id;
+    if (activeModeId === "notoriginal") {
+      if (typeof nomTrackIdx !== "undefined") nomTrackIdx = currentIdx;
+    } else {
+      if (typeof bmTrackIdx !== "undefined") bmTrackIdx = currentIdx;
+    }
 
     // Change background video
     if (bgVideo) {
@@ -895,140 +1022,169 @@ function initLobbyPageLogic() {
     });
   });
 
-  // ============================================================
-  // ── MODE SWITCHER (tombol PREV/NEXT) ──
-  // ============================================================
-  // PREV/NEXT sekarang ganti GAME MODE (Basic / Not Origin Music / dst),
-  // BUKAN ganti track lagi. Track switching ada di Arrow Up/Down keyboard.
-  // Contoh blueprint jika lu mau update array modenya nanti:
-let lobbyModeIdx = 0;
-
-const BM_GAME_MODES = [
-  { id: "basic", label: "BASIC MODE", engine: "startBasicMode" },
-  // { id: "notoriginal", label: "NOT ORIGINAL MODE", engine: "startNotOriginalEngine" } 
-  // ↑ Menggantikan slot TA & Versus lama. Tinggal lepas komentar kalau file JS-nya sudah ada!
-];
-
-const modeLabel = document.getElementById("currentModeLabel");
-
-function renderModeLabel() {
-  if (!modeLabel || typeof BM_GAME_MODES === "undefined") return;
-  const mode = BM_GAME_MODES[lobbyModeIdx] || BM_GAME_MODES[0];
-  modeLabel.textContent = mode.label;
-}
-
-function switchMode(dir) {
+// ============================================================
+// ── CENTRALIZED GAME MODE SWITCHER & TRACK RE-RENDER ──
+// ============================================================
+function switchGameMode(dir, isInit = false) {
   if (typeof BM_GAME_MODES === "undefined" || !BM_GAME_MODES.length) return;
-  
-  // Mengubah index lokal lobbyModeIdx, bukan bmGameModeIdx lagi
-  lobbyModeIdx = (lobbyModeIdx + dir + BM_GAME_MODES.length) % BM_GAME_MODES.length;
-  renderModeLabel();
+
+  // 1. Matikan preview lama sesegera mungkin agar tidak tumpang tindih
+  if (typeof stopPreview === "function") stopPreview();
+  if (typeof stopBgMusic === "function") stopBgMusic();
+
+  // 2. Update Index Global Mode secara akurat
+  if (!isInit) {
+    bmGameModeIdx = (bmGameModeIdx + dir + BM_GAME_MODES.length) % BM_GAME_MODES.length;
+    localStorage.setItem("rhg_active_mode", bmGameModeIdx);
+  }
+
+  // 3. Update Text Label UI & Deskripsi Mode
+  const labelEl = document.getElementById("currentModeLabel");
+  const descEl = document.getElementById("modeDescLabel");
+  const currentMode = BM_GAME_MODES[bmGameModeIdx];
+
+  if (labelEl && currentMode) {
+    labelEl.textContent = currentMode.label;
+  }
+  if (descEl && currentMode?.desc) {
+    descEl.textContent = currentMode.desc;
+  }
+
+  // 4. Pemicu Render Ulang Track List ke DOM Berdasarkan Mode
+  if (currentMode?.id === "notoriginal") {
+    if (typeof nomRenderTrackList === "function") nomRenderTrackList();
+  } else {
+    if (typeof bmRenderTrackList === "function") bmRenderTrackList();
+  }
+
+  // 5. RE-BIND SONG ITEMS & AKTIFKAN PREVIEW INSTAN
+  const newSongItems = Array.from(document.querySelectorAll(".song-item"));
+  newSongItems.forEach((item, i) => {
+    item.addEventListener("click", () => {
+      if (typeof triggerLobbyClickSound === "function") triggerLobbyClickSound();
+      if (typeof stopBgMusic === "function") stopBgMusic();
+      if (typeof changeTrack === "function") changeTrack(i);
+      if (typeof startPreview === "function") startPreview(item);
+    });
+  });
+
+  // Tentukan track aktif (kembalikan index yang tersimpan jika isInit)
+  let nextIdx = 0;
+  if (isInit) {
+    const savedTrack = parseInt(localStorage.getItem("rhg_active_track"));
+    nextIdx = (!isNaN(savedTrack) && savedTrack >= 0 && savedTrack < newSongItems.length) ? savedTrack : 0;
+  } else {
+    localStorage.setItem("rhg_active_track", 0);
+  }
+
+  // Reset currentIdx ke mode baru & aktifkan item pertama
+  currentIdx = nextIdx;
+  if (typeof changeTrack === "function") changeTrack(currentIdx);
+  if (newSongItems[currentIdx]) {
+    if (typeof startPreview === "function") startPreview(newSongItems[currentIdx]);
+  }
 }
 
-// ── Event Listener Tombol Slider ────────────────────────────
+// ── Event Listener Tombol Slider Monitor (Klik Mouse) ────────────────
 document.getElementById("slideNextBtn")?.addEventListener("click", () => {
   if (typeof triggerLobbyClickSound === "function") triggerLobbyClickSound();
-  switchMode(1);
+  switchGameMode(1);
 });
 
 document.getElementById("slidePrevBtn")?.addEventListener("click", () => {
   if (typeof triggerLobbyClickSound === "function") triggerLobbyClickSound();
-  switchMode(-1);
+  switchGameMode(-1);
 });
 
-// Jalankan render pertama kali saat lobby dimuat
-renderModeLabel();
+// Jalankan state persistence pertama kali saat lobby dimuat
+switchGameMode(0, true);
 
 
 // ============================================================
-// ── PATCH TOMBOL PLAY UTAMA (Memicu Engine) ──
+// ── PATCH TOMBOL PLAY UTAMA (Memicu Engine Berdasarkan Mode) ──
 // ============================================================
-// Pastikan bagian fungsi saat tombol PLAY/START diklik di main.js lu disesuaikan seperti ini:
 function handlePlayButtonClick() {
-  const currentMode = BM_GAME_MODES[lobbyModeIdx];
-  
+  if (typeof BM_GAME_MODES === "undefined" || !BM_GAME_MODES.length) {
+    if (typeof startBasicMode === "function") startBasicMode();
+    return;
+  }
+
+  const currentMode = BM_GAME_MODES[bmGameModeIdx];
   if (!currentMode) {
     if (typeof startBasicMode === "function") startBasicMode();
     return;
   }
 
-  // Jalankan fungsi berdasarkan mode yang sedang aktif di slider lobby
   const engineFnName = currentMode.engine;
   const engineFn = window[engineFnName];
 
   if (typeof engineFn === "function") {
     engineFn();
   } else {
-    // Fallback otomatis jika engine (misal startNotOriginalEngine) belum didefinisikan
     console.warn(`Engine ${engineFnName} belum siap. Fallback otomatis ke Basic Mode.`);
     if (typeof startBasicMode === "function") startBasicMode();
   }
 }
-  // ============================================================
-  // ── TRACK SWITCHER VIA ARROW UP/DOWN ──
-  // ============================================================
-  function switchTrack(dir) {
-    if (!songItems.length) return;
-    const next = (currentIdx + dir + songItems.length) % songItems.length;
-    stopBgMusic(); // arrow-key switch juga harus stop bgMusic
-    changeTrack(next);
-    startPreview(songItems[next]);
+
+// ============================================================
+// ── TRACK SWITCHER & PLAY BUTTON CLICK EVENT ──
+// ============================================================
+function switchTrack(dir) {
+  if (!songItems || !songItems.length) return;
+  const next = (currentIdx + dir + songItems.length) % songItems.length;
+  if (typeof stopBgMusic === "function") stopBgMusic(); 
+  if (typeof changeTrack === "function") changeTrack(next);
+  if (typeof startPreview === "function") startPreview(songItems[next]);
+}
+
+// ── PLAY BUTTON EVENT LISTENER ──
+mainPlayBtn?.addEventListener("click", () => {
+  if (!songItems || !songItems.length) return;
+  if (typeof triggerLobbyClickSound === "function") triggerLobbyClickSound();
+  if (typeof stopPreview === "function") stopPreview();
+
+  // Flash effect
+  document.body.style.pointerEvents = "none";
+  document.body.style.filter = "brightness(3) contrast(2)";
+  document.body.style.transition = "filter .2s ease";
+
+  setTimeout(() => {
+    document.body.style.filter = "";
+    document.body.style.pointerEvents = "";
+
+    // Memanggil patch fungsi play utama yang sudah kita selaraskan di atas
+    handlePlayButtonClick();
+  }, 220);
+});
+
+// ============================================================
+// ── KEYBOARD NAVIGATION SYSTEM ──
+// ============================================================
+window.addEventListener("keydown", (e) => {
+  if (typeof lobbyProfileModal !== "undefined" && lobbyProfileModal?.classList.contains("active")) {
+    if (e.key === "Escape" && closeProfileModal) closeProfileModal.click();
+    return;
   }
-
-  // ── PLAY BUTTON — panggil engine sesuai mode aktif, no redirect ──
-  mainPlayBtn?.addEventListener("click", () => {
-    if (!songItems.length) return;
-    triggerLobbyClickSound();
-    stopPreview();
-
-    // Flash effect
-    document.body.style.pointerEvents = "none";
-    document.body.style.filter = "brightness(3) contrast(2)";
-    document.body.style.transition = "filter .2s ease";
-
-    setTimeout(() => {
-      document.body.style.filter = "";
-      document.body.style.pointerEvents = "";
-
-      // Jalankan engine sesuai mode yang lagi dipilih (PREV/NEXT).
-      // Default tetap startBasicMode kalau BM_GAME_MODES belum diisi.
-      const mode = (typeof BM_GAME_MODES !== "undefined" && BM_GAME_MODES.length)
-        ? BM_GAME_MODES[bmGameModeIdx]
-        : null;
-      const engineFnName = mode?.engine || "startBasicMode";
-      const engineFn = window[engineFnName];
-
-      if (typeof engineFn === "function") {
-        engineFn();
-      } else if (typeof startBasicMode === "function") {
-        // Fallback kalau engine mode itu belum dibuat function-nya
-        startBasicMode();
-      }
-    }, 220);
-  });
-
-  // Keyboard nav — Up/Down = ganti track, Left/Right = ganti mode
-  window.addEventListener("keydown", (e) => {
-    if (lobbyProfileModal?.classList.contains("active")) {
-      if (e.key === "Escape") closeProfileModal?.click();
-      return;
-    }
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      triggerLobbyClickSound();
-      switchTrack(1);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      triggerLobbyClickSound();
-      switchTrack(-1);
-    } else if (e.key === "ArrowRight") {
-      e.preventDefault();
-      document.getElementById("slideNextBtn")?.click();
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      document.getElementById("slidePrevBtn")?.click();
-    } else if (e.key === " " || e.key === "Enter") {
-      e.preventDefault(); mainPlayBtn?.click();
-    }
-  });
+  
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    if (typeof triggerLobbyClickSound === "function") triggerLobbyClickSound();
+    switchTrack(1);
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    if (typeof triggerLobbyClickSound === "function") triggerLobbyClickSound();
+    switchTrack(-1);
+  } else if (e.key === "ArrowRight") {
+    e.preventDefault();
+    if (typeof triggerLobbyClickSound === "function") triggerLobbyClickSound();
+    switchGameMode(1); // Navigasi langsung ganti mode game lewat fungsi aman
+  } else if (e.key === "ArrowLeft") {
+    e.preventDefault();
+    if (typeof triggerLobbyClickSound === "function") triggerLobbyClickSound();
+    switchGameMode(-1); // Navigasi langsung ganti mode game lewat fungsi aman
+  } else if (e.key === " " || e.key === "Enter") {
+    e.preventDefault(); 
+    mainPlayBtn?.click();
+  }
+});
 }

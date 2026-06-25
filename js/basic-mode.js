@@ -20,18 +20,18 @@ const BM_TRACKS = [
     artist: "Chiptune Frenzy",
     bpm: 140,
     src: "assets/music/Pixel_Panic_Party.mp3",
-    duration: 60,          // detik — fallback jika audio metadata belum load
+    duration: 60, // detik — fallback jika audio metadata belum load
     bg: "assets/video/kamia-live2d.mp4",
-    art: "assets/picture/logo.png",        // album art thumbnail (opsional)
+    art: "assets/picture/logo.png", // album art thumbnail (opsional)
     difficulties: ["normal", "medium", "hard", "extreme"],
-    color: "#00e5ff",      // warna aksen song-item ini saat ke-select
+    color: "#00e5ff", // warna aksen song-item ini saat ke-select
     role: "// OSU STYLE — KEYBOARD REFLEX",
     titleClass: "title-basic",
     desc: "140 BPM chiptune madness. Tekan tombol yang muncul sebelum ring menyusut habis. Timing is everything.",
   },
   // Tambah track baru di sini — pastikan `id` unik & beda dari track lain:
   {
-    id: "id_title",                       // ← WAJIB UNIK
+    id: "id_title", // ← WAJIB UNIK
     title: "MY SONG TITLE",
     artist: "Artist Name",
     bpm: 160,
@@ -40,48 +40,12 @@ const BM_TRACKS = [
     bg: "assets/video/ocean-live2d.mp4",
     art: "assets/picture/logo.png",
     difficulties: ["normal", "medium", "hard"],
-    color: "#ff2d78",      // tiap track boleh punya warna aksen sendiri-sendiri
+    color: "#ff2d78", // tiap track boleh punya warna aksen sendiri-sendiri
     role: "// OSU STYLE — KEYBOARD REFLEX",
     titleClass: "title-basic",
     desc: "Ganti deskripsi ini sesuai vibe lagunya.",
   },
 ];
-
-// ============================================================
-// A2. GAME MODES — buat tombol PREV/NEXT di lobby
-// ============================================================
-// Next/Prev sekarang switch MODE (bukan track lagi). Track switching
-// pindah ke Arrow Up/Down keyboard.
-// Tambah mode baru di sini, misal "Not Origin Music" atau "Triple Tap
-// Rush" — id harus unik. `engine` adalah nama function start untuk
-// mode itu (mis. startBasicMode, startTripleTapMode, dst — bikin sendiri
-// function-nya nanti kalau mode itu sudah siap).
-const BM_GAME_MODES = [
-  {
-    id: "basic",
-    label: "BASIC MODE",
-    shortLabel: "BASIC",
-    desc: "Mode standar OSU-style: tekan key sebelum ring habis.",
-    engine: "startBasicMode",
-  },
-  // Contoh nambah mode baru:
-  // {
-  //   id: "not_origin",
-  //   label: "NOT ORIGIN MUSIC",
-  //   shortLabel: "N.O.M",
-  //   desc: "Deskripsi mode di sini.",
-  //   engine: "startNotOriginMode",
-  // },
-  // {
-  //   id: "triple_tap",
-  //   label: "TRIPLE TAP RUSH",
-  //   shortLabel: "3xTAP",
-  //   desc: "Deskripsi mode di sini.",
-  //   engine: "startTripleTapMode",
-  // },
-];
-
-let bmGameModeIdx = 0; // index mode aktif saat ini (dipakai PREV/NEXT)
 
 // ============================================================
 // B. DIFFICULTY CONFIG
@@ -129,15 +93,36 @@ const BM_DIFF = {
 // C. NOTE TYPES
 // ============================================================
 const BM_NOTE_TYPES = [
-  { id: "hit",   color: "#00ff88", ring: "rgba(0,255,136,0.65)",  scoreBase: 100, weight: 5 },
-  { id: "avoid", color: "#ff4444", ring: "rgba(255,68,68,0.65)",  scoreBase: 0,   weight: 3 },
-  { id: "bonus", color: "#ffe500", ring: "rgba(255,229,0,0.65)",  scoreBase: 300, weight: 2 },
+  {
+    id: "hit",
+    color: "#00ff88",
+    ring: "rgba(0,255,136,0.65)",
+    scoreBase: 100,
+    weight: 5,
+  },
+  {
+    id: "avoid",
+    color: "#ff4444",
+    ring: "rgba(255,68,68,0.65)",
+    scoreBase: 0,
+    weight: 3,
+  },
+  {
+    id: "bonus",
+    color: "#ffe500",
+    ring: "rgba(255,229,0,0.65)",
+    scoreBase: 300,
+    weight: 2,
+  },
 ];
 
 function bmPickNoteType() {
   const total = BM_NOTE_TYPES.reduce((s, t) => s + t.weight, 0);
   let r = Math.random() * total;
-  for (const t of BM_NOTE_TYPES) { r -= t.weight; if (r <= 0) return t; }
+  for (const t of BM_NOTE_TYPES) {
+    r -= t.weight;
+    if (r <= 0) return t;
+  }
   return BM_NOTE_TYPES[0];
 }
 
@@ -145,9 +130,18 @@ function bmPickNoteType() {
 // D. SPAWN ZONES — 12 posisi dalam % (left, top)
 // ============================================================
 const BM_ZONES = [
-  {x:14,y:18},{x:38,y:13},{x:62,y:18},{x:84,y:16},
-  {x:10,y:46},{x:33,y:50},{x:57,y:45},{x:80,y:48},
-  {x:17,y:73},{x:43,y:76},{x:67,y:72},{x:87,y:70},
+  { x: 14, y: 18 },
+  { x: 38, y: 13 },
+  { x: 62, y: 18 },
+  { x: 84, y: 16 },
+  { x: 10, y: 46 },
+  { x: 33, y: 50 },
+  { x: 57, y: 45 },
+  { x: 80, y: 48 },
+  { x: 17, y: 73 },
+  { x: 43, y: 76 },
+  { x: 67, y: 72 },
+  { x: 87, y: 70 },
 ];
 
 // ============================================================
@@ -162,7 +156,7 @@ function bmGetKeys() {
     profile.settings.keybinds.length >= 4
   ) {
     // Ambil tepat 4 key pertama, lowercase
-    return profile.settings.keybinds.slice(0, 4).map(k => k.toLowerCase());
+    return profile.settings.keybinds.slice(0, 4).map((k) => k.toLowerCase());
   }
   return BM_DEFAULT_KEYS;
 }
@@ -170,34 +164,41 @@ function bmGetKeys() {
 // ============================================================
 // F. STATE
 // ============================================================
-let bmScore       = 0;
-let bmCombo       = 0;
-let bmBestCombo   = 0;
+let bmScore = 0;
+let bmCombo = 0;
+let bmBestCombo = 0;
 let bmActiveNotes = [];
-let bmSpawnTimer  = null;
-let bmMusicTimer  = null;   // countdown timer interval (1s tick)
-let bmRunning     = false;
-let bmDiffKey     = "normal";
-let bmTrackIdx    = 0;
-let bmKeyHandler  = null;
-let bmMusicEl     = null;   // <audio> element untuk track aktif
-let bmTimeLeft    = 0;      // detik tersisa
+let bmSpawnTimer = null;
+let bmMusicTimer = null; // countdown timer interval (1s tick)
+let bmRunning = false;
+let bmDiffKey = "normal";
+let bmTrackIdx = 0;
+let bmKeyHandler = null;
+let bmMusicEl = null; // <audio> element untuk track aktif
+let bmTimeLeft = 0; // detik tersisa
+let bmBgVideo = null; // <video> background element
 
 // ============================================================
 // G. DOM REFS
 // ============================================================
-let bmArena, bmScoreEl, bmComboEl, bmComboBox, bmJudgeEl,
-    bmTimerEl, bmTrackTitleEl, bmKeyLegendEl;
+let bmArena,
+  bmScoreEl,
+  bmComboEl,
+  bmComboBox,
+  bmJudgeEl,
+  bmTimerEl,
+  bmTrackTitleEl,
+  bmKeyLegendEl;
 
 function bmInitRefs() {
-  bmArena        = document.getElementById("bmArena");
-  bmScoreEl      = document.getElementById("bmScore");
-  bmComboEl      = document.getElementById("bmComboText");
-  bmComboBox     = document.getElementById("bmComboContainer");
-  bmJudgeEl      = document.getElementById("bmJudgeText");
-  bmTimerEl      = document.getElementById("bmMusicTimer");
+  bmArena = document.getElementById("bmArena");
+  bmScoreEl = document.getElementById("bmScore");
+  bmComboEl = document.getElementById("bmComboText");
+  bmComboBox = document.getElementById("bmComboContainer");
+  bmJudgeEl = document.getElementById("bmJudgeText");
+  bmTimerEl = document.getElementById("bmMusicTimer");
   bmTrackTitleEl = document.getElementById("bmTrackTitle");
-  bmKeyLegendEl  = document.getElementById("bmKeyLegend");
+  bmKeyLegendEl = document.getElementById("bmKeyLegend");
 }
 
 // ============================================================
@@ -228,11 +229,11 @@ function bmFlashKey(k) {
 // ============================================================
 function bmSpawnWave() {
   if (!bmRunning) return;
-  const diff   = BM_DIFF[bmDiffKey];
-  const keys   = bmGetKeys();
-  const usedK  = bmActiveNotes.map(n => n.key);
-  const freeK  = keys.filter(k => !usedK.includes(k));
-  const zones  = [...BM_ZONES].sort(() => Math.random() - 0.5);
+  const diff = BM_DIFF[bmDiffKey];
+  const keys = bmGetKeys();
+  const usedK = bmActiveNotes.map((n) => n.key);
+  const freeK = keys.filter((k) => !usedK.includes(k));
+  const zones = [...BM_ZONES].sort(() => Math.random() - 0.5);
 
   for (let i = 0; i < diff.noteCount && i < freeK.length; i++) {
     bmSpawnNote(zones[i], bmPickNoteType(), freeK[i], diff);
@@ -241,8 +242,8 @@ function bmSpawnWave() {
 
 function bmSpawnNote(zone, type, key, diff) {
   if (!bmArena) return;
-  const id  = "bm-" + Date.now() + "-" + Math.random().toString(36).slice(2,6);
-  const el  = document.createElement("div");
+  const id = "bm-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6);
+  const el = document.createElement("div");
   el.className = "bm-note";
   el.id = id;
   el.style.cssText = `left:${zone.x}%;top:${zone.y}%;`;
@@ -266,11 +267,14 @@ function bmSpawnNote(zone, type, key, diff) {
   bmArena.appendChild(el);
 
   const noteData = {
-    id, key, type, el,
+    id,
+    key,
+    type,
+    el,
     spawnedAt: Date.now(),
-    windowMs:  diff.windowMs,
+    windowMs: diff.windowMs,
     perfectMs: diff.perfectMs,
-    goodMs:    diff.goodMs,
+    goodMs: diff.goodMs,
     hit: false,
     expireTimer: setTimeout(() => bmExpire(noteData), diff.windowMs),
   };
@@ -281,8 +285,13 @@ function bmExpire(nd) {
   if (nd.hit) return;
   nd.hit = true;
   // Merah expired = avoid berhasil → NICE
-  if (nd.type.id === "avoid") bmResult("NICE!", 50, true);
-  else                         bmResult("MISS",  0,  false);
+  if (nd.type.id === "avoid") {
+    bmResult("NICE!", 50, true);
+    if (typeof triggerEffects === "function") triggerEffects(null, "green", "basicMode", nd.el);
+  } else {
+    bmResult("MISS", 0, false);
+    if (typeof triggerEffects === "function") triggerEffects(null, "red", "basicMode", nd.el);
+  }
   bmRemoveNote(nd);
 }
 
@@ -290,7 +299,7 @@ function bmRemoveNote(nd) {
   clearTimeout(nd.expireTimer);
   nd.el.classList.add("bm-note-exit");
   setTimeout(() => nd.el?.remove(), 200);
-  bmActiveNotes = bmActiveNotes.filter(n => n.id !== nd.id);
+  bmActiveNotes = bmActiveNotes.filter((n) => n.id !== nd.id);
 }
 
 // ============================================================
@@ -300,9 +309,12 @@ function bmOnKey(e) {
   if (!bmRunning) return;
   const k = e.key.toLowerCase();
   // ESC = quit
-  if (k === "escape") { bmTriggerQuit(); return; }
+  if (k === "escape") {
+    bmTriggerQuit();
+    return;
+  }
 
-  const nd = bmActiveNotes.find(n => n.key === k && !n.hit);
+  const nd = bmActiveNotes.find((n) => n.key === k && !n.hit);
   if (!nd) return;
   e.preventDefault();
 
@@ -310,28 +322,35 @@ function bmOnKey(e) {
   clearTimeout(nd.expireTimer);
   bmFlashKey(k);
 
-  const elapsed   = Date.now() - nd.spawnedAt;
+  const elapsed = Date.now() - nd.spawnedAt;
   const remaining = nd.windowMs - elapsed;
 
   if (nd.type.id === "avoid") {
     bmResult("WRONG!", 0, false);
-    bmNoteHitFx(nd.el, "#ff4444");
+    if (typeof triggerEffects === "function") triggerEffects(null, "red", "basicMode", nd.el);
   } else {
     let judge, pts;
     const base = nd.type.scoreBase;
     if (remaining <= 0) {
-      judge = "MISS"; pts = 0;
+      judge = "MISS";
+      pts = 0;
     } else if (remaining <= nd.perfectMs) {
-      judge = "PERFECT!"; pts = Math.round(base * 2 * (1 + bmCombo * 0.05));
+      judge = "PERFECT!";
+      pts = Math.round(base * 2 * (1 + bmCombo * 0.05));
     } else if (remaining <= nd.goodMs) {
-      judge = "GOOD"; pts = Math.round(base * 1.2 * (1 + bmCombo * 0.03));
+      judge = "GOOD";
+      pts = Math.round(base * 1.2 * (1 + bmCombo * 0.03));
     } else if (elapsed / nd.windowMs < 0.2) {
-      judge = "EARLY"; pts = Math.round(base * 0.5);
+      judge = "EARLY";
+      pts = Math.round(base * 0.5);
     } else {
-      judge = "GOOD"; pts = Math.round(base * (1 + bmCombo * 0.03));
+      judge = "GOOD";
+      pts = Math.round(base * (1 + bmCombo * 0.03));
     }
+    let flashColor = (judge === "MISS") ? "red" : (nd.type.id === "bonus" ? "bonus" : "green");
+    
     bmResult(judge, pts, judge !== "MISS", nd.type.id);
-    bmNoteHitFx(nd.el, nd.type.color);
+    if (typeof triggerEffects === "function") triggerEffects(null, flashColor, "basicMode", nd.el);
   }
   bmRemoveNote(nd);
 }
@@ -344,19 +363,25 @@ function bmResult(judge, pts, combo, noteType = null) {
     bmScore += pts;
     if (bmScoreEl) bmScoreEl.textContent = bmScore.toLocaleString();
   }
-  if (combo) { bmCombo++; if (bmCombo > bmBestCombo) bmBestCombo = bmCombo; }
-  else        bmCombo = 0;
+  if (combo) {
+    bmCombo++;
+    if (bmCombo > bmBestCombo) bmBestCombo = bmCombo;
+  } else bmCombo = 0;
 
   if (bmComboEl) bmComboEl.textContent = "x" + bmCombo;
   if (bmComboBox) {
     bmComboBox.style.opacity = "1";
     void bmComboBox.offsetWidth;
     bmComboBox.classList.toggle("bm-fire", bmCombo >= 10);
-    bmComboBox.classList.add("bm-pop");
-    setTimeout(() => bmComboBox.classList.remove("bm-pop"), 220);
+    
+    const sets = typeof getSettings === "function" ? getSettings() : null;
+    if (!sets || sets.comboAnimationEnabled !== false) {
+      bmComboBox.classList.add("bm-pop");
+      setTimeout(() => bmComboBox.classList.remove("bm-pop"), 220);
+    }
   }
   if (bmJudgeEl) {
-    const cls = "bm-j-" + judge.replace(/[^a-z]/gi,"").toLowerCase();
+    const cls = "bm-j-" + judge.replace(/[^a-z]/gi, "").toLowerCase();
     bmJudgeEl.className = "bm-judge " + cls;
     bmJudgeEl.textContent = judge;
     void bmJudgeEl.offsetWidth;
@@ -368,8 +393,9 @@ function bmResult(judge, pts, combo, noteType = null) {
 
   // 1. Rekam klik biasa/salah ke profile
   if (typeof statRecordClick === "function") statRecordClick(currentModeId);
-  if (judge === "WRONG!" && typeof statRecordWrongClick === "function") statRecordWrongClick(currentModeId);
-  
+  if (judge === "WRONG!" && typeof statRecordWrongClick === "function")
+    statRecordWrongClick(currentModeId);
+
   // 2. FIXED: Rekam bonus jika tipe note yang dipukul adalah "bonus" DAN hit-nya berhasil (bukan MISS/WRONG)
   if (pts > 0 && typeof statRecordBonus === "function") {
     if (noteType === "bonus" || judge === "PERFECT!") {
@@ -378,12 +404,6 @@ function bmResult(judge, pts, combo, noteType = null) {
       if (typeof triggerLobbyDOMUpdate === "function") triggerLobbyDOMUpdate();
     }
   }
-}
-
-function bmNoteHitFx(el, color) {
-  el.style.transition = "transform .1s ease, box-shadow .1s";
-  el.style.transform  = "translate(-50%,-50%) scale(1.35)";
-  el.style.boxShadow  = `0 0 36px ${color}, 0 0 8px #fff inset`;
 }
 
 // ============================================================
@@ -405,7 +425,8 @@ function bmStartMusicTimer(duration) {
       bmTimerEl.textContent = bmFmtTime(bmTimeLeft);
       // Warna merah saat <10 detik
       bmTimerEl.style.color = bmTimeLeft <= 10 ? "#ff4444" : "#fff";
-      if (bmTimeLeft <= 10) bmTimerEl.style.textShadow = "0 0 16px rgba(255,68,68,0.8)";
+      if (bmTimeLeft <= 10)
+        bmTimerEl.style.textShadow = "0 0 16px rgba(255,68,68,0.8)";
       else bmTimerEl.style.textShadow = "0 0 16px rgba(0,240,255,0.5)";
     }
     if (bmTimeLeft <= 0) bmGameOver();
@@ -440,14 +461,32 @@ function bmGameOver() {
 // N. START / STOP
 // ============================================================
 function startBasicMode() {
+  // SAFETY: Jika URL menunjukkan mode notoriginal, jangan jalankan basic mode.
+  // Ini mencegah video basic menimpa video NOM saat "Main Lagi" di NOM mode.
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlMode = urlParams.get("mode");
+  if (urlMode === "notoriginal") {
+    console.warn("startBasicMode() dipanggil saat mode=notoriginal, skip ke NOM.");
+    if (typeof startNotOriginalEngine === "function") startNotOriginalEngine();
+    return;
+  }
+
   // Kalau kita masih di lobby.html → redirect ke game.html dengan params
   if (document.getElementById("lobbyProfileWidget") !== null) {
-    // Baca diff dari diff-btn yang active di panel yang sedang tampil
-    const activeDiffBtn = document.querySelector(".diff-panel:not([style*='display: none']) .diff-btn.active")
-      || document.querySelector(".diff-btn.active");
-    const diff  = activeDiffBtn ? activeDiffBtn.getAttribute("data-diff") : (bmDiffKey || "normal");
+    const activeDiffBtn =
+      document.querySelector(
+        ".diff-panel:not([style*='display: none']) .diff-btn.active",
+      ) || document.querySelector(".diff-btn.active");
+    const diff = activeDiffBtn
+      ? activeDiffBtn.getAttribute("data-diff")
+      : bmDiffKey || "normal";
     const track = bmTrackIdx ?? 0;
-    window.location.href = `game.html?mode=basic&diff=${diff}&track=${track}`;
+
+    // Ambil ID mode aktif langsung dari array konfigurasi baru
+    const currentModeId = BM_GAME_MODES[bmGameModeIdx]?.id || "basic";
+
+    // Redirect menggunakan ID mode dinamis (?mode=basic atau ?mode=notoriginal)
+    window.location.href = `game.html?mode=${currentModeId}&diff=${diff}&track=${track}`;
     return;
   }
 
@@ -457,15 +496,23 @@ function startBasicMode() {
 
   bmInitRefs();
 
-  bmScore = 0; bmCombo = 0; bmBestCombo = 0;
+  bmScore = 0;
+  bmCombo = 0;
+  bmBestCombo = 0;
   bmActiveNotes = [];
   bmRunning = false;
 
   if (bmScoreEl) bmScoreEl.textContent = "0";
   if (bmComboEl) bmComboEl.textContent = "x0";
-  if (bmComboBox) { bmComboBox.style.opacity = "0"; bmComboBox.className = "bm-combo-box"; }
-  if (bmJudgeEl)  { bmJudgeEl.textContent = ""; bmJudgeEl.className = "bm-judge"; }
-  if (bmArena)    bmArena.innerHTML = "";
+  if (bmComboBox) {
+    bmComboBox.style.opacity = "0";
+    bmComboBox.className = "bm-combo-box";
+  }
+  if (bmJudgeEl) {
+    bmJudgeEl.textContent = "";
+    bmJudgeEl.className = "bm-judge";
+  }
+  if (bmArena) bmArena.innerHTML = "";
 
   const track = BM_TRACKS[bmTrackIdx] ?? BM_TRACKS[0];
 
@@ -483,19 +530,26 @@ function startBasicMode() {
   }
 
   // Aktifkan screen — id di game.html adalah "basicMode" bukan "basicGame"
-  const gameScreen = document.getElementById("basicMode") || document.getElementById("basicGame");
+  const gameScreen =
+    document.getElementById("basicMode") ||
+    document.getElementById("basicGame");
   if (gameScreen) gameScreen.classList.add("active");
 
-  // Set background video
-  if (bmBgVideo === null) bmBgVideo = document.getElementById("bmBgVideo");
+  // Set background video — preload sebelum countdown, play sesudah
+  bmBgVideo = document.getElementById("bmBgVideo");
   if (bmBgVideo) {
+    bmBgVideo.pause();
     bmBgVideo.src = track.bg;
-    bmBgVideo.load();
-    bmBgVideo.play().catch(() => {});
+    bmBgVideo.load(); // preload aja, belum play
   }
 
   showCountdownThen(() => {
     bmRunning = true;
+
+    // Play video setelah countdown — sinkron dengan musik
+    if (bmBgVideo) {
+      bmBgVideo.play().catch(() => {});
+    }
 
     // Play musik
     bmMusicEl = document.getElementById("bmTrackAudio");
@@ -505,9 +559,10 @@ function startBasicMode() {
       document.body.appendChild(bmMusicEl);
     }
     bmMusicEl.src = track.src;
-    bmMusicEl.volume = typeof profile !== "undefined"
-      ? (profile.settings?.masterVolume ?? 100) / 100 * 0.8
-      : 0.8;
+    bmMusicEl.volume =
+      typeof profile !== "undefined"
+        ? ((profile.settings?.masterVolume ?? 100) / 100) * 0.8
+        : 0.8;
     bmMusicEl.currentTime = 0;
     bmMusicEl.play().catch(() => {});
 
@@ -518,15 +573,21 @@ function startBasicMode() {
       bmSpawnTimer = setInterval(bmSpawnWave, diff.spawnIntervalMs);
     };
 
-    if (bmMusicEl.duration && isFinite(bmMusicEl.duration)) {
+    // track.duration adalah sumber utama durasi timer.
+    // Audio metadata hanya dipakai sebagai fallback jika track.duration
+    // tidak di-set (0 atau undefined).
+    if (track.duration && track.duration > 0) {
+      startTimers(track.duration);
+    } else if (bmMusicEl.duration && isFinite(bmMusicEl.duration)) {
       startTimers(Math.ceil(bmMusicEl.duration));
     } else {
-      bmMusicEl.addEventListener("loadedmetadata", () => {
-        startTimers(Math.ceil(bmMusicEl.duration));
-      }, { once: true });
-      setTimeout(() => {
-        if (bmTimeLeft === 0) startTimers(track.duration);
-      }, 1000);
+      bmMusicEl.addEventListener(
+        "loadedmetadata",
+        () => {
+          if (bmTimeLeft === 0) startTimers(Math.ceil(bmMusicEl.duration));
+        },
+        { once: true },
+      );
     }
 
     bmKeyHandler = bmOnKey;
@@ -536,12 +597,34 @@ function startBasicMode() {
 
 function bmStopEngine() {
   bmRunning = false;
-  if (bmSpawnTimer) { clearInterval(bmSpawnTimer); bmSpawnTimer = null; }
-  if (bmMusicTimer) { clearInterval(bmMusicTimer); bmMusicTimer = null; }
-  if (bmKeyHandler) { document.removeEventListener("keydown", bmKeyHandler); bmKeyHandler = null; }
-  if (bmMusicEl)    { bmMusicEl.pause(); bmMusicEl.currentTime = 0; }
 
-  [...bmActiveNotes].forEach(n => { clearTimeout(n.expireTimer); n.el?.remove(); });
+  // Reset flag countdown — tanpa ini Play Again stuck karena
+  // showCountdownThen() langsung return tanpa jalankan callback.
+  if (typeof isCountdownRunning !== "undefined") isCountdownRunning = false;
+
+  if (bmSpawnTimer) {
+    clearInterval(bmSpawnTimer);
+    bmSpawnTimer = null;
+  }
+  if (bmMusicTimer) {
+    clearInterval(bmMusicTimer);
+    bmMusicTimer = null;
+  }
+  if (bmKeyHandler) {
+    document.removeEventListener("keydown", bmKeyHandler);
+    bmKeyHandler = null;
+  }
+  if (bmMusicEl) {
+    bmMusicEl.pause();
+    bmMusicEl.currentTime = 0;
+    bmMusicEl.src = "";
+    bmMusicEl.load();
+  }
+
+  [...bmActiveNotes].forEach((n) => {
+    clearTimeout(n.expireTimer);
+    n.el?.remove();
+  });
   bmActiveNotes = [];
   if (bmArena) bmArena.innerHTML = "";
 }
@@ -560,18 +643,28 @@ function bmTriggerQuit() {
 }
 
 // Shims untuk popups.js (yang masih panggil nama lama)
-function clearAllTimers()  { bmStopEngine(); }
-function hideAllButtons()  {}
-function stopCountdown()   {}
+function clearAllTimers() {
+  bmStopEngine();
+}
+function hideAllButtons() {}
+function stopCountdown() {}
 
 Object.defineProperty(window, "score", {
-  get()  { return bmScore; },
-  set(v) { bmScore = v; },
+  get() {
+    return bmScore;
+  },
+  set(v) {
+    bmScore = v;
+  },
   configurable: true,
 });
 Object.defineProperty(window, "basicBestCombo", {
-  get()  { return bmBestCombo; },
-  set(v) { bmBestCombo = v; },
+  get() {
+    return bmBestCombo;
+  },
+  set(v) {
+    bmBestCombo = v;
+  },
   configurable: true,
 });
 
@@ -595,10 +688,10 @@ function bmRenderTrackList() {
     const item = document.createElement("button");
     item.type = "button";
     item.className = "song-item" + (i === 0 ? " active" : "");
-    item.dataset.index    = i;
-    item.dataset.video    = track.bg;
+    item.dataset.index = i;
+    item.dataset.video = track.bg;
     item.dataset.trackIdx = i;
-    item.dataset.preview  = track.src;
+    item.dataset.preview = track.src;
     item.style.setProperty("--song-accent", accent);
     item.innerHTML = `
       <span class="song-index">${String(i + 1).padStart(2, "0")}</span>
@@ -621,8 +714,10 @@ function bmRenderTrackList() {
       .map((key, di) => {
         const d = BM_DIFF[key];
         if (!d) return "";
-        return `<button class="diff-btn${di === 0 ? " active" : ""}" data-diff="${key}">` +
-          `<span class="diff-dot" style="background:${d.color}"></span>${d.label}</button>`;
+        return (
+          `<button class="diff-btn${di === 0 ? " active" : ""}" data-diff="${key}">` +
+          `<span class="diff-dot" style="background:${d.color}"></span>${d.label}</button>`
+        );
       })
       .join("");
 
@@ -638,19 +733,30 @@ function bmRenderTrackList() {
 // Q. EXIT BUTTON & RESULT POPUP LISTENERS
 // ============================================================
 document.addEventListener("DOMContentLoaded", () => {
-  bmRenderTrackList(); // harus jalan duluan, sebelum main.js baca .song-item
+  // Main.js akan memanggil bmRenderTrackList atau nomRenderTrackList saat inisialisasi
 
   document.getElementById("exitBasicBtn")?.addEventListener("click", () => {
     if (typeof playSound === "function") playSound();
-    bmTriggerQuit();
+    // Cek apakah Not Original Mode yang sedang berjalan —
+    // kalau iya, delegate ke nomTriggerQuit() agar mode & skor terbaca benar.
+    if (typeof nomRunning !== "undefined" && nomRunning) {
+      if (typeof nomTriggerQuit === "function") nomTriggerQuit();
+    } else {
+      bmTriggerQuit();
+    }
   });
 
-  document.getElementById("basicPlayAgainBtn")?.addEventListener("click", () => {
-    if (typeof playSound === "function") playSound();
-    document.getElementById("basicResultPopup")?.classList.remove("active");
-    bmBestCombo = 0;
-    startBasicMode();
-  });
+  document
+    .getElementById("basicPlayAgainBtn")
+    ?.addEventListener("click", () => {
+      // Guard: kalau popup dibuka oleh NOM, biarkan popups.js yang handle.
+      // Listener ini hanya boleh jalan untuk Basic Mode.
+      if (window._nomResultActive) return;
+      if (typeof playSound === "function") playSound();
+      document.getElementById("basicResultPopup")?.classList.remove("active");
+      bmBestCombo = 0;
+      startBasicMode();
+    });
 
   document.getElementById("basicGoHomeBtn")?.addEventListener("click", () => {
     if (typeof playSound === "function") playSound();

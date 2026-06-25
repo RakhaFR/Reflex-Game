@@ -181,33 +181,8 @@ const PALETTES = {
 // ENHANCED EFFECTS (settings-aware)
 // ============================================
 function triggerEffects(soundId, flashColor, gameScreenId, btnEl) {
-  const sets = typeof getSettings === "function" ? getSettings() : null;
-
-  const sfx = document.getElementById(soundId);
-  if (sfx) {
-    sfx.currentTime = 0;
-    sfx.play().catch(() => {});
-  }
-
-  // Flash overlay — respects setting
-  if (!sets || sets.screenFlashEnabled) {
-    const flash = document.getElementById("flashOverlay");
-    if (flash) {
-      flash.className = "";
-      // Menambahkan class dinamis sesuai warna (green, red, bonus)
-      flash.classList.add("active", flashColor);
-      setTimeout(() => flash.classList.remove("active", flashColor), 220);
-    }
-  }
-
-  // Shake screen - Menambahkan kelas getar arcade pada container game
-  const screen = document.getElementById(gameScreenId);
-  if (screen) {
-    screen.classList.add("shake");
-    setTimeout(() => screen.classList.remove("shake"), 250); // Getaran cepat 250ms agar responsif
-  }
-
   // Particle burst — respects setting
+  const sets = typeof getSettings === "function" ? getSettings() : null;
   if (!sets || sets.particleEffectEnabled) {
     let pos = btnEl
       ? getBtnCenter(btnEl)
@@ -215,34 +190,14 @@ function triggerEffects(soundId, flashColor, gameScreenId, btnEl) {
     const palette = PALETTES[flashColor] || PALETTES.green;
     burstParticles(pos.x, pos.y, palette, 32);
   }
-
-  // Efek cahaya & animasi pop pada tombol yang ditekan
-  if (btnEl) {
-    btnEl.classList.add("btn-arcade-hit");
-    setTimeout(() => btnEl.classList.remove("btn-arcade-hit"), 250);
-  }
 }
-
 
 // Freeze-specific effect
 function triggerFreezeEffect(btnEl) {
   const sets = typeof getSettings === "function" ? getSettings() : null;
-
-  if (!sets || sets.screenFlashEnabled) {
-    const flash = document.getElementById("flashOverlay");
-    flash.className = "";
-    flash.classList.add("active", "blue");
-    setTimeout(() => flash.classList.remove("active", "blue"), 300);
-  }
-
   if (!sets || sets.particleEffectEnabled) {
     let pos = getBtnCenter(btnEl);
     burstParticles(pos.x, pos.y, PALETTES.freeze, 40, ["circle", "star"]);
-  }
-
-  if (btnEl) {
-    btnEl.classList.add("btn-freeze-hit");
-    setTimeout(() => btnEl.classList.remove("btn-freeze-hit"), 600);
   }
 }
 

@@ -134,13 +134,63 @@
             </div>
           </div>
 
+          <!-- TAB STATISTICS: PREMIUM CATEGORY & PERFORMANCE GRAPH -->
           <div class="modal-tab-content" id="tabStats">
-            <div class="stats-blueprint-grid">
 
-              <div class="stats-blueprint-card">
-                <div class="card-blueprint-title">// GLOBAL PERFORMANCE</div>
+            <!-- ═══ ROW 1: PER-MODE BREAKDOWN ═══ -->
+            <div class="stats-blueprint-grid stats-grid-2col stats-section">
+
+              <!-- BASIC MODE -->
+              <div class="stats-blueprint-card card-basic">
+                <div class="card-blueprint-title title-basic">// BASIC MODE</div>
                 <div class="blueprint-row">
-                  <span>Total Games Played</span>
+                  <span>Games Played</span>
+                  <span class="b-val val-basic" id="statBmGames">0</span>
+                </div>
+                <div class="blueprint-row">
+                  <span>Hit Clicks</span>
+                  <span class="b-val text-neon-green" id="statBmClicks">0</span>
+                </div>
+                <div class="blueprint-row">
+                  <span>Wrong Clicks</span>
+                  <span class="b-val" style="color:#ff4444;" id="statBmWrong">0</span>
+                </div>
+                <div class="blueprint-row row-divider">
+                  <span>Accuracy</span>
+                  <span class="b-val val-accuracy" id="statBmAccuracy">N/A</span>
+                </div>
+              </div>
+
+              <!-- NOT ORIGINAL MODE -->
+              <div class="stats-blueprint-card card-nom">
+                <div class="card-blueprint-title title-nom">// N.O.M MODE</div>
+                <div class="blueprint-row">
+                  <span>Games Played</span>
+                  <span class="b-val val-nom" id="statNomGames">0</span>
+                </div>
+                <div class="blueprint-row">
+                  <span>Hit Clicks</span>
+                  <span class="b-val text-neon-green" id="statNomClicks">0</span>
+                </div>
+                <div class="blueprint-row">
+                  <span>Wrong Clicks</span>
+                  <span class="b-val" style="color:#ff4444;" id="statNomWrong">0</span>
+                </div>
+                <div class="blueprint-row row-divider">
+                  <span>Accuracy</span>
+                  <span class="b-val val-accuracy" id="statNomAccuracy">N/A</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══ ROW 2: OVERALL TOTALS + RECORDS ═══ -->
+            <div class="stats-blueprint-grid stats-grid-2col stats-section">
+
+              <!-- OVERALL TOTALS -->
+              <div class="stats-blueprint-card">
+                <div class="card-blueprint-title">// OVERALL TOTALS</div>
+                <div class="blueprint-row">
+                  <span>Total Games</span>
                   <span class="b-val" id="modalStatGames">0</span>
                 </div>
                 <div class="blueprint-row">
@@ -148,20 +198,12 @@
                   <span class="b-val text-neon-green" id="modalStatClicks">0</span>
                 </div>
                 <div class="blueprint-row">
-                  <span>Wrong Clicks Penalty</span>
-                  <span class="b-val" id="modalStatWrongClicks" style="color: #ff4444;">0</span>
+                  <span>Total Wrong</span>
+                  <span class="b-val" style="color:#ff4444;" id="modalStatWrongClicks">0</span>
                 </div>
-              </div>
-
-              <div class="stats-blueprint-card">
-                <div class="card-blueprint-title">// MECHANICS LOGS</div>
                 <div class="blueprint-row">
                   <span>Bonus Triggered</span>
                   <span class="b-val text-neon-yellow" id="modalStatBonus">0</span>
-                </div>
-                <div class="blueprint-row">
-                  <span>Freeze Skills Used</span>
-                  <span class="b-val" id="modalStatFreeze" style="color: #00e5ff;">0</span>
                 </div>
                 <div class="blueprint-row">
                   <span>Longest Combo</span>
@@ -169,33 +211,81 @@
                 </div>
               </div>
 
+              <!-- RECORDS & PEAK -->
               <div class="stats-blueprint-card">
-                <div class="card-blueprint-title">// HIGHEST RECORD MODE</div>
+                <div class="card-blueprint-title">// RECORDS & PEAK</div>
                 <div class="blueprint-row">
-                  <span>Basic Mode Peak</span>
-                  <span class="b-val" id="modalStatHighBasic">0</span>
-                </div>
-
-                <div class="blueprint-row">
-                  <span>Not Original Peak</span>
-                  <span class="b-val" id="modalStatHighNotOriginal">0</span>
+                  <span>Basic Peak Score</span>
+                  <span class="b-val val-basic" id="modalStatHighBasic">0</span>
                 </div>
                 <div class="blueprint-row">
+                  <span>N.O.M Peak Score</span>
+                  <span class="b-val val-nom" id="modalStatHighNotOriginal">0</span>
+                </div>
+                <div class="blueprint-row row-divider">
                   <span>Lifetime Score</span>
                   <span class="b-val text-neon-green" id="modalStatScore">0</span>
                 </div>
+                <div class="blueprint-row">
+                  <span>Overall Accuracy</span>
+                  <span class="b-val val-accuracy" id="statTotalAccuracy">N/A</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══ ROW 3: GRAFIK PERSENTASE ═══ -->
+            <div class="stats-graph-card stats-section">
+              <div class="card-blueprint-title">// PERFORMANCE GRAPH — ACCURACY &amp; RATIO PER MODE</div>
+
+              <!-- Basic Mode -->
+              <div class="graph-mode-label label-basic">BASIC MODE</div>
+              <div class="graph-row">
+                <span class="graph-label-hit">HIT</span>
+                <div class="graph-bar-track"><div class="graph-bar-fill fill-hit" id="graphBmHit" style="width:0%;"></div></div>
+                <span class="graph-val" id="graphBmHitVal">0%</span>
+              </div>
+              <div class="graph-row">
+                <span class="graph-label-wrong">WRONG</span>
+                <div class="graph-bar-track"><div class="graph-bar-fill fill-wrong" id="graphBmWrong" style="width:0%;"></div></div>
+                <span class="graph-val" id="graphBmWrongVal">0%</span>
               </div>
 
+              <hr class="graph-divider">
+
+              <!-- N.O.M -->
+              <div class="graph-mode-label label-nom">NOT ORIGINAL MODE</div>
+              <div class="graph-row">
+                <span class="graph-label-hit">HIT</span>
+                <div class="graph-bar-track"><div class="graph-bar-fill fill-hit" id="graphNomHit" style="width:0%;"></div></div>
+                <span class="graph-val" id="graphNomHitVal">0%</span>
+              </div>
+              <div class="graph-row">
+                <span class="graph-label-wrong">WRONG</span>
+                <div class="graph-bar-track"><div class="graph-bar-fill fill-wrong" id="graphNomWrong" style="width:0%;"></div></div>
+                <span class="graph-val" id="graphNomWrongVal">0%</span>
+              </div>
+
+              <hr class="graph-divider">
+
+              <!-- Overall Ratio -->
+              <div class="graph-mode-label label-total">OVERALL RATIO (ALL MODES)</div>
+              <div class="graph-row">
+                <span class="graph-label-click">HIT CLICKS</span>
+                <div class="graph-bar-track"><div class="graph-bar-fill fill-click" id="graphBarClicks" style="width:0%;"></div></div>
+                <span class="graph-val" id="graphValClicks">0%</span>
+              </div>
+              <div class="graph-row">
+                <span class="graph-label-bonus">BONUS</span>
+                <div class="graph-bar-track"><div class="graph-bar-fill fill-bonus" id="graphBarBonus" style="width:0%;"></div></div>
+                <span class="graph-val" id="graphValBonus">0%</span>
+              </div>
+              <div class="graph-row">
+                <span class="graph-label-wrong">WRONG PEN</span>
+                <div class="graph-bar-track"><div class="graph-bar-fill fill-wrong" id="graphBarWrong" style="width:0%;"></div></div>
+                <span class="graph-val" id="graphValWrong">0%</span>
+              </div>
             </div>
 
-            <div class="xp-progression-panel" style="margin-top: 14px; text-align: center;">
-              <span
-                style="font-size: 11px; color: #52638a; font-family: 'Orbitron'; display: block; margin-bottom: 2px;">OPERATOR
-                RATING INDEX</span>
-              <span class="text-neon-yellow"
-                style="font-family: 'Orbitron'; font-weight: 900; font-size: 16px; letter-spacing: 2px;">REFLEX
-                ELITE</span>
-            </div>
           </div>
 
           <div class="modal-tab-content" id="tabSettings">
@@ -224,11 +314,7 @@
               <div class="settings-blueprint-card">
                 <div class="card-blueprint-title">// VISUAL FEEDBACK</div>
                 <div class="setting-blueprint-row">
-                  <span>Screen Flash FX</span>
-                  <button id="flashToggleBtn" class="toggle-blueprint-btn">ON</button>
-                </div>
-                <div class="setting-blueprint-row">
-                  <span>Particle Bursts</span>
+                  <span>Particle Effects</span>
                   <button id="particleToggleBtn" class="toggle-blueprint-btn">ON</button>
                 </div>
                 <div class="setting-blueprint-row">
@@ -347,8 +433,32 @@
 
   <script src="js/utils.js"></script>
   <script src="js/profile.js"></script>
+  <script src="js/game-mode.js"></script>
+  <script src="js/notoriginal-mode.js"></script>
   <script src="js/basic-mode.js"></script>
   <script src="js/main.js"></script>
+
+  <script>
+    // ── URL PARAM ROUTER — dibaca SETELAH main.js selesai init lobby ──
+    // Ketika pemain kembali dari game N.O.M (lobby.html?mode=notoriginal),
+    // lobby harus otomatis switch ke mode N.O.M bukan Basic.
+    // switchGameMode() sudah tersedia dari main.js.
+    window.addEventListener("DOMContentLoaded", function () {
+      var params  = new URLSearchParams(window.location.search);
+      var modeParam = params.get("mode");
+      if (!modeParam || modeParam === "basic") return;
+
+      // Cari index mode di BM_GAME_MODES yang cocok dengan param
+      if (typeof BM_GAME_MODES === "undefined") return;
+      var targetIdx = BM_GAME_MODES.findIndex(function(m) { return m.id === modeParam; });
+      if (targetIdx < 0) return;
+
+      // Switch ke mode yang sesuai — main.js render track list & update label
+      if (typeof switchGameMode === "function") {
+        switchGameMode(targetIdx);
+      }
+    });
+  </script>
 
 </body>
 

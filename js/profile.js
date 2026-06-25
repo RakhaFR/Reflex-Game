@@ -36,7 +36,6 @@ const PROFILE_DEFAULT = {
     masterVolume: 100,
     sfxEnabled: true,
     countdownSoundEnabled: true,
-    screenFlashEnabled: true,
     particleEffectEnabled: true,
     comboAnimationEnabled: true,
     keybinds: ["q", "w", "e", "r"],
@@ -87,7 +86,7 @@ function applySoundSettings() {
     if (!el) return;
     el.volume = vol;
     if (id === "countdownSound") el.muted = !s.countdownSoundEnabled;
-    else if (id !== "clickSound" && id !== "menuClickSfx" && id !== "lobbyClickSfx") el.muted = !s.sfxEnabled;
+    else if (id === "clickSound" || id === "menuClickSfx" || id === "lobbyClickSfx") el.muted = !s.sfxEnabled;
   });
 }
 
@@ -270,34 +269,8 @@ function initLobbyProfileEvents() {
     });
   }
 
-  // Kontrol Slider Real-time Volume suara
-  const volSlider = document.getElementById("masterVolumeSlider");
-  if (volSlider) {
-    volSlider.addEventListener("input", () => {
-      profile.settings.masterVolume = parseInt(volSlider.value);
-      profileSave(profile);
-      triggerLobbyDOMUpdate();
-      applySoundSettings();
-    });
-  }
-
-  // Kontrol Switch Toggle ON/OFF Audio & Visual Feedback
-  const bindToggleEvent = (btnId, settingKey) => {
-    const btn = document.getElementById(btnId);
-    if (!btn) return;
-    btn.addEventListener("click", () => {
-      profile.settings[settingKey] = !profile.settings[settingKey];
-      profileSave(profile);
-      triggerLobbyDOMUpdate();
-      applySoundSettings();
-    });
-  };
-
-  bindToggleEvent("sfxToggleBtn", "sfxEnabled");
-  bindToggleEvent("cdSoundToggleBtn", "countdownSoundEnabled");
-  bindToggleEvent("flashToggleBtn", "screenFlashEnabled");
-  bindToggleEvent("particleToggleBtn", "particleEffectEnabled");
-  bindToggleEvent("comboAnimToggleBtn", "comboAnimationEnabled");
+  // NOTE: Volume slider & toggle buttons dihandle oleh main.js → initLobbyPageLogic()
+  // karena main.js di-load SETELAH profile.js — syncToggleState hanya tersedia di sana.
 }
 
 // ---- Keybind Capture Editor Engine (Sinkron dengan Ekspektasi main.js) ----
