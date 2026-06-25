@@ -173,7 +173,8 @@ let bmMusicTimer = null; // countdown timer interval (1s tick)
 let bmRunning = false;
 let bmDiffKey = "normal";
 let bmTrackIdx = 0;
-let bmKeyHandler = null;
+let bmKeyHandler   = null;
+let bmMouseHandler = null;
 let bmMusicEl = null; // <audio> element untuk track aktif
 let bmTimeLeft = 0; // detik tersisa
 let bmBgVideo = null; // <video> background element
@@ -353,6 +354,26 @@ function bmOnKey(e) {
     if (typeof triggerEffects === "function") triggerEffects(null, flashColor, "basicMode", nd.el);
   }
   bmRemoveNote(nd);
+}
+
+// ============================================================
+// J2. MOUSE CLICK HANDLER
+// Klik mouse mana saja trigger note pertama yang tersedia.
+// context menu (klik kanan) di-prevent supaya tidak muncul popup browser.
+// ============================================================
+function bmOnMouse(e) {
+  if (!bmRunning) return;
+  // Cegah context menu saat klik kanan
+  if (e.type === "contextmenu") { e.preventDefault(); return; }
+  e.preventDefault();
+
+  // Ambil note pertama yang belum di-hit (FIFO)
+  const nd = bmActiveNotes.find((n) => !n.hit);
+  if (!nd) return;
+
+  // Simulasikan keydown event dengan key yang sama
+  const fakeEvent = { key: nd.key, preventDefault: () => {} };
+  bmOnKey(fakeEvent);
 }
 
 // ============================================================
@@ -592,6 +613,16 @@ function startBasicMode() {
 
     bmKeyHandler = bmOnKey;
     document.addEventListener("keydown", bmKeyHandler);
+
+    // Mouse click integration — hanya aktif jika setting mouseClickEnabled = true
+    const _mouseEnabled = typeof profile !== "undefined"
+      ? (profile.settings?.mouseClickEnabled ?? true)
+      : true;
+    if (_mouseEnabled) {
+      bmMouseHandler = bmOnMouse;
+      document.addEventListener("mousedown",    bmMouseHandler);
+      document.addEventListener("contextmenu",  bmMouseHandler);
+    }
   });
 }
 
@@ -613,6 +644,11 @@ function bmStopEngine() {
   if (bmKeyHandler) {
     document.removeEventListener("keydown", bmKeyHandler);
     bmKeyHandler = null;
+  }
+  if (bmMouseHandler) {
+    document.removeEventListener("mousedown",   bmMouseHandler);
+    document.removeEventListener("contextmenu", bmMouseHandler);
+    bmMouseHandler = null;
   }
   if (bmMusicEl) {
     bmMusicEl.pause();

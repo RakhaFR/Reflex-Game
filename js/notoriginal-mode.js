@@ -12,7 +12,7 @@ const NOM_TRACKS = [
   {
     id: "lightning-moment",
     title: "Lightning Moment",
-    artist: "Remix Arranger",
+    artist: "DJ芥末",
     bpm: 185, // Tempo tinggi khas N.O.M!
     src: "assets/music/lightning-moment.mp3",
     duration: 60, // detik — fallback jika audio metadata belum load
@@ -20,14 +20,14 @@ const NOM_TRACKS = [
     art: "assets/picture/logo.png",
     difficulties: ["medium", "hard", "extreme"], // N.O.M langsung gas dari medium!
     color: "#0051e8", // Warna aksen khas Not Original Mode
-    role: "// DJ芥末",
+    role: "// N.O.M STYLE — HARD SPEED",
     titleClass: "title-notoriginal",
     desc: "185 BPM Overdrive Aransemen. Uji batas kecepatan tangan dan refleksmu pada tempo ekstrem.",
   },
   {
     id: "mv-abm-yararara",
     title: "MV-BM-YARARARA",
-    artist: "Massive DJ",
+    artist: "ABM (AnythingBecomeMoe / エビモエ)",
     bpm: 200,
     src: "assets/music/mv-abm-yararara.mp3",
     duration: 156,
@@ -35,7 +35,7 @@ const NOM_TRACKS = [
     art: "assets/picture/logo.png",
     difficulties: ["hard", "extreme"],
     color: "#c70000",
-    role: "// ABM (AnythingBecomeMoe / エビモエ)",
+    role: "// N.O.M STYLE — EXTREME SPEED",
     titleClass: "title-notoriginal",
     desc: "200 BPM ketukan tanpa ampun. Jangan berkedip, pastikan keybind-mu sudah siap.",
   },
@@ -50,7 +50,7 @@ const NOM_TRACKS = [
     art: "assets/picture/logo.png",
     difficulties: ["medium", "hard", "extreme"],
     color: "#7d7d7d",
-    role: "// ‪@starxrayne‬ & ‪@JamsDX‬ ",
+    role: "// N.O.M STYLE — HARD SPEED",
     titleClass: "title-notoriginal",
     desc: "200 BPM ketukan tanpa ampun. Jangan berkedip, pastikan keybind-mu sudah siap.",
   },
@@ -172,7 +172,8 @@ let nomMusicTimer = null;
 let nomRunning = false;
 let nomDiffKey = "medium"; // Default awal N.O.M
 let nomTrackIdx = 0;
-let nomKeyHandler = null;
+let nomKeyHandler   = null;
+let nomMouseHandler = null;
 let nomMusicEl = null;
 let nomTimeLeft = 0;
 let nomBgVideo = null;
@@ -378,6 +379,21 @@ function nomOnKey(e) {
     if (typeof triggerEffects === "function") triggerEffects(null, flashColor, "basicMode", nd.el);
   }
   nomRemoveNote(nd);
+}
+
+// ============================================================
+// J2. MOUSE CLICK HANDLER
+// ============================================================
+function nomOnMouse(e) {
+  if (!nomRunning) return;
+  if (e.type === "contextmenu") { e.preventDefault(); return; }
+  e.preventDefault();
+
+  const nd = nomActiveNotes.find((n) => !n.hit);
+  if (!nd) return;
+
+  const fakeEvent = { key: nd.key, preventDefault: () => {} };
+  nomOnKey(fakeEvent);
 }
 
 // ============================================================
@@ -611,6 +627,16 @@ function startNotOriginalEngine() {
 
       nomKeyHandler = nomOnKey;
       document.addEventListener("keydown", nomKeyHandler);
+
+      // Mouse click integration
+      const _mouseEnabled = typeof profile !== "undefined"
+        ? (profile.settings?.mouseClickEnabled ?? true)
+        : true;
+      if (_mouseEnabled) {
+        nomMouseHandler = nomOnMouse;
+        document.addEventListener("mousedown",   nomMouseHandler);
+        document.addEventListener("contextmenu", nomMouseHandler);
+      }
     });
   }
 }
@@ -634,6 +660,11 @@ function nomStopEngine() {
   if (nomKeyHandler) {
     document.removeEventListener("keydown", nomKeyHandler);
     nomKeyHandler = null;
+  }
+  if (nomMouseHandler) {
+    document.removeEventListener("mousedown",   nomMouseHandler);
+    document.removeEventListener("contextmenu", nomMouseHandler);
+    nomMouseHandler = null;
   }
 
   // FIX: Stop background video — tanpa ini video NOM masih jalan saat

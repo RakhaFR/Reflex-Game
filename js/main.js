@@ -494,7 +494,8 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
   syncToggleState("sfxToggleBtn",      profile.settings.sfxEnabled);
   syncToggleState("cdSoundToggleBtn",  profile.settings.countdownSoundEnabled);
   syncToggleState("particleToggleBtn", profile.settings.particleEffectEnabled);
-  syncToggleState("comboAnimToggleBtn",profile.settings.comboAnimationEnabled);
+  syncToggleState("comboAnimToggleBtn",  profile.settings.comboAnimationEnabled);
+  syncToggleState("mouseClickToggleBtn", profile.settings.mouseClickEnabled ?? true);
 }
 
 // NOTE: Settings toggle listeners dihandle oleh profile.js → initLobbyProfileEvents().
@@ -554,7 +555,8 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
       { id: "sfxToggleBtn",       key: "sfxEnabled" },
       { id: "cdSoundToggleBtn",   key: "countdownSoundEnabled" },
       { id: "particleToggleBtn",  key: "particleEffectEnabled" },
-      { id: "comboAnimToggleBtn", key: "comboAnimationEnabled" },
+      { id: "comboAnimToggleBtn",   key: "comboAnimationEnabled" },
+      { id: "mouseClickToggleBtn",  key: "mouseClickEnabled" },
     ];
     toggleConfigs.forEach(({ id, key }) => {
       const btn = document.getElementById(id);
