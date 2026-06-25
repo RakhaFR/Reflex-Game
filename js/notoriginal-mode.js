@@ -19,8 +19,8 @@ const NOM_TRACKS = [
     bg: "assets/video/lightning-moment.mp4", // Vibe visual beda
     art: "assets/picture/logo.png",
     difficulties: ["medium", "hard", "extreme"], // N.O.M langsung gas dari medium!
-    color: "#ff2d78", // Warna aksen khas Not Original Mode
-    role: "// N.O.M STYLE — SPEED REFLEX",
+    color: "#0051e8", // Warna aksen khas Not Original Mode
+    role: "// DJ芥末",
     titleClass: "title-notoriginal",
     desc: "185 BPM Overdrive Aransemen. Uji batas kecepatan tangan dan refleksmu pada tempo ekstrem.",
   },
@@ -34,8 +34,23 @@ const NOM_TRACKS = [
     bg: "assets/video/mv-abm-yararara.mp4",
     art: "assets/picture/logo.png",
     difficulties: ["hard", "extreme"],
-    color: "#ff00ff",
-    role: "// N.O.M STYLE — EXTREME SPEED",
+    color: "#c70000",
+    role: "// ABM (AnythingBecomeMoe / エビモエ)",
+    titleClass: "title-notoriginal",
+    desc: "200 BPM ketukan tanpa ampun. Jangan berkedip, pastikan keybind-mu sudah siap.",
+  },
+  {
+    id: "bang-bang-bang-chainsaw-man",
+    title: "bang-bang-bang-chainsaw-man",
+    artist: "‪@starxrayne‬ & ‪@JamsDX‬ ",
+    bpm: 160,
+    src: "assets/music/bang-bang-bang-chainsaw-man-song.mp3",
+    duration: 180,
+    bg: "assets/video/bang-bang-bang-chainsaw-man-song.mp4",
+    art: "assets/picture/logo.png",
+    difficulties: ["medium", "hard", "extreme"],
+    color: "#7d7d7d",
+    role: "// ‪@starxrayne‬ & ‪@JamsDX‬ ",
     titleClass: "title-notoriginal",
     desc: "200 BPM ketukan tanpa ampun. Jangan berkedip, pastikan keybind-mu sudah siap.",
   },
