@@ -374,9 +374,18 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
   const widgetLevelNumber = document.getElementById("widgetLevelNumber");
   const widgetXpBarFill   = document.getElementById("widgetXpBarFill");
   const widgetUsername    = document.getElementById("widgetUsername");
+  const widgetAvatar      = document.getElementById("widgetAvatar");
   if (widgetLevelNumber) widgetLevelNumber.textContent = "LV " + computedLevel;
   if (widgetXpBarFill)   widgetXpBarFill.style.width   = `${expWidthPercentage}%`;
   if (widgetUsername)    widgetUsername.textContent     = profile.identity.username.toUpperCase();
+  if (widgetAvatar) {
+    const avatarSrc = (typeof getAvatarDisplay === "function")
+      ? getAvatarDisplay(profile.identity.avatar)
+      : (profile.identity.avatar === "default" || !profile.identity.avatar
+          ? "assets/picture/logo.png"
+          : profile.identity.avatar);
+    if (widgetAvatar.src !== avatarSrc) widgetAvatar.src = avatarSrc;
+  }
 
   // --- 3. SINKRONISASI MODAL IDENTITY ---
   const modalLevelNumber  = document.getElementById("modalLevelNumber");
@@ -384,12 +393,21 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
   const modalXpTextRow    = document.getElementById("modalXpTextRow");
   const modalUsernameText = document.getElementById("modalUsernameText");
   const modalUsernameInput= document.getElementById("modalUsernameInput");
+  const modalProfileImg   = document.getElementById("modalProfileImg");
   if (modalLevelNumber)  modalLevelNumber.textContent  = computedLevel;
   if (modalXpBarFill)    modalXpBarFill.style.width    = `${expWidthPercentage}%`;
   if (modalXpTextRow)    modalXpTextRow.innerHTML      = `<span>EXP PROGRESSION</span><span>${currentExpInLevel.toLocaleString()} / 25,000 PTS</span>`;
   if (modalUsernameText) modalUsernameText.textContent = profile.identity.username.toUpperCase();
   if (modalUsernameInput && !modalUsernameInput.matches(":focus"))
     modalUsernameInput.value = profile.identity.username;
+  if (modalProfileImg) {
+    const avatarSrc = (typeof getAvatarDisplay === "function")
+      ? getAvatarDisplay(profile.identity.avatar)
+      : (profile.identity.avatar === "default" || !profile.identity.avatar
+          ? "assets/picture/logo.png"
+          : profile.identity.avatar);
+    if (modalProfileImg.src !== avatarSrc) modalProfileImg.src = avatarSrc;
+  }
 
   // --- 4. DATA PER KATEGORI NOTORIGIN & STATISTICS ---
   const bm  = profile.stats.basic       || { clicks: 0, wrongClicks: 0, gamesPlayed: 0 };
@@ -603,13 +621,23 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
     showLobbyToast("Profile direset!", "success");
   });
 
-  // Modal open/close
-  lobbyProfileWidget?.addEventListener("click", () => {
+  // Modal open/close — selalu reset ke tab Identity saat dibuka ulang
+  function openProfileModal() {
+    // Reset tab ke Identity
+    document.querySelectorAll(".modal-tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".modal-tab-content").forEach(c => c.classList.remove("active"));
+    const identityBtn = document.querySelector('.modal-tab-btn[data-tab="tabIdentity"]');
+    const identityTab = document.getElementById("tabIdentity");
+    if (identityBtn) identityBtn.classList.add("active");
+    if (identityTab) identityTab.classList.add("active");
+
     syncLobbyProfileDOM();
     renderKeybindEditor();
     triggerLobbyClickSound();
     lobbyProfileModal?.classList.add("active");
-  });
+  }
+
+  lobbyProfileWidget?.addEventListener("click", openProfileModal);
   closeProfileModal?.addEventListener("click", (e) => {
     e.stopPropagation(); triggerLobbyClickSound();
     lobbyProfileModal?.classList.remove("active");
