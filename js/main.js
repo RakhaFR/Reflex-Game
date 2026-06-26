@@ -668,20 +668,7 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
     }
   });
 
-  // Volume slider
-  document.getElementById("masterVolumeSlider")?.addEventListener("input", (e) => {
-    const val = parseInt(e.target.value);
-    if (typeof profile !== "undefined") {
-      profile.settings.masterVolume = val;
-      if (typeof profileSave === "function") profileSave(profile);
-    }
-    const lbl = document.getElementById("masterVolumeLabel");
-    if (lbl) lbl.textContent = val + "%";
-    const bv = document.getElementById("lobbyBgVideo");
-    if (bv) bv.volume = (val / 100) * 0.4;
-  });
-
-  // Toggle handlers sudah dipindah ke initSettingsHandlers() di atas.
+  // Volume slider & toggle dihandle oleh initSettingsHandlers() di atas.
 
   // ============================================================
   // ── KEYBIND EDITOR
@@ -850,14 +837,16 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
   const _hadPriorGesture = (() => {
     try {
       const hadGesture   = sessionStorage.getItem("rr_had_gesture") === "1";
-      const fromTransition = sessionStorage.getItem("rr_transition") === "1";
-      // Hanya anggap gesture valid kalau memang navigasi dari halaman lain.
-      // Kalau refresh (tidak ada rr_transition), hapus flag — fresh start.
-      if (hadGesture && !fromTransition) {
+      const fromNavigate = sessionStorage.getItem("rr_navigated")   === "1";
+      // rr_navigated di-set loading.js saat navigate — flag terpisah dari
+      // rr_transition yang sudah di-consume loading.js sebelum main.js jalan.
+      // Kalau refresh: rr_navigated tidak ada → hapus gesture flag → fresh start.
+      if (hadGesture && !fromNavigate) {
         sessionStorage.removeItem("rr_had_gesture");
         return false;
       }
-      return hadGesture && fromTransition;
+      if (fromNavigate) sessionStorage.removeItem("rr_navigated");
+      return hadGesture && fromNavigate;
     } catch(_) { return false; }
   })();
   window._userHasInteracted = _hadPriorGesture;
@@ -881,10 +870,10 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
     cancelAnimationFrame(vizAnimFrame);
     vizAnimFrame = null;
 
-    // Bersihkan visual tag dari item yang sedang/pernah preview
+    // Bersihkan visual tag dari item yang sedang/pernah preview — restore ke "SELECT"
     if (currentPreviewItem) {
       const tag = currentPreviewItem.querySelector(".song-status-tag");
-      if (tag) tag.textContent = "";
+      if (tag) tag.textContent = "SELECT";
       currentPreviewItem.classList.remove("previewing");
       currentPreviewItem = null;
     }

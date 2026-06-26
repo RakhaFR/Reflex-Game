@@ -270,33 +270,8 @@ function initLobbyProfileEvents() {
     });
   }
 
-  // Kontrol Slider Real-time Volume suara
-  const volSlider = document.getElementById("masterVolumeSlider");
-  if (volSlider) {
-    volSlider.addEventListener("input", () => {
-      profile.settings.masterVolume = parseInt(volSlider.value);
-      profileSave(profile);
-      triggerLobbyDOMUpdate();
-      applySoundSettings();
-    });
-  }
-
-  // Kontrol Switch Toggle ON/OFF Audio & Visual Feedback
-  const bindToggleEvent = (btnId, settingKey) => {
-    const btn = document.getElementById(btnId);
-    if (!btn) return;
-    btn.addEventListener("click", () => {
-      profile.settings[settingKey] = !profile.settings[settingKey];
-      profileSave(profile);
-      triggerLobbyDOMUpdate();
-      applySoundSettings();
-    });
-  };
-
-  bindToggleEvent("sfxToggleBtn", "sfxEnabled");
-  bindToggleEvent("cdSoundToggleBtn", "countdownSoundEnabled");
-  bindToggleEvent("particleToggleBtn", "particleEffectEnabled");
-  bindToggleEvent("comboAnimToggleBtn", "comboAnimationEnabled");
+  // Volume slider & toggle ON/OFF dihandle oleh initSettingsHandlers() di main.js.
+  // Jangan duplikasi listener di sini.
 }
 
 // ---- Keybind Capture Editor Engine (Sinkron dengan Ekspektasi main.js) ----
@@ -307,12 +282,12 @@ function renderKeybindEditor() {
   
   row.innerHTML = binds.map((key, index) => `
     <div class="keybind-slot" data-index="${index}">
-      <span class="slot-idx">KEY ${index + 1}</span>
-      <button class="keybind-capture-btn">${key.toUpperCase()}</button>
+      <span class="keybind-slot-label">KEY ${index + 1}</span>
+      <button class="keybind-key-btn">${key.toUpperCase()}</button>
     </div>
   `).join("");
 
-  row.querySelectorAll(".keybind-capture-btn").forEach(btn => {
+  row.querySelectorAll(".keybind-key-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
       const slot = e.target.closest(".keybind-slot");
       const idx = parseInt(slot.dataset.index);
