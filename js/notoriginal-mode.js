@@ -519,7 +519,7 @@ function startNotOriginalEngine() {
       ? activeDiffBtn.getAttribute("data-diff")
       : nomDiffKey || "medium";
     const track = nomTrackIdx ?? 0;
-    window.location.href = `game.html?mode=notoriginal&diff=${diff}&track=${track}`;
+    if (typeof rrNavigate === "function") { rrNavigate(`game.html?mode=notoriginal&diff=${diff}&track=${track}`); } else { window.location.href = `game.html?mode=notoriginal&diff=${diff}&track=${track}`; };
     return;
   }
 

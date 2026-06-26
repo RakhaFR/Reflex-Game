@@ -18,11 +18,11 @@ function closeQuitConfirm() {
   quitTargetMode = null;
 }
 
-document.getElementById("quitNoBtn").addEventListener("click", () => {
+document.getElementById("quitNoBtn")?.addEventListener("click", () => {
   playSound(); closeQuitConfirm();
 });
 
-document.getElementById("quitYesBtn").addEventListener("click", () => {
+document.getElementById("quitYesBtn")?.addEventListener("click", () => {
   playSound();
   document.getElementById("quitConfirmPopup").classList.remove("active");
 
@@ -135,9 +135,9 @@ document.getElementById("quitYesBtn").addEventListener("click", () => {
 
       if (window._nomResultActive) {
         window._nomResultActive = false;
-        window.location.href = "lobby.html?mode=notoriginal";
+        if (typeof rrNavigate === "function") { rrNavigate("lobby.html?mode=notoriginal"); } else { window.location.href = "lobby.html?mode=notoriginal"; };
       } else {
-        window.location.href = "lobby.html";
+        if (typeof rrNavigate === "function") { rrNavigate("lobby.html"); } else { window.location.href = "lobby.html"; };
       }
     });
   }

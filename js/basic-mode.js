@@ -507,7 +507,7 @@ function startBasicMode() {
     const currentModeId = BM_GAME_MODES[bmGameModeIdx]?.id || "basic";
 
     // Redirect menggunakan ID mode dinamis (?mode=basic atau ?mode=notoriginal)
-    window.location.href = `game.html?mode=${currentModeId}&diff=${diff}&track=${track}`;
+    if (typeof rrNavigate === "function") { rrNavigate(`game.html?mode=${currentModeId}&diff=${diff}&track=${track}`); } else { window.location.href = `game.html?mode=${currentModeId}&diff=${diff}&track=${track}`; };
     return;
   }
 
@@ -667,7 +667,7 @@ function bmStopEngine() {
 
 function exitBasicMode() {
   bmStopEngine();
-  window.location.href = "lobby.html";
+  if (typeof rrNavigate === "function") { rrNavigate("lobby.html"); } else { window.location.href = "lobby.html"; };
 }
 
 // ============================================================
@@ -797,6 +797,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("basicGoHomeBtn")?.addEventListener("click", () => {
     if (typeof playSound === "function") playSound();
     document.getElementById("basicResultPopup")?.classList.remove("active");
-    window.location.href = "lobby.html";
+    if (typeof rrNavigate === "function") { rrNavigate("lobby.html"); } else { window.location.href = "lobby.html"; };
   });
 });

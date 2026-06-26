@@ -207,7 +207,7 @@ function initIndexPageLogic() {
     e.preventDefault();
     triggerMenuClickSound();
     setTimeout(() => {
-      window.location.href = url;
+      if (typeof rrNavigate === "function") { rrNavigate(url); } else { window.location.href = url; }
     }, 150);
   }
 
