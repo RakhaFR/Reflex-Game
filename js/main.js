@@ -25,9 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("mainPlayActionBtn")
   ) {
     initLobbyPageLogic();
-    // Init switchGameMode SETELAH initLobbyPageLogic() — supaya
-    // window._userHasInteracted sudah di-set dengan benar dari sessionStorage
-    if (typeof switchGameMode === "function") switchGameMode(0, true);
   }
 });
 
@@ -852,18 +849,15 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
   // di halaman sebelumnya — cek sessionStorage supaya preview langsung bisa play.
   const _hadPriorGesture = (() => {
     try {
-      const hadGesture    = sessionStorage.getItem("rr_had_gesture") === "1";
-      const fromNavigate  = sessionStorage.getItem("rr_navigated")   === "1";
-      // rr_navigated di-set oleh loading.js saat user navigasi dari halaman lain.
-      // Ini flag terpisah dari rr_transition (yang di-consume loading.js lebih dulu).
-      // Kalau refresh: rr_navigated tidak ada → hapus gesture flag → fresh start.
-      if (hadGesture && !fromNavigate) {
+      const hadGesture   = sessionStorage.getItem("rr_had_gesture") === "1";
+      const fromTransition = sessionStorage.getItem("rr_transition") === "1";
+      // Hanya anggap gesture valid kalau memang navigasi dari halaman lain.
+      // Kalau refresh (tidak ada rr_transition), hapus flag — fresh start.
+      if (hadGesture && !fromTransition) {
         sessionStorage.removeItem("rr_had_gesture");
         return false;
       }
-      // Consume rr_navigated setelah dibaca — one-shot per navigasi
-      if (fromNavigate) sessionStorage.removeItem("rr_navigated");
-      return hadGesture && fromNavigate;
+      return hadGesture && fromTransition;
     } catch(_) { return false; }
   })();
   window._userHasInteracted = _hadPriorGesture;
@@ -1155,8 +1149,8 @@ document.getElementById("slidePrevBtn")?.addEventListener("click", () => {
   switchGameMode(-1);
 });
 
-// switchGameMode(0, true) dipindah ke dalam initLobbyPageLogic() supaya
-// _userHasInteracted sudah di-set sebelum startPreview dipanggil.
+// Jalankan state persistence pertama kali saat lobby dimuat
+switchGameMode(0, true);
 
 
 // ============================================================

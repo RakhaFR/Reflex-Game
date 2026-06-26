@@ -448,7 +448,6 @@
       showTransitionLoader(() => {
         try {
           sessionStorage.setItem("rr_transition", "1");
-          sessionStorage.setItem("rr_navigated",  "1");
           sessionStorage.setItem("rr_had_gesture", "1");
         } catch(_) {}
         window.location.href = href;
@@ -580,7 +579,6 @@
       // Sekaligus tandai bahwa user sudah gesture — lobby bisa langsung preview musik
       try {
         sessionStorage.setItem("rr_transition", "1");
-        sessionStorage.setItem("rr_navigated",  "1"); // flag terpisah untuk main.js gesture check
         sessionStorage.setItem("rr_had_gesture", "1");
       } catch(_) {}
       window.location.href = href;
