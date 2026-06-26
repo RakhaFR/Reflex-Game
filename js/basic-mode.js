@@ -14,36 +14,36 @@
 // di-render OTOMATIS dari array ini oleh bmRenderTrackList() (lihat
 // bagian P di bawah). Gak perlu edit lobby.html sama sekali lagi.
 const BM_TRACKS = [
-  {
-    id: "pixel_panic",
-    title: "PIXEL PANIC PARTY",
-    artist: "Chiptune Frenzy",
-    bpm: 140,
-    src: "assets/music/Pixel_Panic_Party.mp3",
-    duration: 60, // detik — fallback jika audio metadata belum load
-    bg: "assets/video/kamia-live2d.mp4",
-    art: "assets/picture/logo.png", // album art thumbnail (opsional)
-    difficulties: ["normal", "medium", "hard", "extreme"],
-    color: "#00e5ff", // warna aksen song-item ini saat ke-select
-    role: "// OSU STYLE — KEYBOARD REFLEX",
-    titleClass: "title-basic",
-    desc: "140 BPM chiptune madness. Tekan tombol yang muncul sebelum ring menyusut habis. Timing is everything.",
-  },
   // Tambah track baru di sini — pastikan `id` unik & beda dari track lain:
   {
-    id: "id_title", // ← WAJIB UNIK
-    title: "MY SONG TITLE",
-    artist: "Artist Name",
-    bpm: 160,
+    id: "PIXEL_PANIC", // ← WAJIB UNIK
+    title: "PIXEL PANIC",
+    artist: "REFLEXRYTHM",
+    bpm: 120,
     src: "assets/music/Pixel_Panic.mp3",
     duration: 60,
-    bg: "assets/video/ocean-live2d.mp4",
+    bg: "assets/video/kamia-live2d.mp4",
     art: "assets/picture/logo.png",
     difficulties: ["normal", "medium", "hard"],
     color: "#ff2d78", // tiap track boleh punya warna aksen sendiri-sendiri
-    role: "// OSU STYLE — KEYBOARD REFLEX",
+    role: "// BASIC MODE — KEYBOARD REFLEX",
     titleClass: "title-basic",
-    desc: "Ganti deskripsi ini sesuai vibe lagunya.",
+    desc: "120 BPM Groove Santai. Cocok untuk mengasah akurasi ketukan dan membangun ritme permainanmu.",
+  },
+  {
+    id: "pixel_panic",
+    title: "PIXEL PANIC PARTY",
+    artist: "REFLEXRYTHM",
+    bpm: 140,
+    src: "assets/music/Pixel_Panic_Party.mp3",
+    duration: 60, // detik — fallback jika audio metadata belum load
+    bg: "assets/video/ocean-live2d.mp4",
+    art: "assets/picture/logo.png", // album art thumbnail (opsional)
+    difficulties: ["medium", "hard"],
+    color: "#00e5ff", // warna aksen song-item ini saat ke-select
+    role: "// BASIC MODE — KEYBOARD REFLEX",
+    titleClass: "title-basic",
+    desc: "140 BPM Energetik. Ketukan mulai memanas, pastikan sinkronisasi mata dan tanganmu berada di performa terbaik.",
   },
 ];
 

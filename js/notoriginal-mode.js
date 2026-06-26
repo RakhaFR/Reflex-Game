@@ -18,17 +18,17 @@ const NOM_TRACKS = [
     duration: 60, // detik — fallback jika audio metadata belum load
     bg: "assets/video/lightning-moment.mp4", // Vibe visual beda
     art: "assets/picture/logo.png",
-    difficulties: ["medium", "hard"], // N.O.M langsung gas dari medium!
+    difficulties: ["normal","medium", "hard"], // N.O.M langsung gas dari medium!
     color: "#0051e8", // Warna aksen khas Not Original Mode
     role: "// N.O.M STYLE — MEDIUM SPEED",
     titleClass: "title-notoriginal",
-    desc: "145 BPM Overdrive Aransemen. Uji batas kecepatan tangan dan refleksmu pada tempo ekstrem.",
+    desc: "145 BPM Energetik. Ketukan mulai memanas, pastikan sinkronisasi mata dan tanganmu berada di performa terbaik.",
   },
   {
     id: "mv-abm-yararara",
     title: "MV-BM-YARARARA",
     artist: "ABM (AnythingBecomeMoe / エビモエ)",
-    bpm: 200,
+    bpm: 180,
     src: "assets/music/mv-abm-yararara.mp3",
     duration: 156,
     bg: "assets/video/mv-abm-yararara.mp4",
@@ -37,12 +37,12 @@ const NOM_TRACKS = [
     color: "#c70000",
     role: "// N.O.M STYLE — EXTREME SPEED",
     titleClass: "title-notoriginal",
-    desc: "200 BPM ketukan tanpa ampun. Jangan berkedip, pastikan keybind-mu sudah siap.",
+    desc: "180 BPM High-Speed. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
   },
   {
     id: "oliver-tree-miss-you-bemax-cover-remix",
     title: "Miss You (Bemax Cover) [Remix]",
-    artist: "Oliver Tree - Bemax Remix",
+    artist: "Oliver Tree & Bemax Remix",
     bpm: 180,
     src: "assets/music/oliver-tree-miss-you-bemax-cover-remix.mp3",
     duration: 160,
@@ -52,13 +52,28 @@ const NOM_TRACKS = [
     color: "#F7345BFF",
     role: "// N.O.M STYLE — EXTREME SPEED",
     titleClass: "title-notoriginal",
-    desc: "180 BPM ketukan lumayan bikin ampun. Jangan berkedip, pastikan keybind-mu sudah siap.",
+    desc: "180 BPM High-Speed. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
+  },
+  {
+    id: "funk-abnormal-dj-v12-slowed-reverb",
+    title: "Funk Abnormal (Slowed & Reverb)",
+    artist: "DJ V12",
+    bpm: 180,
+    src: "assets/music/funk-abnormal-dj-v12-slowed-reverb.mp3",
+    duration: 101,
+    bg: "assets/video/funk-abnormal-dj-v12-slowed-reverb.mp4",
+    art: "assets/picture/logo.png",
+    difficulties: ["hard", "extreme"],
+    color: "#E9AC5EFF",
+    role: "// N.O.M STYLE — EXTREME SPEED",
+    titleClass: "title-notoriginal",
+    desc: "180 BPM High-Speed. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
   },
   {
     id: "bang-bang-bang-chainsaw-man",
     title: "bang-bang-bang-chainsaw-man",
     artist: "‪@starxrayne‬ & ‪@JamsDX‬ ",
-    bpm: 160,
+    bpm: 150,
     src: "assets/music/bang-bang-bang-chainsaw-man-song.mp3",
     duration: 180,
     bg: "assets/video/bang-bang-bang-chainsaw-man-song.mp4",
@@ -67,7 +82,7 @@ const NOM_TRACKS = [
     color: "#7d7d7d",
     role: "// N.O.M STYLE — HARD SPEED",
     titleClass: "title-notoriginal",
-    desc: "160 BPM Overdrive Aransemen. Uji batas kecepatan tangan dan refleksmu pada tempo ekstrem.",
+    desc: "150 BPM Energetik. Ketukan mulai memanas, pastikan sinkronisasi mata dan tanganmu berada di performa terbaik.",
   },
   {
     id: "blksmiith-sr20det",
@@ -82,7 +97,7 @@ const NOM_TRACKS = [
     color: "##212121",
     role: "// N.O.M STYLE — ONLY EXTREME SPEED",
     titleClass: "title-notoriginal",
-    desc: "200 BPM ketukan tanpa ampun. Jangan berkedip, pastikan keybind-mu sudah siap.",
+    desc: "200 BPM Ketukan Tanpa Ampun. Kecepatan murni yang akan membakar jarimu. Jangan berkedip, pastikan keybind-mu sudah siap.",
   },
 ];
 
@@ -90,6 +105,15 @@ const NOM_TRACKS = [
 // B. DIFFICULTY CONFIG (N.O.M VERSION — Lebih Agresif)
 // ============================================================
 const NOM_DIFF = {
+    normal: {
+    label: "NORMAL",
+    color: "#00ff88",
+    noteCount: 1,
+    windowMs: 3800,
+    perfectMs: 500,
+    goodMs: 1000,
+    spawnIntervalMs: 1800,
+  },
   medium: {
     label: "MEDIUM",
     color: "#ffe500",
