@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("mainPlayActionBtn")
   ) {
     initLobbyPageLogic();
+    // Init switchGameMode SETELAH initLobbyPageLogic() — supaya
+    // window._userHasInteracted sudah di-set dengan benar dari sessionStorage
+    if (typeof switchGameMode === "function") switchGameMode(0, true);
   }
 });
 
@@ -844,23 +847,53 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
   resizeViz();
   window.addEventListener("resize", resizeViz);
 
-  // Flag gesture pertama — AudioContext hanya boleh dibuat setelah ini true
-  window._userHasInteracted = false;
+  // Flag gesture pertama — AudioContext hanya boleh dibuat setelah ini true.
+  // Kalau user navigasi dari halaman lain (index → lobby), gesture sudah terjadi
+  // di halaman sebelumnya — cek sessionStorage supaya preview langsung bisa play.
+  const _hadPriorGesture = (() => {
+    try {
+      const hadGesture    = sessionStorage.getItem("rr_had_gesture") === "1";
+      const fromNavigate  = sessionStorage.getItem("rr_navigated")   === "1";
+      // rr_navigated di-set oleh loading.js saat user navigasi dari halaman lain.
+      // Ini flag terpisah dari rr_transition (yang di-consume loading.js lebih dulu).
+      // Kalau refresh: rr_navigated tidak ada → hapus gesture flag → fresh start.
+      if (hadGesture && !fromNavigate) {
+        sessionStorage.removeItem("rr_had_gesture");
+        return false;
+      }
+      // Consume rr_navigated setelah dibaca — one-shot per navigasi
+      if (fromNavigate) sessionStorage.removeItem("rr_navigated");
+      return hadGesture && fromNavigate;
+    } catch(_) { return false; }
+  })();
+  window._userHasInteracted = _hadPriorGesture;
+
   const _markInteracted = () => {
     window._userHasInteracted = true;
+    try { sessionStorage.setItem("rr_had_gesture", "1"); } catch(_) {}
     ["click", "keydown", "touchstart"].forEach(ev =>
       document.removeEventListener(ev, _markInteracted)
     );
   };
-  ["click", "keydown", "touchstart"].forEach(ev =>
-    document.addEventListener(ev, _markInteracted, { once: true })
-  );
+  if (!window._userHasInteracted) {
+    ["click", "keydown", "touchstart"].forEach(ev =>
+      document.addEventListener(ev, _markInteracted, { once: true })
+    );
+  }
 
   function stopPreview() {
     clearTimeout(previewTimer);
     previewTimer = null;
     cancelAnimationFrame(vizAnimFrame);
     vizAnimFrame = null;
+
+    // Bersihkan visual tag dari item yang sedang/pernah preview
+    if (currentPreviewItem) {
+      const tag = currentPreviewItem.querySelector(".song-status-tag");
+      if (tag) tag.textContent = "";
+      currentPreviewItem.classList.remove("previewing");
+      currentPreviewItem = null;
+    }
 
     if (previewAudio) {
       previewAudio.pause();
@@ -879,12 +912,6 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
       bv.style.opacity = "0.1";
     }
 
-    if (currentPreviewItem) {
-      const tag = currentPreviewItem.querySelector(".song-status-tag");
-      if (tag) tag.textContent = "SELECT";
-      currentPreviewItem.classList.remove("previewing");
-      currentPreviewItem = null;
-    }
   }
 
   function drawVisualizer() {
@@ -927,13 +954,15 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
     if (!previewSrc) return;
 
     currentPreviewItem = songItem;
+
+    // Jangan set tag/class preview sebelum ada gesture user —
+    // audio tidak akan play sehingga tag "♪ PREVIEW" akan muncul tanpa suara.
+    // Setup AudioContext — hanya buat setelah ada gesture user.
+    if (!window._userHasInteracted) return;
+
     const tag = songItem.querySelector(".song-status-tag");
     if (tag) tag.textContent = "♪ PREVIEW";
     songItem.classList.add("previewing");
-
-    // Setup AudioContext — hanya buat setelah ada gesture user.
-    // AudioContext yang dibuat sebelum gesture akan suspended dan Chrome throw warning.
-    if (!window._userHasInteracted) return;
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === "suspended") audioCtx.resume();
 
@@ -1126,8 +1155,8 @@ document.getElementById("slidePrevBtn")?.addEventListener("click", () => {
   switchGameMode(-1);
 });
 
-// Jalankan state persistence pertama kali saat lobby dimuat
-switchGameMode(0, true);
+// switchGameMode(0, true) dipindah ke dalam initLobbyPageLogic() supaya
+// _userHasInteracted sudah di-set sebelum startPreview dipanggil.
 
 
 // ============================================================

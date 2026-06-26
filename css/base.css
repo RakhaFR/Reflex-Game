@@ -8,6 +8,23 @@
   box-sizing: border-box;
 }
 
+/* ── Global: cegah text selection & cursor caret di semua elemen non-input ──
+   Garis vertikal kelap-kelip (text cursor) muncul saat klik teks karena
+   browser fokus ke elemen dan anggap konten bisa di-edit/select.
+   user-select: none di sini supresses itu di semua elemen;
+   input/textarea di-exclude supaya tetap bisa diketik. */
+body *:not(input):not(textarea):not([contenteditable="true"]) {
+  user-select: none;
+  -webkit-user-select: none;
+}
+body input,
+body textarea,
+body [contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+  caret-color: #ff9f43;
+}
+
 html {
   overflow-x: hidden;
 }
