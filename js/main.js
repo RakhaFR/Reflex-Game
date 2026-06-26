@@ -359,7 +359,7 @@ function initLobbyPageLogic() {
     const btn = document.getElementById(buttonId);
     if (!btn) return;
     btn.textContent = isEnabled ? "ON" : "OFF";
-    btn.classList.toggle("off", !isEnabled);
+    btn.className = `toggle-blueprint-btn ${isEnabled ? "on" : "off"}`;
   }
 
 window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
