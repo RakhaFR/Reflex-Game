@@ -23,7 +23,7 @@ const BM_TRACKS = [
     src: "assets/music/Pixel_Panic.mp3",
     duration: 60,
     bg: "assets/video/kamia-live2d.mp4",
-    art: "assets/picture/logo.png",
+    art: "assets/picture/new-logo.png",
     difficulties: ["normal", "medium", "hard"],
     color: "#ff2d78", // tiap track boleh punya warna aksen sendiri-sendiri
     role: "// BASIC MODE — KEYBOARD REFLEX",
@@ -38,7 +38,7 @@ const BM_TRACKS = [
     src: "assets/music/Pixel_Panic_Party.mp3",
     duration: 60, // detik — fallback jika audio metadata belum load
     bg: "assets/video/ocean-live2d.mp4",
-    art: "assets/picture/logo.png", // album art thumbnail (opsional)
+    art: "assets/picture/new-logo.png", // album art thumbnail (opsional)
     difficulties: ["medium", "hard"],
     color: "#00e5ff", // warna aksen song-item ini saat ke-select
     role: "// BASIC MODE — KEYBOARD REFLEX",
