@@ -17,7 +17,7 @@ const NOM_TRACKS = [
     src: "assets/music/lightning-moment.mp3",
     duration: 60, // detik — fallback jika audio metadata belum load
     bg: "assets/video/lightning-moment.mp4", // Vibe visual beda
-    art: "assets/picture/logo.png",
+    art: "assets/picture/new-logo.png",
     difficulties: ["normal","medium", "hard"], // N.O.M langsung gas dari medium!
     color: "#0051e8", // Warna aksen khas Not Original Mode
     role: "// N.O.M STYLE — MEDIUM SPEED",
@@ -32,7 +32,7 @@ const NOM_TRACKS = [
     src: "assets/music/mv-abm-yararara.mp3",
     duration: 156,
     bg: "assets/video/mv-abm-yararara.mp4",
-    art: "assets/picture/logo.png",
+    art: "assets/picture/new-logo.png",
     difficulties: ["hard", "extreme"],
     color: "#c70000",
     role: "// N.O.M STYLE — EXTREME SPEED",
@@ -47,7 +47,7 @@ const NOM_TRACKS = [
     src: "assets/music/oliver-tree-miss-you-bemax-cover-remix.mp3",
     duration: 160,
     bg: "assets/video/oliver-tree-miss-you-bemax-cover-remix.mp4",
-    art: "assets/picture/logo.png",
+    art: "assets/picture/new-logo.png",
     difficulties: ["hard", "extreme"],
     color: "#F7345BFF",
     role: "// N.O.M STYLE — EXTREME SPEED",
@@ -62,7 +62,7 @@ const NOM_TRACKS = [
     src: "assets/music/funk-abnormal-dj-v12-slowed-reverb.mp3",
     duration: 101,
     bg: "assets/video/funk-abnormal-dj-v12-slowed-reverb.mp4",
-    art: "assets/picture/logo.png",
+    art: "assets/picture/new-logo.png",
     difficulties: ["hard", "extreme"],
     color: "#E9AC5EFF",
     role: "// N.O.M STYLE — EXTREME SPEED",
@@ -77,7 +77,7 @@ const NOM_TRACKS = [
     src: "assets/music/bang-bang-bang-chainsaw-man-song.mp3",
     duration: 180,
     bg: "assets/video/bang-bang-bang-chainsaw-man-song.mp4",
-    art: "assets/picture/logo.png",
+    art: "assets/picture/new-logo.png",
     difficulties: ["medium", "hard", "extreme"],
     color: "#7d7d7d",
     role: "// N.O.M STYLE — HARD SPEED",
@@ -92,7 +92,7 @@ const NOM_TRACKS = [
     src: "assets/music/blksmiith-sr20det.mp3",
     duration: 278,
     bg: "assets/video/blksmiith-sr20det.mp4",
-    art: "assets/picture/logo.png",
+    art: "assets/picture/new-logo.png",
     difficulties: ["extreme"],
     color: "##212121",
     role: "// N.O.M STYLE — ONLY EXTREME SPEED",
