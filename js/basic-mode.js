@@ -731,7 +731,7 @@ function bmRenderTrackList() {
     item.style.setProperty("--song-accent", accent);
     item.innerHTML = `
       <span class="song-index">${String(i + 1).padStart(2, "0")}</span>
-      <img class="song-album-art" src="${track.art || "assets/picture/logo.png"}" alt="album" onerror="this.style.opacity='0'">
+      <img class="song-album-art" src="${track.art || "assets/picture/new-logo.png"}" alt="album" onerror="this.style.opacity='0'">
       <div class="song-details">
         <span class="song-title">${track.title}</span>
         <span class="song-artist">${track.artist} // BPM: ${track.bpm} // ${bmFmtTime(track.duration)}</span>

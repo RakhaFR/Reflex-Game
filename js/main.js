@@ -39,7 +39,7 @@ function initLoadingScreen() {
 
   const imageUrls = [
     "assets/picture/background.jpg",
-    "assets/picture/logo.png",
+    "assets/picture/new-logo.png",
   ];
   // Menggunakan audio ID sesuai yang di-track sistem utama
   const audioIds = [
@@ -382,7 +382,7 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
     const avatarSrc = (typeof getAvatarDisplay === "function")
       ? getAvatarDisplay(profile.identity.avatar)
       : (profile.identity.avatar === "default" || !profile.identity.avatar
-          ? "assets/picture/logo.png"
+          ? "assets/picture/new-logo.png"
           : profile.identity.avatar);
     if (widgetAvatar.src !== avatarSrc) widgetAvatar.src = avatarSrc;
   }
@@ -404,7 +404,7 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
     const avatarSrc = (typeof getAvatarDisplay === "function")
       ? getAvatarDisplay(profile.identity.avatar)
       : (profile.identity.avatar === "default" || !profile.identity.avatar
-          ? "assets/picture/logo.png"
+          ? "assets/picture/new-logo.png"
           : profile.identity.avatar);
     if (modalProfileImg.src !== avatarSrc) modalProfileImg.src = avatarSrc;
   }

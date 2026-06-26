@@ -173,7 +173,7 @@ function calcAccuracy(clicks, wrongClicks) {
 
 // ---- Get avatar display (Murni Path Gambar / Base64) ----
 function getAvatarDisplay(avatar) {
-  if (avatar === "default" || !avatar) return "assets/picture/logo.png";
+  if (avatar === "default" || !avatar) return "assets/picture/new-logo.png";
   return avatar;
 }
 
