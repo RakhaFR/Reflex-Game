@@ -501,7 +501,6 @@
         font-weight: 900;
         color: #fff;
         letter-spacing: 2px;
-        -webkit-text-stroke: 1px #000;
       }
       .rr-t-bar-wrap {
         width: 100%;

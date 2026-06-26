@@ -13,16 +13,16 @@ const NOM_TRACKS = [
     id: "lightning-moment",
     title: "Lightning Moment",
     artist: "DJ芥末",
-    bpm: 185, // Tempo tinggi khas N.O.M!
+    bpm: 145, // Tempo tinggi khas N.O.M!
     src: "assets/music/lightning-moment.mp3",
     duration: 60, // detik — fallback jika audio metadata belum load
     bg: "assets/video/lightning-moment.mp4", // Vibe visual beda
     art: "assets/picture/logo.png",
-    difficulties: ["medium", "hard", "extreme"], // N.O.M langsung gas dari medium!
+    difficulties: ["medium", "hard"], // N.O.M langsung gas dari medium!
     color: "#0051e8", // Warna aksen khas Not Original Mode
-    role: "// N.O.M STYLE — HARD SPEED",
+    role: "// N.O.M STYLE — MEDIUM SPEED",
     titleClass: "title-notoriginal",
-    desc: "185 BPM Overdrive Aransemen. Uji batas kecepatan tangan dan refleksmu pada tempo ekstrem.",
+    desc: "145 BPM Overdrive Aransemen. Uji batas kecepatan tangan dan refleksmu pada tempo ekstrem.",
   },
   {
     id: "mv-abm-yararara",
@@ -40,6 +40,21 @@ const NOM_TRACKS = [
     desc: "200 BPM ketukan tanpa ampun. Jangan berkedip, pastikan keybind-mu sudah siap.",
   },
   {
+    id: "oliver-tree-miss-you-bemax-cover-remix",
+    title: "Miss You (Bemax Cover) [Remix]",
+    artist: "Oliver Tree - Bemax Remix",
+    bpm: 180,
+    src: "assets/music/oliver-tree-miss-you-bemax-cover-remix.mp3",
+    duration: 160,
+    bg: "assets/video/oliver-tree-miss-you-bemax-cover-remix.mp4",
+    art: "assets/picture/logo.png",
+    difficulties: ["hard", "extreme"],
+    color: "#F7345BFF",
+    role: "// N.O.M STYLE — EXTREME SPEED",
+    titleClass: "title-notoriginal",
+    desc: "180 BPM ketukan lumayan bikin ampun. Jangan berkedip, pastikan keybind-mu sudah siap.",
+  },
+  {
     id: "bang-bang-bang-chainsaw-man",
     title: "bang-bang-bang-chainsaw-man",
     artist: "‪@starxrayne‬ & ‪@JamsDX‬ ",
@@ -51,6 +66,21 @@ const NOM_TRACKS = [
     difficulties: ["medium", "hard", "extreme"],
     color: "#7d7d7d",
     role: "// N.O.M STYLE — HARD SPEED",
+    titleClass: "title-notoriginal",
+    desc: "160 BPM Overdrive Aransemen. Uji batas kecepatan tangan dan refleksmu pada tempo ekstrem.",
+  },
+  {
+    id: "blksmiith-sr20det",
+    title: "BLKSMIITH-SR20DET",
+    artist: "BLKSMIITH",
+    bpm: 200,
+    src: "assets/music/blksmiith-sr20det.mp3",
+    duration: 278,
+    bg: "assets/video/blksmiith-sr20det.mp4",
+    art: "assets/picture/logo.png",
+    difficulties: ["extreme"],
+    color: "##212121",
+    role: "// N.O.M STYLE — ONLY EXTREME SPEED",
     titleClass: "title-notoriginal",
     desc: "200 BPM ketukan tanpa ampun. Jangan berkedip, pastikan keybind-mu sudah siap.",
   },
