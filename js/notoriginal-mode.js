@@ -263,7 +263,7 @@ let nomActiveNotes = [];
 let nomSpawnTimer = null;
 let nomMusicTimer = null;
 let nomRunning = false;
-let nomDiffKey = "medium"; // Default awal N.O.M
+let nomDiffKey = "normal"; // Default awal N.O.M
 let nomTrackIdx = 0;
 let nomKeyHandler   = null;
 let nomMouseHandler = null;
@@ -353,7 +353,7 @@ function nomFlashKey(k) {
 // ============================================================
 function nomSpawnWave() {
   if (!nomRunning) return;
-  const diff = NOM_DIFF[nomDiffKey] || NOM_DIFF["medium"];
+  const diff = NOM_DIFF[nomDiffKey] || NOM_DIFF["normal"];
   const keys = nomGetKeys();
   const usedK = nomActiveNotes.map((n) => n.key);
   const freeK = keys.filter((k) => !usedK.includes(k));
@@ -610,13 +610,13 @@ function startNotOriginalEngine() {
       ) || document.querySelector(".diff-btn.active");
     const diff = activeDiffBtn
       ? activeDiffBtn.getAttribute("data-diff")
-      : nomDiffKey || "medium";
+      : nomDiffKey || "normal";
     const track = nomTrackIdx ?? 0;
     if (typeof rrNavigate === "function") { rrNavigate(`game.html?mode=notoriginal&diff=${diff}&track=${track}`); } else { window.location.href = `game.html?mode=notoriginal&diff=${diff}&track=${track}`; };
     return;
   }
 
-  if (!nomDiffKey || !NOM_DIFF[nomDiffKey]) nomDiffKey = "medium";
+  if (!nomDiffKey || !NOM_DIFF[nomDiffKey]) nomDiffKey = "normal";
 
   nomInitRefs();
 
