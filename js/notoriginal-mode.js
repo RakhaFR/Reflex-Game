@@ -25,6 +25,21 @@ const NOM_TRACKS = [
     desc: "145 BPM Energetik. Ketukan mulai memanas, pastikan sinkronisasi mata dan tanganmu berada di performa terbaik.",
   },
   {
+    id: "masih-adakah-waktu",
+    title: "masih_adakah_waktu?",
+    artist: "Dyolow",
+    bpm: 155, // Tempo tinggi khas N.O.M!
+    src: "assets/music/masih-adakah-waktu.mp3",
+    duration: 204, // detik — fallback jika audio metadata belum load
+    bg: "assets/video/masih-adakah-waktu.mp4", // Vibe visual beda
+    art: "assets/picture/new-logo.png",
+    difficulties: ["normal","medium", "hard"], // N.O.M langsung gas dari medium!
+    color: "#00bbe6", // Warna aksen khas Not Original Mode
+    role: "// N.O.M STYLE — MEDIUM SPEED",
+    titleClass: "title-notoriginal",
+    desc: "155 BPM Energetik. Ketukan mulai memanas, pastikan sinkronisasi mata dan tanganmu berada di performa terbaik.",
+  },
+  {
     id: "mv-abm-yararara",
     title: "MV-BM-YARARARA",
     artist: "ABM (AnythingBecomeMoe / エビモエ)",
