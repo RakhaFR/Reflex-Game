@@ -122,6 +122,13 @@ const OG_GAMES = [
     url: "https://rakhafr.github.io/PlengerRnG/",
   },
   {
+    title: "The Survey",
+    desc: "Sebuah visual novel yang menceritakan seorang yang berjuang keluar dari isolasi diri selama 8 bulan.",
+    tag: "VISUAL NOVEL • STORY",
+    img: "assets/picture/OG-GAMES/TheSurvey.png",
+    url: "https://rakhafr.github.io/TheSurvey/",
+  },
+  {
     title: "Geotrade",
     desc: "Buat perusahaan mu dan tingkatkan jaringan antar kota, jangan sampai pasokan habis!",
     tag: "CASUAL • SANDBOX",
