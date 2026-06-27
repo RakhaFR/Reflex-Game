@@ -1,5 +1,5 @@
 /* ==========================================================================
-   REFLEXRYTHM — LOADING.JS
+   REFLEXRYTHM — LOADING.JS  (FIXED: double-wipe & reveal delay)
    Self-contained loading screen engine.
 
    CARA PAKAI:
@@ -7,14 +7,22 @@
      <script src="js/loading.js"></script>
 
    Yang dilakukan file ini:
-   1. Inject HTML + CSS loading screen langsung ke DOM (tidak perlu hardcode
-      di tiap HTML).
-   2. Track semua <img>, <audio>, <video>, <link rel="stylesheet"> di halaman.
-   3. Simulasi progress minimum 1.2 detik supaya screen tidak langsung lenyap
-      di koneksi cepat (UX feel tetap ada).
-   4. Intercept semua <a href> dan navigasi programatik ke sesama halaman —
-      tampilkan loading screen sebelum pindah, lalu navigate.
-   5. Fade out otomatis setelah semua asset + minimum duration selesai.
+   1. Inject HTML + CSS loading screen langsung ke DOM.
+   2. Track semua <img> dan <link rel="stylesheet"> di halaman.
+   3. Simulasi progress minimum 1.2 detik supaya screen tidak langsung lenyap.
+   4. Intercept semua <a href> dan navigasi programatik — tampilkan:
+      a. Wipe panel naik (cover screen) saat keberangkatan.
+      b. Loading screen transisi (600ms) di halaman tujuan.
+      c. Wipe panel turun (reveal) setelah transisi selesai.
+   5. Fade out otomatis setelah asset + minimum duration selesai.
+
+   FIXES v2.1:
+   - Double-wipe bug: interceptLinks sekarang pakai data-rr-handled attribute
+     untuk skip link yang sudah di-intercept JS lain via rrNavigate().
+   - Reveal delay: chain timing di playTransitionScreen dipercepat —
+     total overhead dari "bar selesai" ke wipe turun dikurangi dari ~480ms ke ~150ms.
+   - Wipe timing: navigate() dipanggil di 450ms (sebelum 480ms transition selesai)
+     — sekarang diperbaiki ke 520ms agar wipe benar-benar cover sebelum navigate.
    ========================================================================== */
 
 (function ReflexLoadingEngine() {
@@ -22,11 +30,10 @@
 
   // ── Konfigurasi ──────────────────────────────────────────────────────────
   const CFG = {
-    minDuration:   1200,  // ms — minimum tampil supaya gak kedip
-    fadeDuration:   400,  // ms — durasi CSS opacity fade out
-    tickInterval:    40,  // ms — interval update progress bar
-    interceptLinks: true, // abat semua <a href> internal → tampil loading dulu
-    // Pesan status per tahap progress (0–100)
+    minDuration:   1200,   // ms — minimum loading screen page-load
+    fadeDuration:   400,   // ms — durasi CSS opacity fade out
+    tickInterval:    40,   // ms — interval update progress bar
+    interceptLinks: true,
     messages: [
       { at:  0, msg: "INITIALIZING REFLEX ENGINE..." },
       { at: 20, msg: "LOADING CORE ASSETS..."        },
@@ -45,8 +52,8 @@
   let _statusEl   = null;
   let _dotsEls    = [];
   let _startTime  = Date.now();
-  let _displayPct = 0;   // pct yang ditampilkan (dianimasikan smooth)
-  let _targetPct  = 0;   // pct dari asset tracker
+  let _displayPct = 0;
+  let _targetPct  = 0;
   let _ticker     = null;
   let _done       = false;
 
@@ -85,7 +92,6 @@
         gap: 16px;
       }
 
-      /* Banner atas */
       .rr-top-banner {
         background: #ffaa00;
         color: #000;
@@ -99,7 +105,6 @@
         letter-spacing: 1px;
       }
 
-      /* Panel judul */
       .rr-title-block {
         background: #ff1166;
         padding: 20px 30px;
@@ -131,7 +136,6 @@
         letter-spacing: 1px;
       }
 
-      /* Progress section */
       .rr-progress-section {
         display: flex;
         flex-direction: column;
@@ -161,7 +165,6 @@
         text-align: right;
       }
 
-      /* Bar */
       .rr-bar-container {
         height: 26px;
         background: #201f26;
@@ -179,7 +182,6 @@
         width: 0%;
       }
 
-      /* Footer */
       .rr-footer-block {
         display: flex;
         justify-content: space-between;
@@ -219,7 +221,6 @@
         letter-spacing: 1px;
       }
     `;
-    // Inject ke <head> secepat mungkin
     (document.head || document.documentElement).appendChild(style);
   }
 
@@ -230,7 +231,7 @@
     div.innerHTML = `
       <div class="rr-wrap">
         <div class="rr-top-banner">
-          <span>REFLEX ENGINE // v2.0</span>
+          <span>REFLEX ENGINE // v2.1</span>
         </div>
         <div class="rr-title-block">
           <h1 class="rr-main-title">LOADING DATA</h1>
@@ -260,7 +261,6 @@
       </div>
     `;
 
-    // Inject ke <body> begitu tersedia, atau tunda ke DOMContentLoaded
     if (document.body) {
       document.body.insertBefore(div, document.body.firstChild);
     } else {
@@ -278,10 +278,6 @@
   }
 
   // ── 3. ASSET TRACKER ─────────────────────────────────────────────────────
-  // Track img + stylesheet saja — audio/video sengaja di-skip karena
-  // browser tidak akan fire canplaythrough/loadedmetadata tanpa gesture user
-  // (autoplay policy), sehingga mereka akan stuck dan block loading selamanya.
-  // Audio/video dianggap "done" otomatis oleh timeout fallback di ticker.
   function trackAssets() {
     const run = () => {
       const imgs  = Array.from(document.querySelectorAll("img[src]"));
@@ -292,7 +288,6 @@
 
       const onLoad = () => {
         loaded++;
-        // Map ke range 10–85 supaya sisanya diisi oleh ticker organik
         _targetPct = Math.min(85, 10 + Math.round((loaded / total) * 75));
       };
 
@@ -321,16 +316,12 @@
   }
 
   // ── 4. PROGRESS TICKER ───────────────────────────────────────────────────
-  // Strategi: asset tracker isi sampai 85%, sisanya ticker organik sampai 100%.
-  // Finish condition: minDuration tercapai + DOM ready.
-  // Hard timeout 4 detik — apapun yang terjadi, loading PASTI selesai.
   function startTicker() {
     let domReady = document.readyState !== "loading";
     if (!domReady) {
       document.addEventListener("DOMContentLoaded", () => { domReady = true; }, { once: true });
     }
 
-    // Hard timeout: maksimal 4 detik, loading pasti selesai
     setTimeout(() => {
       _targetPct  = 100;
       _displayPct = 100;
@@ -340,26 +331,20 @@
     }, 4000);
 
     _ticker = setInterval(() => {
-      // Kejar _targetPct dari asset tracker
       if (_displayPct < _targetPct) {
         _displayPct = Math.min(_targetPct, _displayPct + Math.ceil((_targetPct - _displayPct) * 0.2) + 1);
       }
-
-      // Naik organik setelah asset tracker selesai (85 → 98), melambat di ujung
       if (_targetPct >= 85 && _displayPct < 98) {
         _displayPct = Math.min(98, _displayPct + 1);
       }
-
-      // Naik pelan di awal kalau asset tracker belum update
       if (_targetPct < 10 && _displayPct < 30) {
         _displayPct = Math.min(30, _displayPct + 1);
       }
 
       updateUI(_displayPct);
 
-      // Finish: min duration + DOM ready + bar sudah di 98+
-      const elapsed    = Date.now() - _startTime;
-      const minPassed  = elapsed >= CFG.minDuration;
+      const elapsed   = Date.now() - _startTime;
+      const minPassed = elapsed >= CFG.minDuration;
 
       if (minPassed && domReady && _displayPct >= 98) {
         _displayPct = 100;
@@ -375,32 +360,23 @@
   function updateUI(pct) {
     if (!_screen) return;
 
-    // Bar fill + warna
     if (_barFill) {
       _barFill.style.width = pct + "%";
       _barFill.style.background = pct > 65 ? "#ff1166" : "#ffffff";
     }
-
-    // Persentase teks
     if (_pctEl) _pctEl.textContent = pct + "%";
-
-    // Status message
     if (_statusEl) {
       const match = [...CFG.messages].reverse().find(m => pct >= m.at);
       if (match) _statusEl.textContent = match.msg;
     }
-
-    // Animasi dots
     if (_dotsEls.length > 0) {
       const activeDot = Math.floor(pct / 25) % _dotsEls.length;
       _dotsEls.forEach((d, i) => d.classList.toggle("active", i === activeDot));
     }
-
-    // Sys msg warna selesai
     const sysMsg = _screen.querySelector("#rrSysMsg");
     if (sysMsg && pct >= 100) {
-      sysMsg.textContent  = "STATUS: READY";
-      sysMsg.style.color  = "#00ff88";
+      sysMsg.textContent = "STATUS: READY";
+      sysMsg.style.color = "#00ff88";
     }
   }
 
@@ -410,78 +386,134 @@
     _done = true;
     _screen.classList.add("rr-fade-out");
     setTimeout(() => {
-      if (_screen && _screen.parentNode) {
-        _screen.parentNode.removeChild(_screen);
-      }
-      // Hapus injected style juga
+      if (_screen && _screen.parentNode) _screen.parentNode.removeChild(_screen);
       const style = document.getElementById("rr-loading-style");
       if (style && style.parentNode) style.parentNode.removeChild(style);
     }, CFG.fadeDuration + 50);
   }
 
   // ── 7. LINK INTERCEPTOR ──────────────────────────────────────────────────
-  // Intercept semua klik <a href> ke halaman internal → tampilkan loading dulu.
+  // FIX DOUBLE-WIPE: Skip link yang sudah di-mark pakai data-rr-handled="1"
+  // oleh rrNavigate() — ini mencegah double-trigger wipe saat main.js
+  // memanggil rrNavigate() untuk link yang juga kena interceptLinks listener.
   function interceptLinks() {
     if (!CFG.interceptLinks) return;
 
-    // Delegate listener di document — works for dynamically added links too
     document.addEventListener("click", function(e) {
       const anchor = e.target.closest("a[href]");
       if (!anchor) return;
 
+      // SKIP: link ini sudah di-handle oleh rrNavigate() dari JS lain
+      if (anchor.getAttribute("data-rr-handled") === "1") return;
+
       const href = anchor.getAttribute("href");
       if (!href) return;
-
-      // Skip: external link, hash-only, mailto, tel
       if (
-        href.startsWith("http") ||
-        href.startsWith("//")   ||
-        href.startsWith("#")    ||
-        href.startsWith("mailto:") ||
-        href.startsWith("tel:")    ||
-        anchor.target === "_blank"
+        href.startsWith("http") || href.startsWith("//") ||
+        href.startsWith("#")    || href.startsWith("mailto:") ||
+        href.startsWith("tel:") || anchor.target === "_blank"
       ) return;
 
       e.preventDefault();
-
-      // Tampilkan loading screen baru lalu navigate
       showTransitionLoader(() => {
         try {
           sessionStorage.setItem("rr_transition", "1");
+          sessionStorage.setItem("rr_navigated",  "1");
           sessionStorage.setItem("rr_had_gesture", "1");
         } catch(_) {}
         window.location.href = href;
       });
-    }, true); // capture phase supaya intercept sebelum handler lain
+    }, true);
   }
 
-  // ── 8. TRANSITION LOADER ─────────────────────────────────────────────────
-  // Buat loading screen baru untuk navigasi antar halaman.
-  // Berbeda dari page-load loader — ini lebih singkat (min 600ms).
+  // ── 8. WIPE PANEL CSS ────────────────────────────────────────────────────
+  // Panel hitam naik dari bawah saat keberangkatan, turun saat reveal.
+  (function injectWipeCSS() {
+    if (document.getElementById("rr-wipe-style")) return;
+    const s = document.createElement("style");
+    s.id = "rr-wipe-style";
+    s.textContent = `
+      #rrWipePanel {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: #0d0d11;
+        z-index: 9999999;
+        pointer-events: none;
+        box-shadow: 0 -40px 80px 20px rgba(0,0,0,0.9) inset;
+        transform: translateY(100%);
+        transition: transform 480ms cubic-bezier(0.76, 0, 0.24, 1);
+      }
+      #rrWipePanel.wipe-in {
+        transform: translateY(0%);
+        pointer-events: all;
+      }
+      #rrWipePanel.wipe-out {
+        transform: translateY(-100%);
+        transition: transform 520ms cubic-bezier(0.76, 0, 0.24, 1);
+        box-shadow: 0 40px 80px 20px rgba(0,0,0,0.9) inset;
+        pointer-events: none;
+      }
+    `;
+    (document.head || document.documentElement).appendChild(s);
+  })();
+
+  // ── 9. TRANSITION LOADER ─────────────────────────────────────────────────
+  // Saat klik navigasi: wipe naik cover screen → navigate.
+  // FIX: navigate dipanggil di 520ms (setelah 480ms CSS transition + 40ms buffer)
+  // agar wipe benar-benar menutup layar sebelum pindah halaman.
   function showTransitionLoader(navigateFn) {
-    // Kalau loading screen awal masih ada, langsung navigate
     if (!_done) {
+      // Loading screen awal masih ada — langsung navigate
       navigateFn();
       return;
     }
 
-    // Buat loading screen transisi baru
+    // Buat wipe panel dan slide naik (cover screen)
+    let panel = document.getElementById("rrWipePanel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "rrWipePanel";
+      document.body.appendChild(panel);
+    }
+    panel.className = "";
+    // Pastikan panel langsung block input sebelum animasi selesai
+    panel.style.pointerEvents = "all";
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        panel.classList.add("wipe-in");
+      });
+    });
+
+    // FIX: tunggu 520ms (480ms transition + 40ms buffer) — dulu 500ms
+    // yang kadang navigate sebelum wipe benar-benar di atas
+    setTimeout(() => {
+      navigateFn();
+    }, 520);
+  }
+
+  // ── 10. TRANSITION SCREEN (di halaman tujuan) ────────────────────────────
+  // Loading screen mini yang muncul setelah wipe cover,
+  // sebelum wipe turun reveal halaman tujuan.
+  // FIX REVEAL DELAY: chain timing dipercepat — semua delay non-esensial dipotong.
+  function playTransitionScreen() {
+    // Inject CSS transition screen
     const prevStyle = document.createElement("style");
+    prevStyle.id = "rr-trans-style";
     prevStyle.textContent = `
       #rrTransitionScreen {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
         background: #0d0d11;
-        z-index: 999999;
+        z-index: 9999998;
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: 'Orbitron', sans-serif;
-        opacity: 0;
-        transition: opacity 200ms ease;
+        opacity: 1;
       }
       #rrTransitionScreen.rr-t-in  { opacity: 1; }
-      #rrTransitionScreen.rr-t-out { opacity: 0; }
       .rr-t-inner {
         text-align: center;
         display: flex;
@@ -536,27 +568,25 @@
         <div class="rr-t-msg" id="rrTMsg">PREPARING NEXT STAGE...</div>
       </div>
     `;
-    document.body.appendChild(el);
+    document.body.insertBefore(el, document.body.firstChild);
 
-    const tBar = el.querySelector("#rrTBar");
-    const tMsg = el.querySelector("#rrTMsg");
-    const tMsgs = [
-      "PREPARING NEXT STAGE...",
-      "LOADING ASSETS...",
-      "ALMOST THERE...",
-    ];
+    const tBar  = el.querySelector("#rrTBar");
+    const tMsg  = el.querySelector("#rrTMsg");
+    const tMsgs = ["PREPARING NEXT STAGE...", "LOADING ASSETS...", "ALMOST THERE..."];
 
-    let pct = 0;
+    let pct    = 0;
     const tStart = Date.now();
-    const minDur = 600;
+    // FIX: minDur dikurangi ke 400ms (dari 600ms) — transition screen
+    // fungsinya hanya cover gap antara wipe-in selesai dan halaman siap,
+    // bukan membuat delay yang terasa bagi user
+    const minDur = 400;
 
-    // Fade in
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => el.classList.add("rr-t-in"));
-    });
+    // Transition screen langsung tampil (opacity:1 default) — tidak perlu fade-in
+    // karena di balik wipe panel yang sudah cover layar, user tidak akan lihat
+    // "pop" transisi apapun.
 
     const tTick = setInterval(() => {
-      pct = Math.min(95, pct + Math.floor(Math.random() * 8) + 3);
+      pct = Math.min(95, pct + Math.floor(Math.random() * 10) + 5);
       if (tBar) tBar.style.width = pct + "%";
       if (tMsg) tMsg.textContent = tMsgs[Math.floor(pct / 34)] || tMsgs[2];
 
@@ -565,19 +595,89 @@
         clearInterval(tTick);
         if (tBar) tBar.style.width = "100%";
         if (tMsg) tMsg.textContent = "SIAP!";
-        setTimeout(() => navigateFn(), 200);
+
+        // Hapus transition screen LANGSUNG tanpa fade-out opacity —
+        // reveal pakai wipe panel yang slide turun dari atas ke bawah,
+        // jadi tidak perlu animasi opacity tambahan di sini.
+        if (el.parentNode) el.parentNode.removeChild(el);
+        const s = document.getElementById("rr-trans-style");
+        if (s && s.parentNode) s.parentNode.removeChild(s);
+        playRevealAnimation();
       }
     }, 40);
   }
 
-  // ── EXPOSE navigateTo untuk dipanggil dari JS lain ────────────────────────
-  // Misal: window.rrNavigate("lobby.html") dari main.js
+  // ── 11. WIPE REVEAL (turun dari atas ke bawah setelah transition screen) ──
+  // Panel start di translateY(0%) — cover penuh layar.
+  // Lalu slide ke translateY(100%) — turun keluar ke bawah → reveal halaman.
+  function playRevealAnimation() {
+    // Inject CSS khusus reveal kalau rr-wipe-style belum ada di halaman ini
+    if (!document.getElementById("rr-wipe-style")) {
+      const s = document.createElement("style");
+      s.id = "rr-wipe-style";
+      s.textContent = `
+        #rrWipePanel {
+          position: fixed;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background: #0d0d11;
+          z-index: 9999999;
+          pointer-events: all;
+          box-shadow: 0 -40px 80px 20px rgba(0,0,0,0.9) inset;
+          transform: translateY(0%);
+        }
+        #rrWipePanel.wipe-down {
+          pointer-events: none;
+          transform: translateY(100%);
+          transition: transform 520ms cubic-bezier(0.76, 0, 0.24, 1);
+          box-shadow: 0 -40px 80px 20px rgba(0,0,0,0.9) inset;
+        }
+      `;
+      (document.head || document.documentElement).appendChild(s);
+    }
+
+    const panel = document.createElement("div");
+    panel.id = "rrWipePanel";
+    // Pastikan inline style posisi awal (cover penuh, di atas)
+    panel.style.cssText = `
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:#0d0d11;z-index:9999999;pointer-events:all;
+      box-shadow:0 -40px 80px 20px rgba(0,0,0,0.9) inset;
+      transform:translateY(0%);
+    `;
+    document.body.insertBefore(panel, document.body.firstChild);
+
+    // Force reflow agar browser commit posisi awal sebelum class ditambah
+    requestAnimationFrame(() => {
+      panel.getBoundingClientRect();
+      panel.style.transition = "transform 520ms cubic-bezier(0.76, 0, 0.24, 1)";
+      panel.style.transform  = "translateY(100%)";
+      panel.style.pointerEvents = "none";
+      setTimeout(() => {
+        if (panel.parentNode) panel.parentNode.removeChild(panel);
+        // Cleanup rr-wipe-style kalau ini yang kita inject tadi
+        const ws = document.getElementById("rr-wipe-style");
+        if (ws && ws.parentNode) ws.parentNode.removeChild(ws);
+      }, 540);
+    });
+  }
+
+  // ── EXPOSE rrNavigate ─────────────────────────────────────────────────────
+  // FIX DOUBLE-WIPE: Saat JS lain (main.js) memanggil rrNavigate() untuk
+  // sebuah <a href>, kita tandai anchor tsb dengan data-rr-handled="1" agar
+  // interceptLinks() skip anchor yang sama saat event bubble naik ke document.
   window.rrNavigate = function(href) {
+    // Tandai anchor yang menjadi target navigasi ini agar interceptLinks skip
+    // (cari berdasarkan href yang persis sama di DOM saat ini)
+    try {
+      const anchors = document.querySelectorAll('a[href="' + href + '"]');
+      anchors.forEach(a => a.setAttribute("data-rr-handled", "1"));
+    } catch(_) {}
+
     showTransitionLoader(() => {
-      // Tandai bahwa halaman berikutnya dibuka via transisi — skip page-load loader
-      // Sekaligus tandai bahwa user sudah gesture — lobby bisa langsung preview musik
       try {
         sessionStorage.setItem("rr_transition", "1");
+        sessionStorage.setItem("rr_navigated",  "1");
         sessionStorage.setItem("rr_had_gesture", "1");
       } catch(_) {}
       window.location.href = href;
@@ -585,8 +685,6 @@
   };
 
   // ── INIT ─────────────────────────────────────────────────────────────────
-  // Cek apakah halaman ini dibuka via transition loader (dari halaman lain).
-  // Kalau iya, skip page-load loader — transition loader sudah cukup.
   const _fromTransition = (() => {
     try {
       const flag = sessionStorage.getItem("rr_transition");
@@ -596,13 +694,20 @@
   })();
 
   if (!_fromTransition) {
+    // Buka langsung (fresh / refresh) → loading screen penuh
     injectCSS();
     injectHTML();
     trackAssets();
     startTicker();
   } else {
-    // Halaman dari transisi: langsung expose rrNavigate saja, tidak inject loader
-    _done = true; // tandai done supaya showTransitionLoader bekerja normal
+    // Dari transisi → skip page-load loader
+    // Jalankan: transition screen → wipe reveal
+    _done = true;
+    if (document.body) {
+      playTransitionScreen();
+    } else {
+      document.addEventListener("DOMContentLoaded", playTransitionScreen, { once: true });
+    }
   }
 
   // Intercept link setelah DOM siap

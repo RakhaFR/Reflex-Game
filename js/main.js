@@ -199,16 +199,22 @@ function initIndexPageLogic() {
   // yang diblok). Solusinya: link-link itu sekarang pakai target="_blank"
   // native di HTML, JS di sini cuma mainin SFX-nya aja, gak ikut campur
   // navigasinya sama sekali.
+  //
+  // FIX DOUBLE-WIPE: navigateWithSfx TIDAK lagi memanggil rrNavigate() untuk
+  // link internal. Loading.js interceptLinks() sudah handle semua <a href>
+  // internal secara otomatis lewat event bubble — kalau kita juga panggil
+  // rrNavigate() di sini, wipe panel akan dibuat DUA KALI (double-wipe).
+  // Sekarang: untuk link internal, hanya SFX yang diplay; navigasi + wipe
+  // diserahkan sepenuhnya ke interceptLinks() di loading.js.
   function navigateWithSfx(e, url, isNewTab = false) {
     if (isNewTab) {
       triggerMenuClickSound();
       return; // biarin <a target="_blank"> jalan sendiri secara native
     }
-    e.preventDefault();
+    // Internal link: play SFX saja, JANGAN e.preventDefault() dan JANGAN rrNavigate().
+    // interceptLinks() di loading.js akan menangkap event yang sama saat bubble
+    // ke document dan handle wipe + navigate secara clean (single wipe).
     triggerMenuClickSound();
-    setTimeout(() => {
-      if (typeof rrNavigate === "function") { rrNavigate(url); } else { window.location.href = url; }
-    }, 150);
   }
 
   // Modal Window Listeners
@@ -238,6 +244,7 @@ function initIndexPageLogic() {
   // Main Buttons Navigation Interceptors
   const btnPlay = document.getElementById("btnMainPlay");
   if (btnPlay) {
+    // Hanya play SFX — navigasi + wipe di-handle interceptLinks() di loading.js
     btnPlay.addEventListener("click", (e) =>
       navigateWithSfx(e, "lobby.html", false),
     );
