@@ -231,7 +231,7 @@
     div.innerHTML = `
       <div class="rr-wrap">
         <div class="rr-top-banner">
-          <span>REFLEX ENGINE // v2.1</span>
+          <span>REFLEX ENGINE // Pre-TEST</span>
         </div>
         <div class="rr-title-block">
           <h1 class="rr-main-title">LOADING DATA</h1>

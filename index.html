@@ -35,10 +35,10 @@
 
   <!-- MAIN INTERFACE LAYOUT -->
   <main class="menu-layout">
-
     <!-- BRANDING TITLE (CENTER BIG BANG STYLE) -->
     <header class="menu-header">
       <div class="brand-box">
+        <span class="splash-text">PRE-TEST!</span>
         <h1 class="game-title-main">REFLEX<span class="accent">RYTHM</span></h1>
         <p class="game-tagline">// THE ULTIMATE REFLEX & RHYTHM CHALLENGE</p>
       </div>
@@ -116,7 +116,20 @@
     </footer>
 
   </main>
+  <button class="update-log-trigger" id="btnUpdateLog">
+    <i class="fa-solid fa-file-lines"></i>
+    <span>UPDATE LOG</span>
+  </button>
 
+  <div id="updateLogModal" class="popup-overlay-menu">
+    <div class="popup-box-skew log-modal-box">
+      <div class="popup-header-row">
+        <h3 class="popup-box-title">[U] SYSTEM UPDATE LOG</h3>
+        <button class="popup-close-btn" id="btnCloseUpdateLog">✕</button>
+      </div>
+      <div class="popup-body-content" id="updateLogContent"></div>
+    </div>
+  </div>
   <!-- MODAL POP-UP FOR OTHER GAMES -->
   <div id="modalOtherGames" class="popup-overlay-menu">
     <div class="popup-box-skew og-modal-box">

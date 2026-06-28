@@ -138,6 +138,78 @@ const OG_GAMES = [
   },
 ];
 
+// ==========================================================================
+// ── DATA UPDATE LOG SYSTEM (EDIT DATA LOG DI SINI) ──
+// ==========================================================================
+const UPDATE_LOGS = [
+    {
+      version: "Pre-Test",
+      date: "28 MEI 2026",
+      badgeClass: "yellow",
+      bannerImg: "assets/picture/new-logo.png", // Menggunakan background bawaan kamu sebagai contoh
+      changes: [
+          // { type: "add", text: "Integrasi Not Original Mode (NOM_TRACKS) ke dalam sistem lobby." },
+          { type: "upd", text: "Penataan ulang layout menu & gameplay dengan konsep *Stylized Arcade Interface*. masih tahap pre-test kemungkinan data anda bakal hilang di update selanjutnya.." }
+        ]
+      },
+      // {
+      //   version: "Pre-Test",
+      //   date: "28 JUNI 2026",
+      //   badgeClass: "magenta",
+      //   // Tambahkan path gambar preview updatenya di sini (bisa pakai thumbnail sfx/core baru)
+      //   bannerImg: "assets/picture/new-logo.png", 
+      //   changes: [
+      //     { type: "add", text: "Mengimplementasikan stylized loading screen bertema **ReflexRythm**." },
+      //     { type: "fix", text: "Memperbaiki bug audio preview yang tumpang tindih saat mengganti trek lagu dengan cepat." },
+      //     { type: "upd", text: "Mengoptimalkan visualizer canvas agar lebih ringan di perangkat mobile landscape." }
+      //   ]
+      // },
+    ];
+
+// Fungsi untuk me-render data ke dalam DOM HTML secara dinamis
+function renderUpdateLogs() {
+  const container = document.getElementById("updateLogContent");
+  if (!container) return;
+
+  let htmlContent = `<div class="log-version-container">`;
+
+  UPDATE_LOGS.forEach(log => {
+    htmlContent += `
+      <div class="log-version-item">
+        <div class="log-version-header">
+          <span class="v-badge ${log.badgeClass}">${log.version}</span>
+          <span class="v-date">${log.date}</span>
+        </div>
+        
+        <div class="log-banner-wrapper">
+          <img src="${log.bannerImg}" alt="Update ${log.version}" onerror="this.style.display='none'">
+        </div>
+
+        <ul class="log-version-list">
+    `;
+
+    log.changes.forEach(change => {
+      let tagLabel = "UPD";
+      if (change.type === "add") tagLabel = "NEW";
+      if (change.type === "fix") tagLabel = "FIX";
+
+      htmlContent += `
+        <li>
+          <span class="tag-${change.type}">${tagLabel}</span>
+          <p>${change.text}</p>
+        </li>
+      `;
+    });
+
+    htmlContent += `
+        </ul>
+      </div>
+    `;
+  });
+
+  htmlContent += `</div>`;
+  container.innerHTML = htmlContent;
+}
 // ============================================================
 // BACKGROUND MUSIC — helper autoplay (dipakai index.html & lobby.html)
 // ============================================================
@@ -199,6 +271,32 @@ function initIndexPageLogic() {
     }
   }
 
+  // Jalankan render data log otomatis
+  renderUpdateLogs();
+
+  const btnUpdateLog = document.getElementById("btnUpdateLog");
+  const updateLogModal = document.getElementById("updateLogModal");
+  const btnCloseUpdateLog = document.getElementById("btnCloseUpdateLog");
+  const clickSoundEl = document.getElementById("clickSound");
+
+  if (btnUpdateLog && updateLogModal && btnCloseUpdateLog) {
+    btnUpdateLog.addEventListener("click", () => {
+      if (clickSoundEl) { clickSoundEl.currentTime = 0; clickSoundEl.play().catch(() => {}); }
+      updateLogModal.classList.add("active");
+    });
+
+    btnCloseUpdateLog.addEventListener("click", () => {
+      if (clickSoundEl) { clickSoundEl.currentTime = 0; clickSoundEl.play().catch(() => {}); }
+      updateLogModal.classList.remove("active");
+    });
+
+    updateLogModal.addEventListener("click", (e) => {
+      if (e.target === updateLogModal) {
+        if (clickSoundEl) { clickSoundEl.currentTime = 0; clickSoundEl.play().catch(() => {}); }
+        updateLogModal.classList.remove("active");
+      }
+    });
+  }
   // PENTING: window.open() / pindah tab baru WAJIB sinkron di dalam handler
   // klik asli, gak boleh ditunda lewat setTimeout — browser modern nge-block
   // popup yang dipanggil di luar call-stack klik user (makanya dulu tombol

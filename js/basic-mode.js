@@ -207,6 +207,16 @@ function bmInitRefs() {
 // ============================================================
 function bmRenderKeyLegend() {
   if (!bmKeyLegendEl) return;
+
+  // Sembunyikan legend di touch device — tidak relevan tanpa keyboard
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (isTouchDevice) {
+    bmKeyLegendEl.style.display = "none";
+    // Arena perlu lebih lebar karena legend bar hilang
+    if (bmArena) bmArena.style.bottom = "0";
+    return;
+  }
+
   const keys = bmGetKeys(); // selalu 4 key
   bmKeyLegendEl.innerHTML = "";
   keys.forEach((k) => {
@@ -265,6 +275,10 @@ function bmSpawnNote(zone, type, key, diff) {
   ring.className = "bm-ring";
   el.appendChild(ring);
 
+  // Sembunyikan key label di touch device — user tap note langsung, bukan tekan key
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (isTouchDevice) kl.style.display = "none";
+
   bmArena.appendChild(el);
 
   const noteData = {
@@ -280,6 +294,17 @@ function bmSpawnNote(zone, type, key, diff) {
     expireTimer: setTimeout(() => bmExpire(noteData), diff.windowMs),
   };
   bmActiveNotes.push(noteData);
+
+  // Touch handler — tap langsung pada note, hanya untuk touch device
+  if (isTouchDevice) {
+    el.style.pointerEvents = "auto";
+    el.addEventListener("touchstart", function(e) {
+      e.preventDefault();
+      if (!bmRunning || noteData.hit) return;
+      const fakeEvent = { key: noteData.key, preventDefault: () => {} };
+      bmOnKey(fakeEvent);
+    }, { passive: false });
+  }
 }
 
 function bmExpire(nd) {

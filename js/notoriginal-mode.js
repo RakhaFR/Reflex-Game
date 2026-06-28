@@ -345,6 +345,15 @@ function nomInitRefs() {
 // ============================================================
 function nomRenderKeyLegend() {
   if (!nomKeyLegendEl) return;
+
+  // Sembunyikan legend di touch device
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (isTouchDevice) {
+    nomKeyLegendEl.style.display = "none";
+    if (nomArena) nomArena.style.bottom = "0";
+    return;
+  }
+
   const keys = nomGetKeys();
   nomKeyLegendEl.innerHTML = "";
   keys.forEach((k) => {
@@ -400,6 +409,10 @@ function nomSpawnNote(zone, type, key, diff) {
   ring.className = "bm-ring";
   el.appendChild(ring);
 
+  // Sembunyikan key label di touch device
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (isTouchDevice) kl.style.display = "none";
+
   nomArena.appendChild(el);
 
   const noteData = {
@@ -415,6 +428,17 @@ function nomSpawnNote(zone, type, key, diff) {
     expireTimer: setTimeout(() => nomExpire(noteData), diff.windowMs),
   };
   nomActiveNotes.push(noteData);
+
+  // Touch handler — tap langsung pada note
+  if (isTouchDevice) {
+    el.style.pointerEvents = "auto";
+    el.addEventListener("touchstart", function(e) {
+      e.preventDefault();
+      if (!nomRunning || noteData.hit) return;
+      const fakeEvent = { key: noteData.key, preventDefault: () => {} };
+      nomOnKey(fakeEvent);
+    }, { passive: false });
+  }
 }
 
 function nomExpire(nd) {

@@ -65,6 +65,57 @@
   transform: perspective(300px) rotateX(10deg); /* Efek 3D condong ke depan */
 }
 
+.brand-box {
+  position: relative; /* Memastikan splash text mengacu pada posisi judul */
+  display: inline-block; /* Biar ukurannya pas mengikuti panjang teks judul */
+}
+
+.splash-text {
+  position: absolute;
+  /* Atur koordinat dari sudut kanan atas judul */
+  top: -32px;           /* Naik sedikit ke atas huruf RYTHM */
+  right: -75px;         /* Bergeser masuk agar tidak keluar layar */
+  
+  background: #ffcc00; /* Warna kuning khas Minecraft Splash */
+  color: #000;
+  font-family: "Slackey", "Impact", sans-serif;
+  font-size: 14px;     /* Ukuran pas untuk resolusi arcade */
+  font-weight: 900;
+  padding: 4px 10px;
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0px #000;
+  transform: rotate(12deg); /* Miring ikonik */
+  z-index: 15;         /* Memastikan berada di lapisan paling atas */
+  pointer-events: none; /* Anti-klik mengganggu */
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap; /* Mencegah teks patah jadi 2 baris */
+  
+  /* Jalankan animasi detak */
+  animation: minecraftSplashBounce 0.4s ease-in-out infinite alternate;
+}
+
+/* Animasi Detak Detektor Minecraft */
+@keyframes minecraftSplashBounce {
+  0% {
+    transform: rotate(12deg) scale(0.95);
+  }
+  100% {
+    transform: rotate(12deg) scale(1.12); /* Pembesaran proposional */
+  }
+}
+
+/* Penyesuaian Responsif Layar Smartphone */
+@media (max-width: 844px) {
+  .splash-text {
+    font-size: 10px;
+    top: -32px;
+    right: 10px;
+    border: 2px solid #000;
+    box-shadow: 2px 2px 0px #000;
+  }
+}
+
 .game-title-main {
   font-family: "Slackey", sans-serif;
   font-size: 72px; /* Ukuran diperbesar agar lebih banger */
@@ -441,7 +492,9 @@
 .og-modal-box {
   max-width: 900px; /* Diperlebar sedikit agar muat grid yang kokoh */
   border: 4px solid #ffaa00;
-  box-shadow: 0px 0px 25px rgba(2ff, 170, 0, 0.25), 8px 8px 0px #000000;
+  box-shadow:
+    0px 0px 25px rgba(2ff, 170, 0, 0.25),
+    8px 8px 0px #000000;
   position: relative;
   overflow: hidden;
 }
@@ -465,7 +518,7 @@
   max-height: 60vh; /* Agar kalau game lu ratusan, modalnya dapet scroll vertikal yang rapi */
   overflow-y: auto;
   padding: 10px 6px 20px;
-  
+
   /* Styling scrollbar bawaan biar tetep minimalis & futuristik */
   scrollbar-width: thin;
   scrollbar-color: #ffaa00 #0d0d14;
@@ -495,9 +548,10 @@
   cursor: pointer;
   position: relative;
   box-shadow: 4px 4px 0px #000000;
-  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-              border-color 0.15s ease,
-              box-shadow 0.15s ease;
+  transition:
+    transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 /* Efek neon border menyala pas di-hover */
@@ -505,7 +559,9 @@
 .og-game-card:focus-visible {
   transform: translateY(-5px) scale(1.02);
   border-color: #00e5ff;
-  box-shadow: 0px 10px 20px rgba(0, 229, 255, 0.2), 6px 6px 0px #00e5ff;
+  box-shadow:
+    0px 10px 20px rgba(0, 229, 255, 0.2),
+    6px 6px 0px #00e5ff;
   outline: none;
 }
 
@@ -525,7 +581,9 @@
   object-fit: cover;
   display: block;
   filter: grayscale(0.2) contrast(1.1);
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), filter 0.4s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+    filter 0.4s ease;
 }
 
 .og-game-card:hover .og-card-art img {
@@ -537,7 +595,11 @@
 .og-card-art-fade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 50%);
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0) 50%
+  );
   pointer-events: none;
 }
 
@@ -608,7 +670,9 @@
 }
 .og-game-card.og-locked:hover {
   border-color: #ff0055;
-  box-shadow: 0px 0px 15px rgba(255, 0, 85, 0.2), 6px 6px 0px #ff0055;
+  box-shadow:
+    0px 0px 15px rgba(255, 0, 85, 0.2),
+    6px 6px 0px #ff0055;
   transform: translateY(-2px);
 }
 
@@ -645,5 +709,180 @@
   .og-modal-box {
     max-width: 94vw;
     padding: 18px;
+  }
+}
+
+/* ==========================================================================
+   STYLIZED UPDATE LOG DESIGN WITH IMAGE BANNER
+   ========================================================================== */
+
+/* Posisi Tombol di Pojok Kanan Atas Layar */
+.update-log-trigger {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  background: #ffcc00;
+  color: #000;
+  border: 3px solid #000;
+  padding: 8px 16px;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 900;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transform: skewX(-10deg);
+  box-shadow: 4px 4px 0px #000;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+}
+
+.update-log-trigger:hover {
+  background: #fff;
+  transform: skewX(-10deg) translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000;
+}
+
+.update-log-trigger:active {
+  transform: skewX(-10deg) translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000;
+}
+
+.update-log-trigger i,
+.update-log-trigger span {
+  transform: skewX(10deg);
+}
+
+/* Kotak Scroll Update Log */
+.log-version-container {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  max-height: 58vh;
+  overflow-y: auto;
+  padding-right: 12px;
+}
+
+.log-version-container::-webkit-scrollbar {
+  width: 6px;
+}
+.log-version-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+.log-version-container::-webkit-scrollbar-thumb {
+  background: #ff1166;
+  border-radius: 3px;
+}
+
+.log-version-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px solid #000;
+  padding: 16px;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+  margin-bottom: 5px;
+}
+
+.log-version-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.v-badge {
+  font-size: 12px;
+  font-weight: 900;
+  padding: 3px 10px;
+  color: #000;
+  border: 2px solid #000;
+}
+.v-badge.yellow {
+  background: #ffcc00;
+}
+.v-badge.magenta {
+  background: #ff1166;
+}
+
+.v-date {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+}
+
+/* WADAH GAMBAR BANNER / PREVIEW LOG */
+.log-banner-wrapper {
+  width: 100%;
+  max-height: 160px;
+  overflow: hidden;
+  border: 3px solid #000;
+  margin-bottom: 16px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.log-banner-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.log-version-item:hover .log-banner-wrapper img {
+  transform: scale(1.03); /* Efek zoom tipis saat card di-hover */
+}
+
+/* List Keterangan Perubahan */
+.log-version-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.log-version-list li {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.log-version-list li p {
+  margin: 0;
+}
+
+/* Label Kotak Status Aksi */
+.log-version-list li span {
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 6px;
+  color: #000;
+  border: 1.5px solid #000;
+  flex-shrink: 0;
+  font-family: "Orbitron", sans-serif;
+  text-align: center;
+  min-width: 32px;
+}
+.tag-add {
+  background: #00e5ff;
+} /* Cyan */
+.tag-fix {
+  background: #ff1166;
+} /* Magenta */
+.tag-upd {
+  background: #ffaa00;
+} /* Kuning */
+
+@media (orientation: landscape) and (max-height: 430px) {
+  .update-log-trigger {
+    transform: scale(0.8);
   }
 }

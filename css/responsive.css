@@ -506,6 +506,24 @@
    IV. GAME.HTML — BASIC MODE & NOT ORIGINAL MODE
    ========================================================================== */
 
+/* ── Sembunyikan keybind editor & mouse click card di semua touch landscape ──
+   Touch device pakai tap-on-note, keyboard & mouse integration tidak relevan. */
+@media (orientation: landscape) and (max-height: 800px) {
+  /* Card "// GAMEPLAY INPUT" (berisi mouse click toggle) */
+  .settings-blueprint-card:has(#mouseClickToggleBtn) {
+    display: none !important;
+  }
+  /* Card "// GAMEPLAY KEYBINDS" (berisi keybind editor) */
+  .settings-blueprint-card:has(#keybindEditorRow) {
+    display: none !important;
+  }
+  /* Key legend bar di game.html — disembunyikan via JS juga,
+     ini sebagai backup CSS supaya tidak flicker saat JS load */
+  #bmKeyLegend {
+    display: none !important;
+  }
+}
+
 /* ── iPad Mini landscape ── */
 @media (orientation: landscape) and (max-height: 800px) and (min-height: 431px) {
 
