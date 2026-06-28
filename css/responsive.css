@@ -1,0 +1,600 @@
+/* ==========================================================================
+   REFLEXRYTHM — RESPONSIVE.CSS
+   Landscape-only mobile & tablet integration layer.
+
+   LOAD ORDER: Paling terakhir dari semua CSS.
+
+   TIER BREAKPOINT:
+     PHONE LANDSCAPE  → max-height: 430px  (iPhone SE 667×375, iPhone 12 Pro 844×390)
+     TABLET LANDSCAPE → max-height: 800px + min-height: 431px (iPad Mini 1024×768)
+   ========================================================================== */
+
+
+/* ==========================================================================
+   0. PC / DESKTOP FIX — index.html tombol terlalu turun
+   Masalah: justify-content:space-around + margin-bottom:7rem di .menu-content-center
+   bikin tombol terdorong ke bawah. Fix: override keduanya untuk layar >800px.
+   ========================================================================== */
+
+@media (min-height: 801px) {
+  .menu-layout {
+    justify-content: center;
+    gap: 0;
+  }
+  .menu-header {
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+  .menu-content-center {
+    margin-bottom: 0;
+    margin-top: 0;
+  }
+  .buttons-vertical-stack {
+    gap: 18px;
+  }
+  .menu-footer {
+    margin-top: 24px;
+  }
+}
+
+
+/* ==========================================================================
+   I. GLOBAL BASE — semua landscape mobile/tablet
+   ========================================================================== */
+
+@media (orientation: landscape) and (max-height: 800px) {
+
+  /* Loading screen */
+  #loadingScreen .loading-inner { gap: 10px; width: 220px; }
+  #loadingScreen .loading-inner .loader { width: 52px; height: 52px; }
+  .loading-title    { font-size: 13px; letter-spacing: 2px; }
+  .loading-subtitle { font-size: 10px; }
+  .loading-pct      { font-size: 10px; }
+
+  /* Popup game (quit confirm & result) */
+  .popup-box { max-width: 500px; padding: 20px 26px; }
+  .popup-box h2 { font-size: 18px; margin-bottom: 8px; padding-bottom: 8px; }
+  .popup-box p  { font-size: 11px; margin-bottom: 14px; }
+  .popup-box .btn { padding: 10px 14px; font-size: 11px; }
+  .final-score  { font-size: 40px; padding: 7px 0; }
+  .final-combo  { font-size: 12px; margin-bottom: 12px; }
+  .quit-icon    { font-size: 36px; margin-bottom: 6px; }
+}
+
+
+/* ==========================================================================
+   II. INDEX.HTML — MAIN MENU
+   ========================================================================== */
+
+/* ── iPad Mini landscape (1024×768) ── */
+@media (orientation: landscape) and (max-height: 800px) and (min-height: 431px) {
+
+  .menu-layout {
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 60px;
+  }
+  .menu-header  { margin-top: 0; transform: perspective(260px) rotateX(8deg); }
+  .game-title-main { font-size: 54px; }
+  .game-tagline    { font-size: 11px; letter-spacing: 4px; margin-top: 6px; }
+  .menu-content-center { margin-bottom: 0; margin-top: 0; }
+  .buttons-vertical-stack { gap: 12px; max-width: 380px; }
+  .btn-skew-inner  { padding: 12px 20px; gap: 12px; }
+  .btn-text { font-size: 18px; }
+  .btn-icon { font-size: 14px; }
+  .menu-footer { margin-top: 8px; border-top: none; }
+
+  .footer-center-container { gap: 8px; }
+  .social-label  { font-size: 10px; letter-spacing: 2px; }
+  .social-icons-row { gap: 10px; }
+  .social-circle-link { width: 36px; height: 36px; }
+  .copyright-tag span { font-size: 9px; }
+
+  .og-modal-box {
+    max-width: 620px; padding: 18px 22px;
+    max-height: 82vh; overflow-y: auto;
+  }
+  .og-games-row {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 14px; max-height: 52vh;
+  }
+}
+
+/* ── Phone landscape: iPhone SE (667×375) & iPhone 12 Pro (844×390) ── */
+@media (orientation: landscape) and (max-height: 430px) {
+
+  /* Layout: tetap column, semua elemen dikecilkan supaya muat di 375px tinggi */
+  .menu-layout {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 40px;
+    gap: 6px;
+  }
+
+  /* Title — dikecilkan, margin dihapus, animasi tetap jalan */
+  .menu-header {
+    margin-top: 0;
+    margin-bottom: 0;
+    transform: perspective(200px) rotateX(8deg);
+    text-align: center;
+  }
+  .brand-box { text-align: center; }
+  .game-title-main {
+    font-size: 30px;
+    transform: scale(1.0) skewX(-5deg);
+    /* animasi titlePulse tetap hidup */
+  }
+  .game-tagline { font-size: 7px; letter-spacing: 3px; margin-top: 2px; }
+
+  /* Tombol — compact, lebar cukup */
+  .menu-content-center {
+    margin-bottom: 0;
+    margin-top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .buttons-vertical-stack {
+    gap: 5px;
+    max-width: 300px;
+    width: 100%;
+  }
+  .btn-skew-inner { padding: 6px 16px; gap: 8px; }
+  .btn-text { font-size: 11px; letter-spacing: 0.5px; }
+  .btn-icon { font-size: 10px; }
+  .menu-btn {
+    box-shadow: 2px 2px 0px #000;
+    border-width: 3px;
+  }
+
+  /* Footer — horizontal row, tipis, tidak nabrak */
+  .menu-footer {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 5px;
+    margin-top: 2px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .footer-center-container {
+    flex-direction: row;      /* horizontal: social | copyright */
+    align-items: center;
+    gap: 12px;
+  }
+  .social-panel {
+    flex-direction: row;      /* label + icons sejajar horizontal */
+    align-items: center;
+    gap: 8px;
+  }
+  .social-label     { font-size: 7px; letter-spacing: 2px; }
+  .social-icons-row { gap: 6px; }
+  .social-circle-link {
+    width: 24px; height: 24px;
+    font-size: 10px; border-radius: 5px;
+  }
+  .copyright-tag span { font-size: 7px; }
+
+  /* Other games modal — compact untuk HP landscape */
+  .popup-overlay-menu {
+    align-items: center;
+    justify-content: center;
+  }
+  .og-modal-box {
+    max-width: 88vw;
+    width: 88vw;
+    max-height: 82vh;
+    padding: 10px 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .popup-header-row {
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .popup-box-title   { font-size: 13px; }
+  .popup-close-btn   { width: 24px; height: 24px; font-size: 11px; }
+  .coming-soon-text  { font-size: 8px; margin-bottom: 8px; }
+  .popup-body-content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .og-games-row {
+    /* 2 kolom cukup untuk landscape HP — card lebih kecil */
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+    max-height: 56vh;
+    padding: 4px 2px 8px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  /* Card art lebih pendek */
+  .og-card-art {
+    aspect-ratio: 16 / 7;
+  }
+  /* Card info kompres padding */
+  .og-card-info {
+    padding: 8px 10px;
+    gap: 3px;
+  }
+  .og-card-tag   { font-size: 7px; letter-spacing: 1px; }
+  .og-card-title { font-size: 12px; }
+  .og-card-desc  { font-size: 8px; line-height: 1.4; }
+  .og-coming-soon-ribbon { font-size: 7px; padding: 3px 7px; top: 6px; left: 6px; }
+}
+
+
+/* ==========================================================================
+   III. LOBBY.HTML
+   ========================================================================== */
+
+/* ── iPad Mini landscape (1024×768) ── */
+@media (orientation: landscape) and (max-height: 800px) and (min-height: 431px) {
+
+  .lobby-layout  { padding: 6px 10px; }
+  .lobby-header  { padding-bottom: 8px; }
+  .game-logo     { font-size: 26px; }
+  .game-subtitle { font-size: 9px; letter-spacing: 2px; }
+  .back-snake-btn { padding: 7px 14px; font-size: 11px; gap: 8px; }
+  .snake-arrow-icon { width: 16px; height: 16px; }
+
+  .lobby-content-grid { padding-top: 10px; padding-bottom: 6px; }
+  .info-panel-left    { gap: 8px; padding-right: 20px; }
+  .mode-info-block    { padding: 10px 14px; }
+  .mode-title         { font-size: 22px; }
+  .mode-description   { font-size: 11px; }
+  .lobby-visualizer-wrap { height: 46px; }
+
+  .song-list-header-text { font-size: 18px; }
+  .song-list-wrapper     { max-height: 220px; }
+  .song-item             { padding: 8px 14px 8px 18px; }
+  .song-title            { font-size: 13px; }
+  .song-artist           { font-size: 9px; }
+  .song-album-art        { width: 30px; height: 30px; }
+
+  /* Play button */
+  .osu-play-button { border-width: 3px; }
+  .osu-inner { padding: 12px 16px; gap: 10px; }
+  .osu-text  { font-size: 18px; }
+  .osu-icon-indicator { font-size: 18px; }
+
+  /* Mode switcher */
+  .arrow-navigation-row { gap: 8px; }
+  .nav-arrow-btn { flex: 0 0 44px; padding: 9px; font-size: 11px; }
+  .mode-switch-label-wrap { padding: 5px 8px; }
+  .mode-switch-hint-label { font-size: 7px; }
+  .mode-switch-current    { font-size: 12px; }
+
+  /* Profile widget */
+  .player-profile-widget { width: 190px; flex: 0 0 190px; padding: 5px 12px; }
+  .widget-avatar-wrapper { width: 36px; height: 36px; }
+  .widget-name { font-size: 11px; }
+  .lvl-badge   { font-size: 9px; }
+
+  /* Profile modal — iPad */
+  .profile-modal-box    { max-height: 84vh; padding: 16px 20px; }
+  .modal-title-text     { font-size: 18px; }
+  .modal-tab-btn        { font-size: 10px; padding: 7px 14px; }
+  .profile-modal-tabs   { gap: 6px; margin-bottom: 14px; }
+  .identity-tab-layout  { grid-template-columns: 150px 1fr; gap: 16px; padding: 16px; }
+  .avatar-glow-frame    { width: 90px; height: 90px; }
+  .stats-blueprint-grid    { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .settings-blueprint-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stats-blueprint-card,
+  .settings-blueprint-card { padding: 12px; }
+  .blueprint-row        { font-size: 11px; padding: 4px 0; }
+  .card-blueprint-title { font-size: 11px; padding-bottom: 6px; margin-bottom: 8px; }
+  .setting-blueprint-row { font-size: 11px; }
+}
+
+/* ── Phone landscape: iPhone SE (667×375) & iPhone 12 Pro (844×390) ── */
+@media (orientation: landscape) and (max-height: 430px) {
+
+  .lobby-layout { padding: 4px 8px; }
+
+  /* Header */
+  .lobby-header  { padding-bottom: 4px; }
+  .game-logo     { font-size: 16px; letter-spacing: -1px; }
+  .game-subtitle { font-size: 6px; letter-spacing: 1px; margin-top: 0; }
+  .back-snake-btn {
+    padding: 4px 8px; font-size: 9px; gap: 5px;
+    border-width: 1.5px; box-shadow: 2px 2px 0px #000;
+  }
+  .snake-arrow-icon { width: 10px; height: 10px; }
+
+  /* Content grid — force row, override max-width:900px collapse */
+  .lobby-content-grid {
+    flex-direction: row !important;
+    align-items: flex-end;
+    padding-top: 4px;
+    padding-bottom: 3px;
+    gap: 6px;
+  }
+
+  /* Left info panel */
+  .info-panel-left {
+    flex: 1;
+    gap: 4px;
+    padding-right: 8px;
+    max-width: 300px;
+    margin-bottom: 3px;
+  }
+  .mode-info-block {
+    padding: 6px 8px;
+    border-left-width: 3px;
+    border-radius: 6px;
+  }
+  .slide-meta   { gap: 5px; margin-bottom: 1px; }
+  .slide-num    { font-size: 10px; }
+  .char-role    { font-size: 7px; letter-spacing: 1px; }
+  .mode-title   { font-size: 12px; margin: 1px 0 2px 0; }
+  .mode-description {
+    font-size: 8px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .lobby-visualizer-wrap { height: 26px; }
+
+  /* Right control panel */
+  .control-panel-right {
+    max-width: 280px !important;
+    gap: 4px;
+    align-items: flex-end;
+  }
+
+  /* Track list */
+  .song-list-container { width: calc(115% + 8px); margin-right: -8px; }
+  .song-list-header    { padding: 0 7px 4px; gap: 5px; }
+  .song-list-header .cd-icon-wrap { width: 20px; height: 20px; }
+  .song-list-header-text { font-size: 11px; }
+  .hint-key   { width: 13px; height: 13px; font-size: 7px; }
+  .hint-label { font-size: 6px; }
+
+  .song-list-wrapper { max-height: 115px; }
+
+  .song-item { padding: 4px 8px 4px 10px; gap: 6px; }
+  .song-index    { font-size: 9px; width: 11px; }
+  .song-album-art { width: 20px; height: 20px; border-radius: 3px; }
+  .song-title    { font-size: 10px; }
+  .song-artist   { font-size: 7px; }
+
+  /* Diff panel */
+  .diff-panel       { padding: 4px 8px 6px; }
+  .diff-panel-label { font-size: 7px; letter-spacing: 1px; margin-bottom: 4px; }
+  .diff-btn  { font-size: 7px; padding: 2px 6px; gap: 3px; }
+  .diff-dot  { width: 4px; height: 4px; }
+
+  /* ── START PLAY button — diperkecil signifikan ── */
+  .osu-play-button {
+    border-width: 2px;
+    box-shadow: 3px 3px 0px #000;
+  }
+  .osu-inner {
+    padding: 7px 10px !important;
+    gap: 7px !important;
+    border-radius: 5px;
+  }
+  .osu-text { font-size: 13px !important; }
+  .osu-icon-indicator { font-size: 13px !important; }
+
+  /* ── Mode switcher bar — compact ── */
+  .arrow-navigation-row { gap: 5px; }
+  .nav-arrow-btn {
+    flex: 0 0 32px;
+    padding: 6px 4px;
+    font-size: 10px;
+    border-radius: 6px;
+    box-shadow: 2px 2px 0px #000;
+  }
+  .mode-switch-label-wrap { padding: 3px 6px; border-radius: 6px; }
+  .mode-switch-hint-label { font-size: 6px; letter-spacing: 1px; }
+  .mode-switch-current    { font-size: 10px; letter-spacing: 0.5px; }
+
+  /* Profile widget */
+  .player-profile-widget {
+    width: 155px; flex: 0 0 155px;
+    padding: 3px 8px; gap: 6px;
+  }
+  .widget-avatar-wrapper { width: 26px; height: 26px; border-width: 1.5px; }
+  .widget-name   { font-size: 9px; }
+  .lvl-badge     { font-size: 7px; padding: 1px 3px; }
+  .xp-bar-container { height: 3px; }
+  .widget-settings-btn { font-size: 10px; }
+
+  /* ── PROFILE MODAL — iPhone SE landscape, semua tab ── */
+  .profile-modal-overlay { align-items: center; }
+
+  .profile-modal-box {
+    max-height: 88vh;
+    max-width: 86vw;
+    width: 86vw;
+    padding: 8px 10px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header modal */
+  .profile-modal-header { padding-bottom: 5px; margin-bottom: 7px; }
+  .modal-title-text     { font-size: 11px; letter-spacing: 0.5px; }
+  .modal-main-icon      { font-size: 13px; }
+  .profile-modal-close  { font-size: 8px; padding: 2px 7px; }
+
+  /* Tab buttons */
+  .profile-modal-tabs { gap: 4px; margin-bottom: 7px; }
+  .modal-tab-btn {
+    font-size: 7.5px;
+    padding: 4px 7px;
+    gap: 4px;
+    border-radius: 5px;
+  }
+
+  /* Scroll wrapper */
+  .profile-modal-content-wrapper { flex: 1; min-height: 0; overflow-y: auto; }
+
+  /* ── TAB IDENTITY ── */
+  .identity-tab-layout {
+    grid-template-columns: 82px 1fr !important;
+    gap: 9px;
+    padding: 9px;
+    border-radius: 8px;
+  }
+  .avatar-left-block {
+    gap: 5px;
+    padding-right: 9px;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+  .level-badge-zone { padding: 2px 7px; gap: 3px; }
+  .lvl-label  { font-size: 8px; }
+  .lvl-number { font-size: 11px; }
+  .avatar-glow-frame    { width: 64px; height: 64px; border-radius: 8px; }
+  .avatar-buttons-stack { gap: 4px; }
+  .pact-btn-blueprint   { font-size: 7.5px; padding: 4px; border-radius: 4px; }
+  .identity-right-block { gap: 9px; }
+  .blueprint-field-label { font-size: 9px; margin-bottom: 3px; }
+  .blueprint-field-input { padding: 6px 9px; font-size: 10px; border-radius: 5px; }
+  .username-submit-row   { gap: 5px; }
+  .pact-btn-save-blueprint { padding: 0 10px; font-size: 9px; border-radius: 5px; }
+  .username-hint-text    { font-size: 8px; }
+  .xp-progression-panel { padding: 7px; border-radius: 6px; }
+  .xp-text-row           { font-size: 8px; margin-bottom: 3px; }
+  .xp-bar-container      { height: 4px; }
+
+  /* ── TAB STATISTICS ── */
+  .stats-blueprint-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px;
+  }
+  .stats-grid-2col { gap: 6px; }
+  .stats-blueprint-card,
+  .settings-blueprint-card { padding: 8px 9px; border-radius: 8px; }
+  .card-blueprint-title     { font-size: 8.5px; padding-bottom: 4px; margin-bottom: 6px; }
+  .blueprint-row { font-size: 8.5px; padding: 3px 0; }
+  .b-val         { font-size: 8.5px; }
+  .stats-section + .stats-section { margin-top: 6px; }
+  .stats-graph-card   { padding: 9px; border-radius: 8px; margin-top: 6px; }
+  .graph-row          { grid-template-columns: 55px 1fr 32px; font-size: 7.5px; margin-bottom: 3px; }
+  .graph-bar-track    { height: 4px; }
+  .graph-mode-label   { font-size: 7.5px; margin-bottom: 3px; }
+
+  /* ── TAB SETTINGS ── */
+  .settings-blueprint-grid {
+    grid-template-columns: 1fr !important;
+    gap: 6px;
+  }
+  .setting-blueprint-row { font-size: 9px; padding: 4px 0; }
+  .vol-slider-blueprint  { width: 72px; }
+  .toggle-blueprint-btn  { font-size: 8px; padding: 2px 8px; border-radius: 9px; }
+  .keybind-editor-row    { gap: 6px; padding: 7px 0 3px; }
+  .keybind-slot-label    { font-size: 7px; }
+  .keybind-key-btn       { font-size: 11px; width: 32px; height: 32px; }
+  .center-action-row     { margin-top: 8px; }
+}
+
+
+/* ==========================================================================
+   IV. GAME.HTML — BASIC MODE & NOT ORIGINAL MODE
+   ========================================================================== */
+
+/* ── iPad Mini landscape ── */
+@media (orientation: landscape) and (max-height: 800px) and (min-height: 431px) {
+
+  #bmHud { height: 54px; padding: 0 20px; }
+  #bmMusicTimer, .bm-timer      { font-size: 20px; }
+  #bmTrackTitle, .bm-track-title { font-size: 9px; letter-spacing: 2px; }
+  #bmScore, .bm-score-val       { font-size: 22px; }
+  .bm-hud-lbl                   { font-size: 8px; }
+  #exitBasicBtn, .bm-exit-btn   { padding: 4px 12px; font-size: 9px; }
+  #bmDiffBadge, .bm-diff-badge  { font-size: 9px; padding: 2px 10px; }
+  #bmArena { inset: 58px 0 68px 0; }
+  #bmKeyLegend { height: 62px; padding-bottom: 8px; gap: 6px; }
+  .bm-key-chip  { width: 40px; height: 40px; font-size: 13px; }
+  .bm-key-sep   { height: 22px; }
+  .bm-note      { width: 64px; height: 64px; }
+  .bm-key-label { font-size: 15px; }
+  .bm-judge     { font-size: 22px; }
+  #bmComboText  { font-size: 32px; }
+  .bm-combo-box { bottom: 72px; }
+}
+
+/* ── Phone landscape ── */
+@media (orientation: landscape) and (max-height: 430px) {
+
+  #bmHud { height: 42px; padding: 0 12px; gap: 8px; }
+  #bmMusicTimer, .bm-timer      { font-size: 15px; letter-spacing: 1px; }
+  #bmTrackTitle, .bm-track-title { font-size: 7px; letter-spacing: 1px; }
+  #bmScore, .bm-score-val       { font-size: 16px; }
+  .bm-hud-lbl                   { font-size: 7px; }
+  #exitBasicBtn, .bm-exit-btn   { padding: 3px 8px; font-size: 8px; }
+  #bmDiffBadge, .bm-diff-badge  { font-size: 8px; padding: 1px 7px; }
+  #bmArena { inset: 46px 0 54px 0; }
+  #bmKeyLegend { height: 50px; padding-bottom: 5px; gap: 4px; }
+  .bm-key-chip  { width: 32px; height: 32px; font-size: 11px; border-radius: 5px; }
+  .bm-key-sep   { height: 18px; margin: 0 2px; }
+  .bm-note      { width: 50px; height: 50px; }
+  .bm-key-label { font-size: 12px; }
+  .bm-ring      { inset: -13px; }
+  .bm-judge     { font-size: 16px; top: 34%; }
+  #bmComboText  { font-size: 24px; }
+  .bm-combo-lbl { font-size: 7px; }
+  .bm-combo-box { bottom: 58px; }
+  .countdown-num    { font-size: 90px; }
+  .countdown-num.go { font-size: 72px; }
+}
+
+
+/* ==========================================================================
+   V. LANDSCAPE NOTICE — muncul saat portrait di mobile
+   Tambahkan ke tiap HTML:
+   <div id="landscapeNotice">
+     <div class="ln-icon">📱</div>
+     <div class="ln-title">Putar Perangkatmu</div>
+     <div class="ln-sub">Game ini optimal di mode landscape</div>
+   </div>
+   ========================================================================== */
+
+#landscapeNotice {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999999;
+  background: #04040a;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 24px;
+}
+@media (orientation: portrait) and (max-width: 1024px) {
+  #landscapeNotice { display: flex !important; }
+}
+.ln-icon {
+  font-size: 52px;
+  animation: lnRotate 1.5s ease-in-out infinite alternate;
+}
+@keyframes lnRotate {
+  from { transform: rotate(-10deg); }
+  to   { transform: rotate(10deg); }
+}
+.ln-title {
+  font-family: "Orbitron", sans-serif;
+  font-size: 15px; font-weight: 900;
+  color: #fff; letter-spacing: 2px; text-transform: uppercase;
+}
+.ln-sub {
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 1px;
+}

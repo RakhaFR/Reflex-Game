@@ -7,6 +7,7 @@
   <title>ReflexRythm - Lobby</title>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/lobby-new.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="icon" type="image/png" href="assets/picture/new-logo.png">
 </head>
@@ -241,12 +242,16 @@
               <div class="graph-mode-label label-basic">BASIC MODE</div>
               <div class="graph-row">
                 <span class="graph-label-hit">HIT</span>
-                <div class="graph-bar-track"><div class="graph-bar-fill fill-hit" id="graphBmHit" style="width:0%;"></div></div>
+                <div class="graph-bar-track">
+                  <div class="graph-bar-fill fill-hit" id="graphBmHit" style="width:0%;"></div>
+                </div>
                 <span class="graph-val" id="graphBmHitVal">0%</span>
               </div>
               <div class="graph-row">
                 <span class="graph-label-wrong">WRONG</span>
-                <div class="graph-bar-track"><div class="graph-bar-fill fill-wrong" id="graphBmWrong" style="width:0%;"></div></div>
+                <div class="graph-bar-track">
+                  <div class="graph-bar-fill fill-wrong" id="graphBmWrong" style="width:0%;"></div>
+                </div>
                 <span class="graph-val" id="graphBmWrongVal">0%</span>
               </div>
 
@@ -256,12 +261,16 @@
               <div class="graph-mode-label label-nom">NOT ORIGINAL MODE</div>
               <div class="graph-row">
                 <span class="graph-label-hit">HIT</span>
-                <div class="graph-bar-track"><div class="graph-bar-fill fill-hit" id="graphNomHit" style="width:0%;"></div></div>
+                <div class="graph-bar-track">
+                  <div class="graph-bar-fill fill-hit" id="graphNomHit" style="width:0%;"></div>
+                </div>
                 <span class="graph-val" id="graphNomHitVal">0%</span>
               </div>
               <div class="graph-row">
                 <span class="graph-label-wrong">WRONG</span>
-                <div class="graph-bar-track"><div class="graph-bar-fill fill-wrong" id="graphNomWrong" style="width:0%;"></div></div>
+                <div class="graph-bar-track">
+                  <div class="graph-bar-fill fill-wrong" id="graphNomWrong" style="width:0%;"></div>
+                </div>
                 <span class="graph-val" id="graphNomWrongVal">0%</span>
               </div>
 
@@ -271,17 +280,23 @@
               <div class="graph-mode-label label-total">OVERALL RATIO (ALL MODES)</div>
               <div class="graph-row">
                 <span class="graph-label-click">HIT CLICKS</span>
-                <div class="graph-bar-track"><div class="graph-bar-fill fill-click" id="graphBarClicks" style="width:0%;"></div></div>
+                <div class="graph-bar-track">
+                  <div class="graph-bar-fill fill-click" id="graphBarClicks" style="width:0%;"></div>
+                </div>
                 <span class="graph-val" id="graphValClicks">0%</span>
               </div>
               <div class="graph-row">
                 <span class="graph-label-bonus">BONUS</span>
-                <div class="graph-bar-track"><div class="graph-bar-fill fill-bonus" id="graphBarBonus" style="width:0%;"></div></div>
+                <div class="graph-bar-track">
+                  <div class="graph-bar-fill fill-bonus" id="graphBarBonus" style="width:0%;"></div>
+                </div>
                 <span class="graph-val" id="graphValBonus">0%</span>
               </div>
               <div class="graph-row">
                 <span class="graph-label-wrong">WRONG PEN</span>
-                <div class="graph-bar-track"><div class="graph-bar-fill fill-wrong" id="graphBarWrong" style="width:0%;"></div></div>
+                <div class="graph-bar-track">
+                  <div class="graph-bar-fill fill-wrong" id="graphBarWrong" style="width:0%;"></div>
+                </div>
                 <span class="graph-val" id="graphValWrong">0%</span>
               </div>
             </div>
@@ -431,6 +446,12 @@
 
   </main>
 
+  <div id="landscapeNotice">
+    <div class="ln-icon"><i class="fa-solid fa-mobile"></i></div>
+    <div class="ln-title">Putar Perangkatmu</div>
+    <div class="ln-sub">Game ini optimal di mode landscape</div>
+  </div>
+
   <audio id="clickSound" src="assets/audio/click.mp3"></audio>
   <audio id="countdownSound" src="assets/audio/countdown.mp3"></audio>
   <audio id="menuClickSfx" src="assets/audio/click.mp3"></audio>
@@ -453,13 +474,13 @@
     // lobby harus otomatis switch ke mode N.O.M bukan Basic.
     // switchGameMode() sudah tersedia dari main.js.
     window.addEventListener("DOMContentLoaded", function () {
-      var params  = new URLSearchParams(window.location.search);
+      var params = new URLSearchParams(window.location.search);
       var modeParam = params.get("mode");
       if (!modeParam || modeParam === "basic") return;
 
       // Cari index mode di BM_GAME_MODES yang cocok dengan param
       if (typeof BM_GAME_MODES === "undefined") return;
-      var targetIdx = BM_GAME_MODES.findIndex(function(m) { return m.id === modeParam; });
+      var targetIdx = BM_GAME_MODES.findIndex(function (m) { return m.id === modeParam; });
       if (targetIdx < 0) return;
 
       // Switch ke mode yang sesuai — main.js render track list & update label

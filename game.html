@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="css/basic-mode.css" />
   <link rel="stylesheet" href="css/popups.css" />
   <link rel="stylesheet" href="css/profile.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="icon" type="image/png" href="assets/picture/new-logo.png">
 
@@ -25,7 +26,7 @@
     dikembalikan sebagai dummy element yang aman (tidak throw error),
     dan ID yang berubah nama di-alias dengan benar.
   -->
-<script>
+  <script>
     (function patchForGamePage() {
       const _orig = document.getElementById.bind(document);
 
@@ -188,6 +189,11 @@
     </div>
   </div>
 
+  <div id="landscapeNotice">
+    <div class="ln-icon"><i class="fa-solid fa-mobile"></i></div>
+    <div class="ln-title">Putar Perangkatmu</div>
+    <div class="ln-sub">Game ini optimal di mode landscape</div>
+  </div>
 
   <!-- AUDIO -->
   <audio id="clickSound" src="assets/audio/click.mp3" preload="auto"></audio>
@@ -215,7 +221,7 @@
   <script src="js/notoriginal-mode.js"></script>
   <script src="js/popups.js"></script>
 
-<script>
+  <script>
     window.addEventListener("DOMContentLoaded", function () {
       if (typeof profileInit === "function") profileInit();
 
@@ -228,11 +234,11 @@
       // Inject diff & track ke SEMUA engine sesuai mode
       var trackIdx = urlTrack !== null ? (parseInt(urlTrack) || 0) : 0;
       if (urlDiff) {
-        if (typeof bmDiffKey  !== "undefined") bmDiffKey  = urlDiff;
+        if (typeof bmDiffKey !== "undefined") bmDiffKey = urlDiff;
         if (typeof nomDiffKey !== "undefined") nomDiffKey = urlDiff;
         if (typeof currentDifficulty !== "undefined") currentDifficulty = urlDiff;
       }
-      if (typeof bmTrackIdx  !== "undefined") bmTrackIdx  = trackIdx;
+      if (typeof bmTrackIdx !== "undefined") bmTrackIdx = trackIdx;
       if (typeof nomTrackIdx !== "undefined") nomTrackIdx = trackIdx;
 
       // Router mode
