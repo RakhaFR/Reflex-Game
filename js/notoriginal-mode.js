@@ -760,10 +760,15 @@ function startNotOriginalEngine() {
       nomKeyHandler = nomOnKey;
       document.addEventListener("keydown", nomKeyHandler);
 
-      // Mouse click integration
-      const _mouseEnabled = typeof profile !== "undefined"
-        ? (profile.settings?.mouseClickEnabled ?? true)
-        : true;
+      // Mouse click integration — hanya aktif jika:
+      // 1. Bukan touch device (HP/tablet pakai tap-on-note langsung)
+      // 2. Setting mouseClickEnabled = true di profile
+      const _isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      const _mouseEnabled = !_isTouchDevice && (
+        typeof profile !== "undefined"
+          ? (profile.settings?.mouseClickEnabled ?? true)
+          : true
+      );
       if (_mouseEnabled) {
         nomMouseHandler = nomOnMouse;
         document.addEventListener("mousedown",   nomMouseHandler);
