@@ -175,6 +175,7 @@ let bmDiffKey = "normal";
 let bmTrackIdx = 0;
 let bmKeyHandler   = null;
 let bmMouseHandler = null;
+let bmTouchHandler = null;
 let bmMusicEl = null; // <audio> element untuk track aktif
 let bmTimeLeft = 0; // detik tersisa
 let bmBgVideo = null; // <video> background element
@@ -275,7 +276,7 @@ function bmSpawnNote(zone, type, key, diff) {
   ring.className = "bm-ring";
   el.appendChild(ring);
 
-  // Sembunyikan key label di touch device — user tap note langsung, bukan tekan key
+  // Sembunyikan key label di touch device
   const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
   if (isTouchDevice) kl.style.display = "none";
 
@@ -294,17 +295,7 @@ function bmSpawnNote(zone, type, key, diff) {
     expireTimer: setTimeout(() => bmExpire(noteData), diff.windowMs),
   };
   bmActiveNotes.push(noteData);
-
-  // Touch handler — tap langsung pada note, hanya untuk touch device
-  if (isTouchDevice) {
-    el.style.pointerEvents = "auto";
-    el.addEventListener("touchstart", function(e) {
-      e.preventDefault();
-      if (!bmRunning || noteData.hit) return;
-      const fakeEvent = { key: noteData.key, preventDefault: () => {} };
-      bmOnKey(fakeEvent);
-    }, { passive: false });
-  }
+  // Touch: ditangani global di bmStartEngine via bmHandleTouch — bukan per-note
 }
 
 function bmExpire(nd) {
@@ -504,6 +495,44 @@ function bmGameOver() {
 }
 
 // ============================================================
+// GLOBAL MULTI-TOUCH HANDLER
+// Satu listener handle semua simultaneous touches — dua jari
+// bisa hit dua note berbeda sekaligus (multi-touch support).
+// ============================================================
+function bmHandleTouch(e) {
+  if (!bmRunning) return;
+  e.preventDefault();
+
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const touch = e.changedTouches[i];
+    const touchX = touch.clientX;
+    const touchY = touch.clientY;
+
+    // Cari note aktif terdekat dari touch point ini
+    let closestNote = null;
+    let closestDist = Infinity;
+    const HIT_RADIUS = 60; // px toleransi — sesuai ukuran note 50-72px
+
+    for (const nd of bmActiveNotes) {
+      if (nd.hit) continue;
+      const rect = nd.el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top  + rect.height / 2;
+      const dist = Math.hypot(touchX - cx, touchY - cy);
+      if (dist < HIT_RADIUS && dist < closestDist) {
+        closestDist = dist;
+        closestNote = nd;
+      }
+    }
+
+    if (closestNote) {
+      const fakeEvent = { key: closestNote.key, preventDefault: () => {} };
+      bmOnKey(fakeEvent);
+    }
+  }
+}
+
+// ============================================================
 // N. START / STOP
 // ============================================================
 function startBasicMode() {
@@ -639,10 +668,16 @@ function startBasicMode() {
     bmKeyHandler = bmOnKey;
     document.addEventListener("keydown", bmKeyHandler);
 
+    // Touch integration — global multi-touch, hanya di touch device
+    const _isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    if (_isTouchDevice) {
+      bmTouchHandler = bmHandleTouch;
+      document.addEventListener("touchstart", bmTouchHandler, { passive: false });
+    }
+
     // Mouse click integration — hanya aktif jika:
     // 1. Bukan touch device (HP/tablet pakai tap-on-note langsung)
     // 2. Setting mouseClickEnabled = true di profile
-    const _isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     const _mouseEnabled = !_isTouchDevice && (
       typeof profile !== "undefined"
         ? (profile.settings?.mouseClickEnabled ?? true)
@@ -674,6 +709,10 @@ function bmStopEngine() {
   if (bmKeyHandler) {
     document.removeEventListener("keydown", bmKeyHandler);
     bmKeyHandler = null;
+  }
+  if (bmTouchHandler) {
+    document.removeEventListener("touchstart", bmTouchHandler);
+    bmTouchHandler = null;
   }
   if (bmMouseHandler) {
     document.removeEventListener("mousedown",   bmMouseHandler);

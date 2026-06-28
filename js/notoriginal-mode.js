@@ -282,6 +282,7 @@ let nomDiffKey = "normal"; // Default awal N.O.M
 let nomTrackIdx = 0;
 let nomKeyHandler   = null;
 let nomMouseHandler = null;
+let nomTouchHandler = null;
 let nomMusicEl = null;
 let nomTimeLeft = 0;
 let nomBgVideo = null;
@@ -428,17 +429,7 @@ function nomSpawnNote(zone, type, key, diff) {
     expireTimer: setTimeout(() => nomExpire(noteData), diff.windowMs),
   };
   nomActiveNotes.push(noteData);
-
-  // Touch handler — tap langsung pada note
-  if (isTouchDevice) {
-    el.style.pointerEvents = "auto";
-    el.addEventListener("touchstart", function(e) {
-      e.preventDefault();
-      if (!nomRunning || noteData.hit) return;
-      const fakeEvent = { key: noteData.key, preventDefault: () => {} };
-      nomOnKey(fakeEvent);
-    }, { passive: false });
-  }
+  // Touch: ditangani global di startNotOriginalEngine via nomHandleTouch
 }
 
 function nomExpire(nd) {
@@ -635,6 +626,41 @@ function nomGameOver() {
 }
 
 // ============================================================
+// GLOBAL MULTI-TOUCH HANDLER (NOM)
+// ============================================================
+function nomHandleTouch(e) {
+  if (!nomRunning) return;
+  e.preventDefault();
+
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const touch = e.changedTouches[i];
+    const touchX = touch.clientX;
+    const touchY = touch.clientY;
+
+    let closestNote = null;
+    let closestDist = Infinity;
+    const HIT_RADIUS = 60;
+
+    for (const nd of nomActiveNotes) {
+      if (nd.hit) continue;
+      const rect = nd.el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top  + rect.height / 2;
+      const dist = Math.hypot(touchX - cx, touchY - cy);
+      if (dist < HIT_RADIUS && dist < closestDist) {
+        closestDist = dist;
+        closestNote = nd;
+      }
+    }
+
+    if (closestNote) {
+      const fakeEvent = { key: closestNote.key, preventDefault: () => {} };
+      nomOnKey(fakeEvent);
+    }
+  }
+}
+
+// ============================================================
 // N. START / STOP ENTRY (startNotOriginalEngine)
 // ============================================================
 function startNotOriginalEngine() {
@@ -760,10 +786,16 @@ function startNotOriginalEngine() {
       nomKeyHandler = nomOnKey;
       document.addEventListener("keydown", nomKeyHandler);
 
+      // Touch integration — global multi-touch, hanya di touch device
+      const _isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      if (_isTouchDevice) {
+        nomTouchHandler = nomHandleTouch;
+        document.addEventListener("touchstart", nomTouchHandler, { passive: false });
+      }
+
       // Mouse click integration — hanya aktif jika:
       // 1. Bukan touch device (HP/tablet pakai tap-on-note langsung)
       // 2. Setting mouseClickEnabled = true di profile
-      const _isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
       const _mouseEnabled = !_isTouchDevice && (
         typeof profile !== "undefined"
           ? (profile.settings?.mouseClickEnabled ?? true)
@@ -797,6 +829,10 @@ function nomStopEngine() {
   if (nomKeyHandler) {
     document.removeEventListener("keydown", nomKeyHandler);
     nomKeyHandler = null;
+  }
+  if (nomTouchHandler) {
+    document.removeEventListener("touchstart", nomTouchHandler);
+    nomTouchHandler = null;
   }
   if (nomMouseHandler) {
     document.removeEventListener("mousedown",   nomMouseHandler);
