@@ -51,14 +51,36 @@
   .loading-subtitle { font-size: 10px; }
   .loading-pct      { font-size: 10px; }
 
-  /* Popup game (quit confirm & result) */
-  .popup-box { max-width: 500px; padding: 20px 26px; }
-  .popup-box h2 { font-size: 18px; margin-bottom: 8px; padding-bottom: 8px; }
-  .popup-box p  { font-size: 11px; margin-bottom: 14px; }
+  /* Popup quit & result — tablet (iPad: max-height 800, min-height 431) */
+  .popup-box { max-width: 460px; padding: 18px 24px; }
+  .popup-box h2 { font-size: 17px; margin-bottom: 8px; padding-bottom: 8px; }
+  .popup-box p  { font-size: 11px; margin-bottom: 12px; }
   .popup-box .btn { padding: 10px 14px; font-size: 11px; }
-  .final-score  { font-size: 40px; padding: 7px 0; }
+  .final-score  { font-size: 38px; padding: 7px 0; }
   .final-combo  { font-size: 12px; margin-bottom: 12px; }
-  .quit-icon    { font-size: 36px; margin-bottom: 6px; }
+  .quit-icon    { font-size: 32px; margin-bottom: 6px; }
+}
+
+/* Popup quit & result — phone landscape (lebih kecil lagi) */
+@media (orientation: landscape) and (max-height: 430px) {
+  .popup-box {
+    max-width: 380px;
+    width: 80vw;
+    padding: 12px 18px;
+  }
+  .popup-box::before { display: none; } /* hide "CRITICAL_MSG //" label */
+  .popup-box h2 {
+    font-size: 14px;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .popup-box p  { font-size: 10px; margin-bottom: 10px; line-height: 1.4; }
+  .popup-box .btn { padding: 8px 12px; font-size: 10px; }
+  .final-score  { font-size: 30px; padding: 5px 0; }
+  .final-combo  { font-size: 11px; margin-bottom: 10px; }
+  .quit-icon    { font-size: 26px; margin-bottom: 4px; }
+  .quit-buttons { gap: 8px; }
 }
 
 
@@ -176,6 +198,43 @@
   }
   .copyright-tag span { font-size: 7px; }
 
+  /* splash-text — hide di HP landscape, terlalu sempit */
+
+  /* Update log trigger — pojok kanan atas, dikecilkan */
+  .update-log-trigger {
+    top: 6px;
+    right: 6px;
+    padding: 4px 8px;
+    font-size: 9px;
+    gap: 5px;
+    box-shadow: 2px 2px 0px #000;
+    transform: skewX(-8deg);
+  }
+
+  /* Log modal — phone landscape */
+  .log-modal-box {
+    max-width: 84vw;
+    width: 84vw;
+    padding: 10px 12px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .log-version-container {
+    max-height: 52vh;
+    gap: 12px;
+    padding-right: 8px;
+  }
+  .log-banner-wrapper    { max-height: 80px; }
+  .log-version-item      { padding: 10px; }
+  .log-version-header    { gap: 8px; margin-bottom: 10px; }
+  .v-badge               { font-size: 10px; padding: 2px 7px; }
+  .v-date                { font-size: 9px; }
+  .log-version-list      { gap: 7px; }
+  .log-version-list li   { font-size: 10px; gap: 7px; }
+  .log-version-list li span { font-size: 8px; padding: 1px 4px; min-width: 26px; }
+
   /* Other games modal — compact untuk HP landscape */
   .popup-overlay-menu {
     align-items: center;
@@ -283,13 +342,52 @@
   .profile-modal-tabs   { gap: 6px; margin-bottom: 14px; }
   .identity-tab-layout  { grid-template-columns: 150px 1fr; gap: 16px; padding: 16px; }
   .avatar-glow-frame    { width: 90px; height: 90px; }
-  .stats-blueprint-grid    { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .settings-blueprint-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stats-blueprint-grid    {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .stats-grid-2col         { gap: 10px; }
   .stats-blueprint-card,
   .settings-blueprint-card { padding: 12px; }
   .blueprint-row        { font-size: 11px; padding: 4px 0; }
   .card-blueprint-title { font-size: 11px; padding-bottom: 6px; margin-bottom: 8px; }
   .setting-blueprint-row { font-size: 11px; }
+
+  /* Performance graph */
+  .stats-graph-card   { padding: 12px; margin-top: 8px; }
+  .graph-row          { font-size: 10px; margin-bottom: 5px; }
+  .graph-bar-track    { height: 6px; }
+  .graph-mode-label   { font-size: 9px; margin-bottom: 4px; }
+
+  /* splash-text — kecilkan supaya tidak nabrak area tombol */
+  .splash-text {
+    font-size: 11px;
+    top: -26px;
+    right: -60px;
+  }
+
+  /* Update log trigger button */
+  .update-log-trigger {
+    top: 14px;
+    right: 14px;
+    padding: 6px 12px;
+    font-size: 10px;
+    gap: 6px;
+    box-shadow: 3px 3px 0px #000;
+  }
+
+  /* Log modal — iPad */
+  .log-modal-box {
+    max-width: 600px;
+    padding: 16px 20px;
+    max-height: 82vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .log-version-container { max-height: 58vh; gap: 16px; }
+  .log-banner-wrapper    { max-height: 120px; }
+  .log-version-list li   { font-size: 11px; gap: 8px; }
 }
 
 /* ── Phone landscape: iPhone SE (667×375) & iPhone 12 Pro (844×390) ── */
