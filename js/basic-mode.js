@@ -501,14 +501,17 @@ function bmGameOver() {
 // ============================================================
 function bmHandleTouch(e) {
   if (!bmRunning) return;
-  e.preventDefault();
+
+  // Cek dulu apakah ada touch yang kena note
+  // preventDefault hanya dipanggil kalau ada hit — supaya tap di luar note
+  // (mis. tombol QUIT) tetap bisa trigger click event normal
+  let anyHit = false;
 
   for (let i = 0; i < e.changedTouches.length; i++) {
     const touch = e.changedTouches[i];
     const touchX = touch.clientX;
     const touchY = touch.clientY;
 
-    // Cari note aktif terdekat dari touch point ini
     let closestNote = null;
     let closestDist = Infinity;
     const HIT_RADIUS = 60; // px toleransi — sesuai ukuran note 50-72px
@@ -526,10 +529,15 @@ function bmHandleTouch(e) {
     }
 
     if (closestNote) {
+      anyHit = true;
       const fakeEvent = { key: closestNote.key, preventDefault: () => {} };
       bmOnKey(fakeEvent);
     }
   }
+
+  // Hanya block default jika benar-benar ada note yang di-tap
+  // Tanpa ini: tap tombol QUIT/UI lain ikut ter-block
+  if (anyHit) e.preventDefault();
 }
 
 // ============================================================

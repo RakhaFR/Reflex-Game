@@ -630,7 +630,8 @@ function nomGameOver() {
 // ============================================================
 function nomHandleTouch(e) {
   if (!nomRunning) return;
-  e.preventDefault();
+
+  let anyHit = false;
 
   for (let i = 0; i < e.changedTouches.length; i++) {
     const touch = e.changedTouches[i];
@@ -654,10 +655,13 @@ function nomHandleTouch(e) {
     }
 
     if (closestNote) {
+      anyHit = true;
       const fakeEvent = { key: closestNote.key, preventDefault: () => {} };
       nomOnKey(fakeEvent);
     }
   }
+
+  if (anyHit) e.preventDefault();
 }
 
 // ============================================================
