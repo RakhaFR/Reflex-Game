@@ -15,6 +15,14 @@
 // bagian P di bawah). Gak perlu edit lobby.html sama sekali lagi.
 const BM_TRACKS = [
   // Tambah track baru di sini — pastikan `id` unik & beda dari track lain:
+  // Kategori 120 - 130 BPM (Santai / Basic)
+  // BPM Groove Santai. Cocok untuk mengasah akurasi ketukan dan membangun ritme permainanmu.
+  // Kategori 140 - 150 BPM (Sedang / Energetik)
+  // BPM Energetik. Ketukan mulai memanas, pastikan sinkronisasi mata dan tanganmu berada di performa terbaik.
+  // Kategori 160 - 180 BPM (Cepat / Overdrive)
+  // BPM High-Speed. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.
+  // Kategori 200+ BPM (Ekstrem / Tanpa Ampun)
+  // BPM Ketukan Tanpa Ampun. Kecepatan murni yang akan membakar jarimu. Jangan berkedip, pastikan keybind-mu sudah siap.
   {
     id: "PIXEL_PANIC", // ← WAJIB UNIK
     title: "PIXEL PANIC",
@@ -26,7 +34,7 @@ const BM_TRACKS = [
     art: "assets/picture/new-logo.png",
     difficulties: ["normal", "medium", "hard"],
     color: "#ff2d78", // tiap track boleh punya warna aksen sendiri-sendiri
-    role: "// BASIC MODE — KEYBOARD REFLEX",
+    role: "// BASIC MODE — NORMAL REFLEX",
     titleClass: "title-basic",
     desc: "120 BPM Groove Santai. Cocok untuk mengasah akurasi ketukan dan membangun ritme permainanmu.",
   },
@@ -41,9 +49,69 @@ const BM_TRACKS = [
     art: "assets/picture/new-logo.png", // album art thumbnail (opsional)
     difficulties: ["medium", "hard"],
     color: "#00e5ff", // warna aksen song-item ini saat ke-select
-    role: "// BASIC MODE — KEYBOARD REFLEX",
+    role: "// BASIC MODE — MEDIUM REFLEX",
     titleClass: "title-basic",
     desc: "140 BPM Energetik. Ketukan mulai memanas, pastikan sinkronisasi mata dan tanganmu berada di performa terbaik.",
+  },
+  {
+    id: "DanceGo",
+    title: "DANCE GO",
+    artist: "REFLEXRYTHM",
+    bpm: 160,
+    src: "assets/music/DanceGo.mp3",
+    duration: 264, // detik — fallback jika audio metadata belum load
+    bg: "assets/video/silia-live2d.mp4",
+    art: "assets/picture/new-logo.png", // album art thumbnail (opsional)
+    difficulties: ["medium", "hard"],
+    color: "#383838", // warna aksen song-item ini saat ke-select
+    role: "// BASIC MODE — MEDIUM REFLEX",
+    titleClass: "title-basic",
+    desc: "160 BPM Cepat. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
+  },
+  {
+    id: "tripleAtStore",
+    title: "TRIPLE AT STORE",
+    artist: "REFLEXRYTHM",
+    bpm: 175,
+    src: "assets/music/tripleAtStore.mp3",
+    duration: 264, // detik — fallback jika audio metadata belum load
+    bg: "assets/video/tripleAtStore.mp4",
+    art: "assets/picture/new-logo.png", // album art thumbnail (opsional)
+    difficulties: ["medium", "hard"],
+    color: "#e6a5dd", // warna aksen song-item ini saat ke-select
+    role: "// BASIC MODE — HARD REFLEX",
+    titleClass: "title-basic",
+    desc: "175 BPM Cepat. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
+  },
+  {
+    id: "CoinRush",
+    title: "COIN RUSH",
+    artist: "REFLEXRYTHM",
+    bpm: 175,
+    src: "assets/music/CoinRush.mp3",
+    duration: 202, // detik — fallback jika audio metadata belum load
+    bg: "assets/video/CoinRush.mp4",
+    art: "assets/picture/new-logo.png", // album art thumbnail (opsional)
+    difficulties: ["medium", "hard"],
+    color: "#fc74d4", // warna aksen song-item ini saat ke-select
+    role: "// BASIC MODE — HARD REFLEX",
+    titleClass: "title-basic",
+    desc: "175 BPM Cepat. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
+  },
+  {
+    id: "ClockworkAurora",
+    title: "CLOCKWORK AURORA",
+    artist: "REFLEXRYTHM",
+    bpm: 185,
+    src: "assets/music/ClockworkAurora.mp3",
+    duration: 185, // detik — fallback jika audio metadata belum load
+    bg: "assets/video/ClockworkAurora.mp4",
+    art: "assets/picture/new-logo.png", // album art thumbnail (opsional)
+    difficulties: ["medium", "hard", "extreme"],
+    color: "#1d2252", // warna aksen song-item ini saat ke-select
+    role: "// BASIC MODE — EXTREME REFLEX",
+    titleClass: "title-basic",
+    desc: "185 BPM Cepat. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
   },
 ];
 

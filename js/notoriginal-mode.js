@@ -9,6 +9,14 @@
 // A. TRACK LIST — Tambah lagu eksternal tempo tinggi di sini
 // ============================================================
 const NOM_TRACKS = [
+  // Kategori 120 - 130 BPM (Santai / Basic)
+  // BPM Groove Santai. Cocok untuk mengasah akurasi ketukan dan membangun ritme permainanmu.
+  // Kategori 140 - 150 BPM (Sedang / Energetik)
+  // BPM Energetik. Ketukan mulai memanas, pastikan sinkronisasi mata dan tanganmu berada di performa terbaik.
+  // Kategori 160 - 180 BPM (Cepat / Overdrive)
+  // BPM High-Speed. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.
+  // Kategori 200+ BPM (Ekstrem / Tanpa Ampun)
+  // BPM Ketukan Tanpa Ampun. Kecepatan murni yang akan membakar jarimu. Jangan berkedip, pastikan keybind-mu sudah siap.
   {
     id: "lightning-moment",
     title: "Lightning Moment",
@@ -18,7 +26,7 @@ const NOM_TRACKS = [
     duration: 60, // detik — fallback jika audio metadata belum load
     bg: "assets/video/lightning-moment.mp4", // Vibe visual beda
     art: "assets/picture/new-logo.png",
-    difficulties: ["normal","medium", "hard"], // N.O.M langsung gas dari medium!
+    difficulties: ["normal", "medium", "hard"], // N.O.M langsung gas dari medium!
     color: "#0051e8", // Warna aksen khas Not Original Mode
     role: "// N.O.M STYLE — MEDIUM SPEED",
     titleClass: "title-notoriginal",
@@ -33,7 +41,7 @@ const NOM_TRACKS = [
     duration: 204, // detik — fallback jika audio metadata belum load
     bg: "assets/video/masih-adakah-waktu.mp4", // Vibe visual beda
     art: "assets/picture/new-logo.png",
-    difficulties: ["normal","medium", "hard"], // N.O.M langsung gas dari medium!
+    difficulties: ["normal", "medium", "hard"], // N.O.M langsung gas dari medium!
     color: "#00bbe6", // Warna aksen khas Not Original Mode
     role: "// N.O.M STYLE — MEDIUM SPEED",
     titleClass: "title-notoriginal",
@@ -60,7 +68,7 @@ const NOM_TRACKS = [
     artist: "Oliver Tree & Bemax Remix",
     bpm: 180,
     src: "assets/music/oliver-tree-miss-you-bemax-cover-remix.mp3",
-    duration: 160,
+    duration: 180,
     bg: "assets/video/oliver-tree-miss-you-bemax-cover-remix.mp4",
     art: "assets/picture/new-logo.png",
     difficulties: ["hard", "extreme"],
@@ -130,6 +138,96 @@ const NOM_TRACKS = [
     desc: "150 BPM Energetik. Ketukan mulai memanas, pastikan sinkronisasi mata dan tanganmu berada di performa terbaik.",
   },
   {
+    id: "bike",
+    title: "Bike",
+    artist: "Tanger",
+    bpm: 180,
+    src: "assets/music/bike.mp3",
+    duration: 102,
+    bg: "assets/video/bike.mp4",
+    art: "assets/picture/new-logo.png",
+    difficulties: ["medium", "hard", "extreme"],
+    color: "#ff8c00",
+    role: "// N.O.M STYLE — HARD SPEED",
+    titleClass: "title-notoriginal",
+    desc: "180 BPM High-Speed. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
+  },
+  {
+    id: "odetari-keep-up",
+    title: "Keep Up",
+    artist: "Odetari",
+    bpm: 190,
+    src: "assets/music/odetari-keep-up.mp3",
+    duration: 136,
+    bg: "assets/video/odetari-keep-up.mp4",
+    art: "assets/picture/new-logo.png",
+    difficulties: ["hard", "extreme"],
+    color: "#5b24ff",
+    role: "// N.O.M STYLE — HARD SPEED",
+    titleClass: "title-notoriginal",
+    desc: "190 BPM High-Speed. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
+  },
+  {
+    id: "ariana-grande-bye-altare-remix",
+    title: "Ariana Grande - Bye",
+    artist: "Ariana Grande & Altare Remix",
+    bpm: 160,
+    src: "assets/music/ariana-grande-bye-altare-remix.mp3",
+    duration: 180,
+    bg: "assets/video/ariana-grande-bye-altare-remix.mp4",
+    art: "assets/picture/new-logo.png",
+    difficulties: ["medium", "hard"],
+    color: "#380057",
+    role: "// N.O.M STYLE — medium SPEED",
+    titleClass: "title-notoriginal",
+    desc: "160 BPM High-Speed. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
+  },
+  {
+    id: "lxngvx-montagem-mysterious-game",
+    title: "Montagem Mysterious Game",
+    artist: "Lxngvx",
+    bpm: 195,
+    src: "assets/music/lxngvx-montagem-mysterious-game.mp3",
+    duration: 103,
+    bg: "assets/video/lxngvx-montagem-mysterious-game.mp4",
+    art: "assets/picture/new-logo.png",
+    difficulties: ["medium", "hard", "extreme"],
+    color: "#66ffed",
+    role: "// N.O.M STYLE — EXTREME SPEED",
+    titleClass: "title-notoriginal",
+    desc: "195 BPM High-Speed. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
+  },
+  {
+    id: "creepy-nuts-bling-bang-bang-born-x-tv-anime-matusiyuru-mashle-collaboration",
+    title: "Bling Bang Bang Born",
+    artist: "Creepy Nuts",
+    bpm: 170,
+    src: "assets/music/creepy-nuts-bling-bang-bang-born-x-tv-anime-matusiyuru-mashle-collaboration.mp3",
+    duration: 172,
+    bg: "assets/video/creepy-nuts-bling-bang-bang-born-x-tv-anime-matusiyuru-mashle-collaboration.mp4",
+    art: "assets/picture/new-logo.png",
+    difficulties: ["medium", "hard", "extreme"],
+    color: "#edd900",
+    role: "// N.O.M STYLE — HARD SPEED",
+    titleClass: "title-notoriginal",
+    desc: "170 BPM High-Speed. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
+  },
+  {
+    id: "cry-for-me-ironmouse",
+    title: "Cry for Me",
+    artist: "Ironmouse",
+    bpm: 165,
+    src: "assets/music/cry-for-me-ironmouse.mp3",
+    duration: 195,
+    bg: "assets/video/cry-for-me-ironmouse.mp4",
+    art: "assets/picture/new-logo.png",
+    difficulties: ["medium", "hard"],
+    color: "#fa46dc",
+    role: "// N.O.M STYLE — HARD SPEED",
+    titleClass: "title-notoriginal",
+    desc: "165 BPM High-Speed. Aransemen cepat yang menuntut ketahanan jari. Pertahankan kombo atau hancur di tengah jalan.",
+  },
+  {
     id: "blksmiith-sr20det",
     title: "SR20DET",
     artist: "BLKSMIITH",
@@ -150,7 +248,7 @@ const NOM_TRACKS = [
 // B. DIFFICULTY CONFIG (N.O.M VERSION — Lebih Agresif)
 // ============================================================
 const NOM_DIFF = {
-    normal: {
+  normal: {
     label: "NORMAL",
     color: "#00ff88",
     noteCount: 1,
@@ -280,7 +378,7 @@ let nomMusicTimer = null;
 let nomRunning = false;
 let nomDiffKey = "normal"; // Default awal N.O.M
 let nomTrackIdx = 0;
-let nomKeyHandler   = null;
+let nomKeyHandler = null;
 let nomMouseHandler = null;
 let nomTouchHandler = null;
 let nomMusicEl = null;
@@ -348,7 +446,8 @@ function nomRenderKeyLegend() {
   if (!nomKeyLegendEl) return;
 
   // Sembunyikan legend di touch device
-  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const isTouchDevice =
+    "ontouchstart" in window || navigator.maxTouchPoints > 0;
   if (isTouchDevice) {
     nomKeyLegendEl.style.display = "none";
     if (nomArena) nomArena.style.bottom = "0";
@@ -411,7 +510,8 @@ function nomSpawnNote(zone, type, key, diff) {
   el.appendChild(ring);
 
   // Sembunyikan key label di touch device
-  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const isTouchDevice =
+    "ontouchstart" in window || navigator.maxTouchPoints > 0;
   if (isTouchDevice) kl.style.display = "none";
 
   nomArena.appendChild(el);
@@ -437,10 +537,12 @@ function nomExpire(nd) {
   nd.hit = true;
   if (nd.type.id === "avoid") {
     nomResult("NICE!", 50, true);
-    if (typeof triggerEffects === "function") triggerEffects(null, "green", "basicMode", nd.el);
+    if (typeof triggerEffects === "function")
+      triggerEffects(null, "green", "basicMode", nd.el);
   } else {
     nomResult("MISS", 0, false);
-    if (typeof triggerEffects === "function") triggerEffects(null, "red", "basicMode", nd.el);
+    if (typeof triggerEffects === "function")
+      triggerEffects(null, "red", "basicMode", nd.el);
   }
   nomRemoveNote(nd);
 }
@@ -476,7 +578,8 @@ function nomOnKey(e) {
 
   if (nd.type.id === "avoid") {
     nomResult("WRONG!", 0, false);
-    if (typeof triggerEffects === "function") triggerEffects(null, "red", "basicMode", nd.el);
+    if (typeof triggerEffects === "function")
+      triggerEffects(null, "red", "basicMode", nd.el);
   } else {
     let judge, pts;
     const base = nd.type.scoreBase;
@@ -496,10 +599,12 @@ function nomOnKey(e) {
       judge = "GOOD";
       pts = Math.round(base * (1 + nomCombo * 0.03));
     }
-    let flashColor = (judge === "MISS") ? "red" : (nd.type.id === "bonus" ? "bonus" : "green");
-    
+    let flashColor =
+      judge === "MISS" ? "red" : nd.type.id === "bonus" ? "bonus" : "green";
+
     nomResult(judge, pts, judge !== "MISS", nd.type.id);
-    if (typeof triggerEffects === "function") triggerEffects(null, flashColor, "basicMode", nd.el);
+    if (typeof triggerEffects === "function")
+      triggerEffects(null, flashColor, "basicMode", nd.el);
   }
   nomRemoveNote(nd);
 }
@@ -509,7 +614,10 @@ function nomOnKey(e) {
 // ============================================================
 function nomOnMouse(e) {
   if (!nomRunning) return;
-  if (e.type === "contextmenu") { e.preventDefault(); return; }
+  if (e.type === "contextmenu") {
+    e.preventDefault();
+    return;
+  }
   e.preventDefault();
 
   const nd = nomActiveNotes.find((n) => !n.hit);
@@ -537,7 +645,7 @@ function nomResult(judge, pts, combo, noteType = null) {
     nomComboBox.style.opacity = "1";
     void nomComboBox.offsetWidth;
     nomComboBox.classList.toggle("bm-fire", nomCombo >= 10);
-    
+
     const sets = typeof getSettings === "function" ? getSettings() : null;
     if (!sets || sets.comboAnimationEnabled !== false) {
       nomComboBox.classList.add("bm-pop");
@@ -646,7 +754,7 @@ function nomHandleTouch(e) {
       if (nd.hit) continue;
       const rect = nd.el.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
-      const cy = rect.top  + rect.height / 2;
+      const cy = rect.top + rect.height / 2;
       const dist = Math.hypot(touchX - cx, touchY - cy);
       if (dist < HIT_RADIUS && dist < closestDist) {
         closestDist = dist;
@@ -681,7 +789,11 @@ function startNotOriginalEngine() {
       ? activeDiffBtn.getAttribute("data-diff")
       : nomDiffKey || "normal";
     const track = nomTrackIdx ?? 0;
-    if (typeof rrNavigate === "function") { rrNavigate(`game.html?mode=notoriginal&diff=${diff}&track=${track}`); } else { window.location.href = `game.html?mode=notoriginal&diff=${diff}&track=${track}`; };
+    if (typeof rrNavigate === "function") {
+      rrNavigate(`game.html?mode=notoriginal&diff=${diff}&track=${track}`);
+    } else {
+      window.location.href = `game.html?mode=notoriginal&diff=${diff}&track=${track}`;
+    }
     return;
   }
 
@@ -779,7 +891,8 @@ function startNotOriginalEngine() {
           nomMusicEl.addEventListener(
             "loadedmetadata",
             () => {
-              if (nomTimeLeft === 0) startTimers(Math.ceil(nomMusicEl.duration));
+              if (nomTimeLeft === 0)
+                startTimers(Math.ceil(nomMusicEl.duration));
             },
             { once: true },
           );
@@ -797,17 +910,17 @@ function startNotOriginalEngine() {
           if (videoStarted) return;
           videoStarted = true;
           nomBgVideo.removeEventListener("canplay", onVideoReady);
-          nomBgVideo.removeEventListener("error",   onVideoReady);
+          nomBgVideo.removeEventListener("error", onVideoReady);
           nomBeginPlay();
         };
         nomBgVideo.addEventListener("canplay", onVideoReady, { once: true });
-        nomBgVideo.addEventListener("error",   onVideoReady, { once: true });
+        nomBgVideo.addEventListener("error", onVideoReady, { once: true });
         // Fallback 2 detik
         setTimeout(() => {
           if (!videoStarted) {
             videoStarted = true;
             nomBgVideo.removeEventListener("canplay", onVideoReady);
-            nomBgVideo.removeEventListener("error",   onVideoReady);
+            nomBgVideo.removeEventListener("error", onVideoReady);
             nomBeginPlay();
           }
         }, 2000);
@@ -817,23 +930,26 @@ function startNotOriginalEngine() {
       }
 
       // Touch integration — global multi-touch, hanya di touch device
-      const _isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      const _isTouchDevice =
+        "ontouchstart" in window || navigator.maxTouchPoints > 0;
       if (_isTouchDevice) {
         nomTouchHandler = nomHandleTouch;
-        document.addEventListener("touchstart", nomTouchHandler, { passive: false });
+        document.addEventListener("touchstart", nomTouchHandler, {
+          passive: false,
+        });
       }
 
       // Mouse click integration — hanya aktif jika:
       // 1. Bukan touch device (HP/tablet pakai tap-on-note langsung)
       // 2. Setting mouseClickEnabled = true di profile
-      const _mouseEnabled = !_isTouchDevice && (
-        typeof profile !== "undefined"
+      const _mouseEnabled =
+        !_isTouchDevice &&
+        (typeof profile !== "undefined"
           ? (profile.settings?.mouseClickEnabled ?? true)
-          : true
-      );
+          : true);
       if (_mouseEnabled) {
         nomMouseHandler = nomOnMouse;
-        document.addEventListener("mousedown",   nomMouseHandler);
+        document.addEventListener("mousedown", nomMouseHandler);
         document.addEventListener("contextmenu", nomMouseHandler);
       }
     });
@@ -865,7 +981,7 @@ function nomStopEngine() {
     nomTouchHandler = null;
   }
   if (nomMouseHandler) {
-    document.removeEventListener("mousedown",   nomMouseHandler);
+    document.removeEventListener("mousedown", nomMouseHandler);
     document.removeEventListener("contextmenu", nomMouseHandler);
     nomMouseHandler = null;
   }
