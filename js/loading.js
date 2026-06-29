@@ -231,7 +231,7 @@
     div.innerHTML = `
       <div class="rr-wrap">
         <div class="rr-top-banner">
-          <span>REFLEX ENGINE // Pre-TEST</span>
+          <span>REFLEX ENGINE // v2.1</span>
         </div>
         <div class="rr-title-block">
           <h1 class="rr-main-title">LOADING DATA</h1>
@@ -280,9 +280,16 @@
   // ── 3. ASSET TRACKER ─────────────────────────────────────────────────────
   function trackAssets() {
     const run = () => {
-      const imgs  = Array.from(document.querySelectorAll("img[src]"));
-      const links = Array.from(document.querySelectorAll("link[rel='stylesheet']"));
-      const all   = [...imgs, ...links];
+      const imgs   = Array.from(document.querySelectorAll("img[src]"));
+      const links  = Array.from(document.querySelectorAll("link[rel='stylesheet']"));
+      const videos = Array.from(document.querySelectorAll("video[src], video source[src]"))
+                       .map(el => el.tagName === "SOURCE" ? el.closest("video") : el)
+                       .filter((v, i, arr) => arr.indexOf(v) === i); // dedupe
+      const audios = Array.from(document.querySelectorAll("audio[src], audio source[src]"))
+                       .map(el => el.tagName === "SOURCE" ? el.closest("audio") : el)
+                       .filter((a, i, arr) => arr.indexOf(a) === i);
+
+      const all   = [...imgs, ...links, ...videos, ...audios];
       const total = all.length || 1;
       let loaded  = 0;
 
@@ -298,11 +305,33 @@
       });
 
       links.forEach(link => {
-        try {
-          if (link.sheet) { onLoad(); return; }
-        } catch (_) {}
+        try { if (link.sheet) { onLoad(); return; } } catch (_) {}
         link.addEventListener("load",  onLoad, { once: true });
         link.addEventListener("error", onLoad, { once: true });
+      });
+
+      // Video: tunggu canplay (cukup data untuk mulai play) bukan canplaythrough
+      // — canplaythrough terlalu lama di koneksi lambat, canplay sudah cukup
+      // untuk memastikan frame pertama video siap ditampilkan
+      videos.forEach(video => {
+        // readyState >= 3 = HAVE_FUTURE_DATA, sudah bisa diplay
+        if (video.readyState >= 3) { onLoad(); return; }
+        const onReady = () => { onLoad(); };
+        video.addEventListener("canplay", onReady, { once: true });
+        video.addEventListener("error",   onReady, { once: true });
+        // Fallback: kalau video autoplay/preload=none, panggil load() dulu
+        if (video.preload === "none" || video.preload === "") {
+          video.preload = "metadata";
+          video.load();
+        }
+      });
+
+      // Audio: tunggu canplay juga
+      audios.forEach(audio => {
+        if (audio.readyState >= 3) { onLoad(); return; }
+        const onReady = () => { onLoad(); };
+        audio.addEventListener("canplay", onReady, { once: true });
+        audio.addEventListener("error",   onReady, { once: true });
       });
 
       if (all.length === 0) _targetPct = 85;
@@ -322,13 +351,17 @@
       document.addEventListener("DOMContentLoaded", () => { domReady = true; }, { once: true });
     }
 
+    // Soft fallback: kalau setelah 8 detik asset masih belum semua load
+    // (misalnya video di koneksi sangat lambat), paksa selesai.
+    // 8 detik >> 4 detik sebelumnya — beri waktu video cukup.
     setTimeout(() => {
+      if (_done) return;
       _targetPct  = 100;
       _displayPct = 100;
       updateUI(100);
       clearInterval(_ticker);
       fadeOut();
-    }, 4000);
+    }, 8000);
 
     _ticker = setInterval(() => {
       if (_displayPct < _targetPct) {
@@ -667,8 +700,6 @@
   // sebuah <a href>, kita tandai anchor tsb dengan data-rr-handled="1" agar
   // interceptLinks() skip anchor yang sama saat event bubble naik ke document.
   window.rrNavigate = function(href) {
-    // Tandai anchor yang menjadi target navigasi ini agar interceptLinks skip
-    // (cari berdasarkan href yang persis sama di DOM saat ini)
     try {
       const anchors = document.querySelectorAll('a[href="' + href + '"]');
       anchors.forEach(a => a.setAttribute("data-rr-handled", "1"));
@@ -682,6 +713,22 @@
       } catch(_) {}
       window.location.href = href;
     });
+  };
+
+  // ── EXPOSE rrTrackVideo ───────────────────────────────────────────────────
+  // Untuk video yang src-nya di-set via JS (bukan dari HTML) — misalnya
+  // bmBgVideo di game.html yang src-nya di-assign oleh basic-mode.js.
+  // Panggil window.rrTrackVideo(videoEl) setelah src di-set supaya loading
+  // screen tahu video ini harus ditunggu.
+  // Kalau loading screen sudah selesai (_done=true), fungsi ini no-op.
+  window.rrTrackVideo = function(videoEl) {
+    if (_done || !videoEl) return;
+    if (videoEl.readyState >= 3) return; // sudah siap
+    const onReady = () => {
+      _targetPct = Math.min(100, _targetPct + 5);
+    };
+    videoEl.addEventListener("canplay", onReady, { once: true });
+    videoEl.addEventListener("error",   onReady, { once: true });
   };
 
   // ── INIT ─────────────────────────────────────────────────────────────────

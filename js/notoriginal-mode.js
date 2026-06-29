@@ -743,52 +743,78 @@ function startNotOriginalEngine() {
     showCountdownThen(() => {
       nomRunning = true;
 
-      // Play video di sini — sudah di dalam callback (post-countdown),
-      // masih dalam konteks gesture klik "Main Lagi" / start awal.
-      if (nomBgVideo) {
-        nomBgVideo.play().catch(() => {});
-      }
+      // Fungsi yang benar-benar mulai game setelah video siap
+      function nomBeginPlay() {
+        // Play video
+        if (nomBgVideo) {
+          nomBgVideo.play().catch(() => {});
+        }
 
-      nomMusicEl = document.getElementById("bmTrackAudio");
-      if (!nomMusicEl) {
-        nomMusicEl = document.createElement("audio");
-        nomMusicEl.id = "bmTrackAudio";
-        document.body.appendChild(nomMusicEl);
-      }
-      nomMusicEl.src = track.src;
-      nomMusicEl.volume =
-        typeof profile !== "undefined"
-          ? ((profile.settings?.masterVolume ?? 100) / 100) * 0.8
-          : 0.8;
-      nomMusicEl.currentTime = 0;
-      nomMusicEl.play().catch(() => {});
+        nomMusicEl = document.getElementById("bmTrackAudio");
+        if (!nomMusicEl) {
+          nomMusicEl = document.createElement("audio");
+          nomMusicEl.id = "bmTrackAudio";
+          document.body.appendChild(nomMusicEl);
+        }
+        nomMusicEl.src = track.src;
+        nomMusicEl.volume =
+          typeof profile !== "undefined"
+            ? ((profile.settings?.masterVolume ?? 100) / 100) * 0.8
+            : 0.8;
+        nomMusicEl.currentTime = 0;
+        nomMusicEl.play().catch(() => {});
 
-      const startTimers = (dur) => {
-        nomStartMusicTimer(dur);
-        const diff = NOM_DIFF[nomDiffKey];
-        nomSpawnWave();
-        nomSpawnTimer = setInterval(nomSpawnWave, diff.spawnIntervalMs);
-      };
+        const startTimers = (dur) => {
+          nomStartMusicTimer(dur);
+          const diff = NOM_DIFF[nomDiffKey];
+          nomSpawnWave();
+          nomSpawnTimer = setInterval(nomSpawnWave, diff.spawnIntervalMs);
+        };
 
-      // track.duration adalah sumber utama durasi timer.
-      // Audio metadata hanya dipakai sebagai fallback jika track.duration
-      // tidak di-set (0 atau undefined).
-      if (track.duration && track.duration > 0) {
-        startTimers(track.duration);
-      } else if (nomMusicEl.duration && isFinite(nomMusicEl.duration)) {
-        startTimers(Math.ceil(nomMusicEl.duration));
+        if (track.duration && track.duration > 0) {
+          startTimers(track.duration);
+        } else if (nomMusicEl.duration && isFinite(nomMusicEl.duration)) {
+          startTimers(Math.ceil(nomMusicEl.duration));
+        } else {
+          nomMusicEl.addEventListener(
+            "loadedmetadata",
+            () => {
+              if (nomTimeLeft === 0) startTimers(Math.ceil(nomMusicEl.duration));
+            },
+            { once: true },
+          );
+        }
+
+        nomKeyHandler = nomOnKey;
+        document.addEventListener("keydown", nomKeyHandler);
+      } // end nomBeginPlay
+
+      // Tunggu video canplay sebelum mulai — countdown sudah 3 detik,
+      // biasanya video sudah ready. Kalau belum, tunggu max 2 detik lagi.
+      if (nomBgVideo && nomBgVideo.src && nomBgVideo.readyState < 3) {
+        let videoStarted = false;
+        const onVideoReady = () => {
+          if (videoStarted) return;
+          videoStarted = true;
+          nomBgVideo.removeEventListener("canplay", onVideoReady);
+          nomBgVideo.removeEventListener("error",   onVideoReady);
+          nomBeginPlay();
+        };
+        nomBgVideo.addEventListener("canplay", onVideoReady, { once: true });
+        nomBgVideo.addEventListener("error",   onVideoReady, { once: true });
+        // Fallback 2 detik
+        setTimeout(() => {
+          if (!videoStarted) {
+            videoStarted = true;
+            nomBgVideo.removeEventListener("canplay", onVideoReady);
+            nomBgVideo.removeEventListener("error",   onVideoReady);
+            nomBeginPlay();
+          }
+        }, 2000);
       } else {
-        nomMusicEl.addEventListener(
-          "loadedmetadata",
-          () => {
-            if (nomTimeLeft === 0) startTimers(Math.ceil(nomMusicEl.duration));
-          },
-          { once: true },
-        );
+        // Video sudah siap atau tidak ada — langsung mulai
+        nomBeginPlay();
       }
-
-      nomKeyHandler = nomOnKey;
-      document.addEventListener("keydown", nomKeyHandler);
 
       // Touch integration — global multi-touch, hanya di touch device
       const _isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);

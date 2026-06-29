@@ -629,52 +629,80 @@ function startBasicMode() {
   showCountdownThen(() => {
     bmRunning = true;
 
-    // Play video setelah countdown — sinkron dengan musik
-    if (bmBgVideo) {
-      bmBgVideo.play().catch(() => {});
-    }
+    // Fungsi yang benar-benar mulai game setelah video siap
+    function bmBeginPlay() {
+      // Play video
+      if (bmBgVideo) {
+        bmBgVideo.play().catch(() => {});
+      }
 
-    // Play musik
-    bmMusicEl = document.getElementById("bmTrackAudio");
-    if (!bmMusicEl) {
-      bmMusicEl = document.createElement("audio");
-      bmMusicEl.id = "bmTrackAudio";
-      document.body.appendChild(bmMusicEl);
-    }
-    bmMusicEl.src = track.src;
-    bmMusicEl.volume =
-      typeof profile !== "undefined"
-        ? ((profile.settings?.masterVolume ?? 100) / 100) * 0.8
-        : 0.8;
-    bmMusicEl.currentTime = 0;
-    bmMusicEl.play().catch(() => {});
+      // Play musik
+      bmMusicEl = document.getElementById("bmTrackAudio");
+      if (!bmMusicEl) {
+        bmMusicEl = document.createElement("audio");
+        bmMusicEl.id = "bmTrackAudio";
+        document.body.appendChild(bmMusicEl);
+      }
+      bmMusicEl.src = track.src;
+      bmMusicEl.volume =
+        typeof profile !== "undefined"
+          ? ((profile.settings?.masterVolume ?? 100) / 100) * 0.8
+          : 0.8;
+      bmMusicEl.currentTime = 0;
+      bmMusicEl.play().catch(() => {});
 
-    const startTimers = (dur) => {
-      bmStartMusicTimer(dur);
-      const diff = BM_DIFF[bmDiffKey];
-      bmSpawnWave();
-      bmSpawnTimer = setInterval(bmSpawnWave, diff.spawnIntervalMs);
-    };
+      const startTimers = (dur) => {
+        bmStartMusicTimer(dur);
+        const diff = BM_DIFF[bmDiffKey];
+        bmSpawnWave();
+        bmSpawnTimer = setInterval(bmSpawnWave, diff.spawnIntervalMs);
+      };
 
-    // track.duration adalah sumber utama durasi timer.
-    // Audio metadata hanya dipakai sebagai fallback jika track.duration
-    // tidak di-set (0 atau undefined).
-    if (track.duration && track.duration > 0) {
-      startTimers(track.duration);
-    } else if (bmMusicEl.duration && isFinite(bmMusicEl.duration)) {
-      startTimers(Math.ceil(bmMusicEl.duration));
+      if (track.duration && track.duration > 0) {
+        startTimers(track.duration);
+      } else if (bmMusicEl.duration && isFinite(bmMusicEl.duration)) {
+        startTimers(Math.ceil(bmMusicEl.duration));
+      } else {
+        bmMusicEl.addEventListener(
+          "loadedmetadata",
+          () => {
+            if (bmTimeLeft === 0) startTimers(Math.ceil(bmMusicEl.duration));
+          },
+          { once: true },
+        );
+      }
+
+      bmKeyHandler = bmOnKey;
+      document.addEventListener("keydown", bmKeyHandler);
+    } // end bmBeginPlay
+
+    // Tunggu video canplay sebelum mulai — countdown sudah 3 detik,
+    // biasanya video sudah ready. Kalau belum, tunggu max 2 detik lagi
+    // sebelum fallback mulai tanpa video.
+    if (bmBgVideo && bmBgVideo.src && bmBgVideo.readyState < 3) {
+      let videoStarted = false;
+      const onVideoReady = () => {
+        if (videoStarted) return;
+        videoStarted = true;
+        bmBgVideo.removeEventListener("canplay", onVideoReady);
+        bmBgVideo.removeEventListener("error",   onVideoReady);
+        bmBeginPlay();
+      };
+      bmBgVideo.addEventListener("canplay", onVideoReady, { once: true });
+      bmBgVideo.addEventListener("error",   onVideoReady, { once: true });
+      // Fallback 2 detik
+      setTimeout(() => {
+        if (!videoStarted) {
+          videoStarted = true;
+          bmBgVideo.removeEventListener("canplay", onVideoReady);
+          bmBgVideo.removeEventListener("error",   onVideoReady);
+          bmBeginPlay();
+        }
+      }, 2000);
     } else {
-      bmMusicEl.addEventListener(
-        "loadedmetadata",
-        () => {
-          if (bmTimeLeft === 0) startTimers(Math.ceil(bmMusicEl.duration));
-        },
-        { once: true },
-      );
+      // Video sudah siap (readyState >= 3) atau tidak ada — langsung mulai
+      bmBeginPlay();
     }
-
-    bmKeyHandler = bmOnKey;
-    document.addEventListener("keydown", bmKeyHandler);
 
     // Touch integration — global multi-touch, hanya di touch device
     const _isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);

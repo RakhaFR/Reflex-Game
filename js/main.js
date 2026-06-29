@@ -146,7 +146,7 @@ const UPDATE_LOGS = [
       version: "Pre-Test",
       date: "28 MEI 2026",
       badgeClass: "yellow",
-      bannerImg: "assets/picture/pre-test.png", // Menggunakan background bawaan kamu sebagai contoh
+      bannerImg: "assets/picture/new-logo.png", // Menggunakan background bawaan kamu sebagai contoh
       changes: [
           // { type: "add", text: "Integrasi Not Original Mode (NOM_TRACKS) ke dalam sistem lobby." },
           { type: "upd", text: "Penataan ulang layout menu & gameplay dengan konsep *Stylized Arcade Interface*. masih tahap pre-test kemungkinan data anda bakal hilang di update selanjutnya.." }
@@ -1050,9 +1050,6 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
 
     currentPreviewItem = songItem;
 
-    // Jangan set tag/class preview sebelum ada gesture user —
-    // audio tidak akan play sehingga tag "♪ PREVIEW" akan muncul tanpa suara.
-    // Setup AudioContext — hanya buat setelah ada gesture user.
     if (!window._userHasInteracted) return;
 
     const tag = songItem.querySelector(".song-status-tag");
@@ -1077,16 +1074,52 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
     sourceNode.connect(analyser);
     analyser.connect(audioCtx.destination);
 
-    previewAudio.play().then(() => {
-      if (vizCanvas) vizCanvas.classList.add("active");
-      drawVisualizer();
-      // Resume bgVideo yang mungkin di-pause saat preview sebelumnya habis
-      const bv = document.getElementById("lobbyBgVideo");
-      if (bv && bv.paused && bv.src) {
-        bv.style.opacity = "1";
-        bv.play().catch(() => {});
-      }
-    }).catch(() => {});
+    // ── Tunggu video siap sebelum play audio ──────────────────────────────
+    // Supaya audio dan video muncul bersamaan, bukan audio duluan
+    // sementara video masih loading (hitam/blank).
+    // Fallback 2500ms: kalau video terlalu lama load (koneksi lambat),
+    // audio tetap play tanpa menunggu lebih lama.
+    const bv = document.getElementById("lobbyBgVideo");
+
+    function doPlayAudio() {
+      previewAudio.play().then(() => {
+        if (vizCanvas) vizCanvas.classList.add("active");
+        drawVisualizer();
+        if (bv && bv.paused && bv.src) {
+          bv.style.opacity = "1";
+          bv.play().catch(() => {});
+        }
+      }).catch(() => {});
+    }
+
+    if (bv && bv.src && bv.readyState < 3) {
+      // Video ada tapi belum siap — tunggu canplay atau max 2500ms
+      let videoReady = false;
+
+      const onVideoReady = () => {
+        if (videoReady) return;
+        videoReady = true;
+        bv.removeEventListener("canplay", onVideoReady);
+        bv.removeEventListener("error",   onVideoReady);
+        doPlayAudio();
+      };
+
+      bv.addEventListener("canplay", onVideoReady, { once: true });
+      bv.addEventListener("error",   onVideoReady, { once: true });
+
+      // Fallback timeout — audio tidak tertahan lebih dari 2.5 detik
+      setTimeout(() => {
+        if (!videoReady) {
+          videoReady = true;
+          bv.removeEventListener("canplay", onVideoReady);
+          bv.removeEventListener("error",   onVideoReady);
+          doPlayAudio();
+        }
+      }, 2500);
+    } else {
+      // Video sudah siap atau tidak ada — langsung play
+      doPlayAudio();
+    }
 
     // Stop setelah 20 detik — audio dan bgVideo berhenti bersamaan
     previewTimer = setTimeout(() => {
@@ -1140,15 +1173,34 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
       if (typeof bmTrackIdx !== "undefined") bmTrackIdx = currentIdx;
     }
 
-    // Change background video
+    // Change background video — opacity tunggu canplay dulu
     if (bgVideo) {
       const src = songItems[currentIdx].getAttribute("data-video");
-      bgVideo.style.opacity = "0.1";
+      bgVideo.style.opacity = "0";
+      bgVideo.style.transition = "opacity 0.4s ease";
       setTimeout(() => {
-        bgVideo.src = src; bgVideo.load();
+        bgVideo.src = src;
+        bgVideo.load();
         bgVideo.volume = (profile?.settings?.masterVolume ?? 100) / 100 * 0.4;
-        bgVideo.play().catch(() => {});
-        bgVideo.style.opacity = "1";
+
+        const onReady = () => {
+          bgVideo.play().catch(() => {});
+          bgVideo.style.opacity = "1";
+        };
+
+        if (bgVideo.readyState >= 3) {
+          // Sudah ada data (cache) — langsung tampilkan
+          onReady();
+        } else {
+          bgVideo.addEventListener("canplay", onReady, { once: true });
+          bgVideo.addEventListener("error",   onReady, { once: true });
+          // Fallback: kalau 3 detik video belum canplay, tetap tampilkan
+          setTimeout(() => {
+            bgVideo.removeEventListener("canplay", onReady);
+            bgVideo.removeEventListener("error",   onReady);
+            bgVideo.style.opacity = "1";
+          }, 3000);
+        }
       }, 200);
     }
 
