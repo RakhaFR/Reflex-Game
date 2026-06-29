@@ -59,7 +59,7 @@ const BM_TRACKS = [
     artist: "REFLEXRYTHM",
     bpm: 160,
     src: "assets/music/DanceGo.mp3",
-    duration: 264, // detik — fallback jika audio metadata belum load
+    duration: 204, // detik — fallback jika audio metadata belum load
     bg: "assets/video/silia-live2d.mp4",
     art: "assets/picture/new-logo.png", // album art thumbnail (opsional)
     difficulties: ["medium", "hard"],
