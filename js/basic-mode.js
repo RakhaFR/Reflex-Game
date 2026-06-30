@@ -195,22 +195,25 @@ function bmPickNoteType() {
 }
 
 // ============================================================
-// D. SPAWN ZONES — 12 posisi dalam % (left, top)
+// D. SPAWN ZONES — 20 posisi dalam % (left, top)
+// Diperluas dari 12 → 20 titik untuk variasi lebih banyak,
+// tetap dalam jangkauan aman layar (x: 8-90%, y: 12-80%)
+// supaya note tidak terpotong HUD atas/key legend bawah.
 // ============================================================
 const BM_ZONES = [
-  { x: 14, y: 18 },
-  { x: 38, y: 13 },
-  { x: 62, y: 18 },
-  { x: 84, y: 16 },
-  { x: 10, y: 46 },
-  { x: 33, y: 50 },
-  { x: 57, y: 45 },
-  { x: 80, y: 48 },
-  { x: 17, y: 73 },
-  { x: 43, y: 76 },
-  { x: 67, y: 72 },
-  { x: 87, y: 70 },
+  // Baris 1 — atas
+  { x: 10, y: 14 }, { x: 28, y: 12 }, { x: 46, y: 15 }, { x: 64, y: 12 }, { x: 82, y: 16 },
+  // Baris 2 — atas-tengah
+  { x: 16, y: 32 }, { x: 36, y: 30 }, { x: 56, y: 33 }, { x: 76, y: 30 }, { x: 89, y: 35 },
+  // Baris 3 — tengah-bawah
+  { x: 8,  y: 50 }, { x: 30, y: 52 }, { x: 50, y: 49 }, { x: 70, y: 53 }, { x: 90, y: 50 },
+  // Baris 4 — bawah
+  { x: 18, y: 70 }, { x: 40, y: 73 }, { x: 60, y: 71 }, { x: 80, y: 74 }, { x: 50, y: 78 },
 ];
+
+// Jarak minimum antar note (dalam % layar) — note baru tidak akan
+// spawn di zona yang terlalu dekat dengan note aktif yang lain.
+const BM_MIN_ZONE_DIST = 16;
 
 // ============================================================
 // E. KEYBIND SYSTEM
@@ -313,9 +316,27 @@ function bmSpawnWave() {
   const keys = bmGetKeys();
   const usedK = bmActiveNotes.map((n) => n.key);
   const freeK = keys.filter((k) => !usedK.includes(k));
-  const zones = [...BM_ZONES].sort(() => Math.random() - 0.5);
+
+  // Posisi semua note yang masih aktif (belum hit/expired)
+  const activeZones = bmActiveNotes.map((n) => n.zone).filter(Boolean);
+
+  // Filter zona yang cukup jauh dari semua note aktif
+  function isZoneFree(zone) {
+    return activeZones.every((az) => {
+      const dist = Math.hypot(zone.x - az.x, zone.y - az.y);
+      return dist >= BM_MIN_ZONE_DIST;
+    });
+  }
+
+  let availableZones = BM_ZONES.filter(isZoneFree);
+  // Fallback: kalau semua zona "penuh" (kasus ekstrem banyak note aktif),
+  // tetap pakai semua zona supaya spawn tidak berhenti total.
+  if (availableZones.length === 0) availableZones = [...BM_ZONES];
+
+  const zones = [...availableZones].sort(() => Math.random() - 0.5);
 
   for (let i = 0; i < diff.noteCount && i < freeK.length; i++) {
+    if (!zones[i]) break; // jangan spawn kalau zona aman sudah habis
     bmSpawnNote(zones[i], bmPickNoteType(), freeK[i], diff);
   }
 }
@@ -355,6 +376,7 @@ function bmSpawnNote(zone, type, key, diff) {
     key,
     type,
     el,
+    zone, // posisi note ini — dipakai bmSpawnWave untuk hindari overlap
     spawnedAt: Date.now(),
     windowMs: diff.windowMs,
     perfectMs: diff.perfectMs,

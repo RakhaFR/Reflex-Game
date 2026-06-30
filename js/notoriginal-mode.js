@@ -336,19 +336,17 @@ function nomPickNoteType() {
 // D. SPAWN ZONES (12 Posisi Layar Arena)
 // ============================================================
 const NOM_ZONES = [
-  { x: 14, y: 18 },
-  { x: 38, y: 13 },
-  { x: 62, y: 18 },
-  { x: 84, y: 16 },
-  { x: 10, y: 46 },
-  { x: 33, y: 50 },
-  { x: 57, y: 45 },
-  { x: 80, y: 48 },
-  { x: 17, y: 73 },
-  { x: 43, y: 76 },
-  { x: 67, y: 72 },
-  { x: 87, y: 70 },
+  // Baris 1 — atas
+  { x: 10, y: 14 }, { x: 28, y: 12 }, { x: 46, y: 15 }, { x: 64, y: 12 }, { x: 82, y: 16 },
+  // Baris 2 — atas-tengah
+  { x: 16, y: 32 }, { x: 36, y: 30 }, { x: 56, y: 33 }, { x: 76, y: 30 }, { x: 89, y: 35 },
+  // Baris 3 — tengah-bawah
+  { x: 8,  y: 50 }, { x: 30, y: 52 }, { x: 50, y: 49 }, { x: 70, y: 53 }, { x: 90, y: 50 },
+  // Baris 4 — bawah
+  { x: 18, y: 70 }, { x: 40, y: 73 }, { x: 60, y: 71 }, { x: 80, y: 74 }, { x: 50, y: 78 },
 ];
+
+const NOM_MIN_ZONE_DIST = 16;
 
 // ============================================================
 // E. KEYBIND SYSTEM (Mengambil dari profile.js)
@@ -481,9 +479,24 @@ function nomSpawnWave() {
   const keys = nomGetKeys();
   const usedK = nomActiveNotes.map((n) => n.key);
   const freeK = keys.filter((k) => !usedK.includes(k));
-  const zones = [...NOM_ZONES].sort(() => Math.random() - 0.5);
+
+  // Posisi semua note yang masih aktif
+  const activeZones = nomActiveNotes.map((n) => n.zone).filter(Boolean);
+
+  function isZoneFree(zone) {
+    return activeZones.every((az) => {
+      const dist = Math.hypot(zone.x - az.x, zone.y - az.y);
+      return dist >= NOM_MIN_ZONE_DIST;
+    });
+  }
+
+  let availableZones = NOM_ZONES.filter(isZoneFree);
+  if (availableZones.length === 0) availableZones = [...NOM_ZONES];
+
+  const zones = [...availableZones].sort(() => Math.random() - 0.5);
 
   for (let i = 0; i < diff.noteCount && i < freeK.length; i++) {
+    if (!zones[i]) break;
     nomSpawnNote(zones[i], nomPickNoteType(), freeK[i], diff);
   }
 }
@@ -521,6 +534,7 @@ function nomSpawnNote(zone, type, key, diff) {
     key,
     type,
     el,
+    zone, // posisi note ini — dipakai nomSpawnWave untuk hindari overlap
     spawnedAt: Date.now(),
     windowMs: diff.windowMs,
     perfectMs: diff.perfectMs,

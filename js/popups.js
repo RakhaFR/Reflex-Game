@@ -4,6 +4,38 @@
 // ============================================================
 
 // ============================================================
+// RESULT POPUP — VICTORY MUSIC
+// ============================================================
+// Musik yang diputar setiap kali popup "Akhir Permainan" muncul
+// (baik dari basic mode maupun NOM mode).
+let resultMusicEl = null;
+
+function playResultMusic() {
+  if (!resultMusicEl) {
+    resultMusicEl = document.getElementById("resultMusic");
+    if (!resultMusicEl) {
+      resultMusicEl = document.createElement("audio");
+      resultMusicEl.id = "resultMusic";
+      resultMusicEl.src = "assets/music/PixelCoinDash(hasil).mp3";
+      resultMusicEl.preload = "auto";
+      document.body.appendChild(resultMusicEl);
+    }
+  }
+  resultMusicEl.currentTime = 0;
+  resultMusicEl.volume = typeof profile !== "undefined"
+    ? ((profile.settings?.masterVolume ?? 100) / 100) * 0.7
+    : 0.7;
+  resultMusicEl.play().catch(() => {});
+}
+
+function stopResultMusic() {
+  if (resultMusicEl) {
+    resultMusicEl.pause();
+    resultMusicEl.currentTime = 0;
+  }
+}
+
+// ============================================================
 // QUIT CONFIRM POPUP
 // ============================================================
 let quitTargetMode = null;
@@ -46,6 +78,7 @@ document.getElementById("quitYesBtn")?.addEventListener("click", () => {
         "Best Combo: x" + (window.basicBestCombo ?? 0);
       window._nomResultActive = false;
       popup.classList.add("active");
+      playResultMusic();
     }
 
   } else if (quitTargetMode === "notoriginal") {
@@ -76,6 +109,7 @@ document.getElementById("quitYesBtn")?.addEventListener("click", () => {
       }
       window._nomResultActive = true;
       popup.classList.add("active");
+      playResultMusic();
     }
   }
 
@@ -104,6 +138,7 @@ document.getElementById("quitYesBtn")?.addEventListener("click", () => {
   if (playAgainBtn) {
     playAgainBtn.addEventListener("click", () => {
       playSound();
+      stopResultMusic();
       document.getElementById("basicResultPopup")?.classList.remove("active");
 
       if (window._nomResultActive) {
@@ -131,6 +166,7 @@ document.getElementById("quitYesBtn")?.addEventListener("click", () => {
   if (goHomeBtn) {
     goHomeBtn.addEventListener("click", () => {
       playSound();
+      stopResultMusic();
       document.getElementById("basicResultPopup")?.classList.remove("active");
 
       if (window._nomResultActive) {

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Cyber Tech Panel Preview</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Slackey&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <style>
+    /* Reset Dasar */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #040209;
+      font-family: sans-serif;
+      height: 100vh;
+    }
+
+    /* ── OVERLAY SCREEN ── */
+    #basicResultPopup {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 4, 22, 0.95); 
+      backdrop-filter: blur(15px);
+      z-index: 9000;
+      display: flex; 
+      align-items: center;
+      justify-content: center;
+      background-image: linear-gradient(rgba(58, 43, 247, 0.05) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(58, 43, 247, 0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* ── CORE CONTAINER: ADVANCED MECH POLYGON ── */
+    /* Menggunakan koordinat polygon kompleks untuk membentuk frame robotik/armor */
+    .popup-box.arcade-slant {
+      background: #0f0a2a; 
+      background-image: linear-gradient(135deg, #1b0fd6 0%, #08021a 100%); 
+      position: relative;
+      max-width: 650px; 
+      width: 95%;
+      padding: 60px 45px 45px 45px;
+      text-align: center;
+      
+      /* CLIP-PATH ADVANCED: 12 Titik Potong Geometris */
+      clip-path: polygon(
+        0% 40px, 
+        40px 40px, 
+        70px 0%, 
+        calc(100% - 70px) 0%, 
+        calc(100% - 40px) 40px, 
+        100% 40px, 
+        100% calc(100% - 40px), 
+        calc(100% - 40px) 100%, 
+        40px 100%, 
+        0 calc(100% - 40px)
+      );
+      
+      filter: drop-shadow(0px 20px 40px rgba(0, 0, 0, 0.9));
+    }
+
+    /* Efek Lapisan Outline Frame Neon Dalam */
+    .popup-box.arcade-slant::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 2px solid #00ffaa;
+      opacity: 0.4;
+      pointer-events: none;
+      clip-path: inherit;
+    }
+
+    /* Garis Ornamen Sudut Atas (Aksen Oranye Cyber) */
+    .popup-box.arcade-slant::before {
+      content: "";
+      position: absolute;
+      top: 40px;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: #ffaa00;
+      box-shadow: 0 0 10px #ffaa00;
+    }
+
+    /* ── TOP HEADER PANEL TAB ── */
+    .popup-box .game-title {
+      font-family: "Orbitron", sans-serif;
+      font-size: 32px; 
+      font-weight: 900;
+      margin: -25px 0 40px;
+      color: #fffb00; 
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      text-shadow: 3px 3px 0px #000;
+      position: relative;
+      display: inline-block;
+      padding: 5px 30px;
+    }
+
+    /* ── REWARD CONTAINER ── */
+    .reward-container {
+      margin-bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* BARIS REWARD: Bentuk Anak Panah Tech Ganda */
+    .reward-row {
+      background: rgba(5, 2, 18, 0.85); 
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 40px;
+      position: relative;
+      
+      /* Path bersayap asimetris di bagian kanan dan kiri */
+      clip-path: polygon(
+        0% 0%, 
+        calc(100% - 25px) 0%, 
+        100% 50%, 
+        calc(100% - 25px) 100%, 
+        0% 100%, 
+        20px 50%
+      );
+    }
+
+    /* Sub-Aksen Segitiga di Ujung Baris */
+    .reward-row::after {
+      content: "";
+      position: absolute;
+      right: 5px;
+      top: 35%;
+      width: 6px;
+      height: 30%;
+      background: #00f3ff;
+      clip-path: polygon(100% 0, 0 50%, 100% 100%);
+    }
+
+    /* Label & Ikon */
+    .reward-label {
+      font-family: "Orbitron", sans-serif;
+      font-size: 15px;
+      font-weight: 900;
+      color: #ffffff;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      letter-spacing: 1px;
+    }
+    .reward-label i {
+      font-size: 18px;
+      filter: drop-shadow(0 0 5px currentColor);
+    }
+    .reward-label i.fa-trophy { color: #ffdb00; }
+    .reward-label i.fa-bolt { color: #00f3ff; }
+
+    /* Nilai Skor Gede Premium */
+    .reward-value {
+      font-family: "Slackey", sans-serif;
+      font-size: 28px; 
+      color: #00ffaa !important; 
+      text-shadow: 3px 3px 0px #000;
+      margin-right: 15px; /* Menghindari area tabrakan clip path kanan */
+    }
+
+    /* ── BUTTON GROUP (TECH SLOT GEOMETRIC) ── */
+    .button-group {
+      display: flex;
+      gap: 25px;
+      justify-content: center;
+    }
+
+    .popup-box .btn {
+      flex: 1; 
+      font-family: "Orbitron", sans-serif;
+      font-size: 16px; 
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 18px 20px; 
+      border: none !important;
+      color: #ffffff;
+      cursor: pointer;
+      text-transform: uppercase;
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+
+      /* Potongan bersayap jajaran genjang tajam */
+      clip-path: polygon(25px 0%, 100% 0%, calc(100% - 25px) 100%, 0% 100%);
+    }
+
+    /* Tombol Ulang (Gradasi Merah Neon Berpendar) */
+    .popup-box .retry-style {
+      background: linear-gradient(135deg, #ff0055 0%, #990022 100%);
+      box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.3);
+      text-shadow: 2px 2px 0px #000;
+    }
+
+    /* Tombol Menu (Kuning Neon Solid) */
+    .popup-box .next-style {
+      background: linear-gradient(135deg, #fffb00 0%, #c49a00 100%);
+      color: #050212; 
+      font-weight: 900;
+    }
+
+    /* Efek Hover: Berpijar & Menggeser Efek Pantulan Cahaya */
+    .popup-box .btn:hover {
+      filter: brightness(1.25);
+      letter-spacing: 3px; /* Teks meregang sedikit pas di-hover (efek sci-fi) */
+    }
+
+    /* Garis Animasi Mengkilap */
+    .popup-box .btn::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -150%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+      );
+      transform: skewX(-20deg);
+      transition: left 0.6s ease;
+    }
+    .popup-box .btn:hover::before {
+      left: 150%;
+    }
+
+    /* Saat Ditekan */
+    .popup-box .btn:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="basicResultPopup" class="popup-overlay">
+    <div class="popup-box arcade-slant">
+      
+      <h2 class="game-title">Akhir Permainan</h2>
+      
+      <div class="reward-container">
+        
+        <div class="reward-row">
+          <span class="reward-label">
+            <i class="fas fa-trophy"></i> Skor Akhir kamu
+          </span>
+          <span id="basicFinalScore" class="reward-value">1,250</span>
+        </div>
+        
+        <div class="reward-row">
+          <span class="reward-label">
+            <i class="fas fa-bolt"></i> Maks Combo
+          </span>
+          <span id="basicFinalCombo" class="reward-value">42x</span>
+        </div>
+        
+      </div>
+
+      <div class="button-group">
+        <button class="btn play-btn shiny-button retry-style" id="basicPlayAgainBtn">Main Lagi</button>
+        <button class="btn back-btn shiny-button next-style" id="basicGoHomeBtn">Ke Menu</button>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>
