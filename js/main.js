@@ -146,7 +146,7 @@ const UPDATE_LOGS = [
       version: "Pre-Test",
       date: "28 MEI 2026",
       badgeClass: "yellow",
-      bannerImg: "assets/picture/new-logo.png", // Menggunakan background bawaan kamu sebagai contoh
+      bannerImg: "assets/picture/pre-test.png", // Menggunakan background bawaan kamu sebagai contoh
       changes: [
           // { type: "add", text: "Integrasi Not Original Mode (NOM_TRACKS) ke dalam sistem lobby." },
           { type: "upd", text: "Penataan ulang layout menu & gameplay dengan konsep *Stylized Arcade Interface*. masih tahap pre-test kemungkinan data anda bakal hilang di update selanjutnya.." }

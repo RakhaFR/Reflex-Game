@@ -564,23 +564,50 @@ function bmStartMusicTimer(duration) {
 // M. GAME OVER
 // ============================================================
 function bmGameOver() {
+  // Snapshot dulu sebelum bmStopEngine() (konsisten dengan pola quitYesBtn
+  // di popups.js — baca nilai SEBELUM stop, baru stop, baru pakai nilainya).
+  const finalScore = bmScore;
+  const finalCombo = bmBestCombo;
+  const finalTrackIdx = bmTrackIdx;
+
   bmStopEngine();
 
   if (typeof statRecordGameEnd === "function")
-    statRecordGameEnd("basic", bmScore, bmBestCombo);
+    statRecordGameEnd("basic", finalScore, finalCombo);
 
   const popup = document.getElementById("basicResultPopup");
   if (popup) {
-    const scoreEl = document.getElementById("basicFinalScore");
-    const comboEl = document.getElementById("basicFinalCombo");
-    const trackEl = document.getElementById("basicFinalTrack");
-    if (scoreEl) scoreEl.textContent = bmScore.toLocaleString();
-    if (comboEl) comboEl.textContent = "Best Combo: x" + bmBestCombo;
-    if (trackEl) {
-      const track = BM_TRACKS[bmTrackIdx];
-      trackEl.textContent = track ? track.title : "";
+    const track = typeof BM_TRACKS !== "undefined" ? BM_TRACKS[finalTrackIdx] : null;
+    const clicks = (typeof profile !== "undefined" && profile.stats?.basic)
+      ? profile.stats.basic.clicks : 0;
+    const wrongClicks = (typeof profile !== "undefined" && profile.stats?.basic)
+      ? profile.stats.basic.wrongClicks : 0;
+
+    if (typeof populateResultPopup === "function") {
+      // Jalur sama persis dengan quitYesBtn di popups.js — mengisi
+      // Accuracy/Rank/XP/track info, bukan cuma score & combo mentah.
+      populateResultPopup({
+        mode: "basic",
+        finalScore,
+        finalCombo,
+        clicks,
+        wrongClicks,
+        track,
+        diffKey: typeof bmDiffKey !== "undefined" ? bmDiffKey : "normal",
+      });
+    } else {
+      // Fallback kalau popups.js entah kenapa belum ke-load
+      const scoreEl = document.getElementById("basicFinalScore");
+      const comboEl = document.getElementById("basicFinalCombo");
+      const trackEl = document.getElementById("basicFinalTrack");
+      if (scoreEl) scoreEl.textContent = finalScore.toLocaleString();
+      if (comboEl) comboEl.textContent = "Best Combo: x" + finalCombo;
+      if (trackEl) trackEl.textContent = track ? track.title : "";
     }
+
+    window._nomResultActive = false;
     popup.classList.add("active");
+    if (typeof playResultMusic === "function") playResultMusic();
   }
 }
 

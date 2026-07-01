@@ -36,6 +36,68 @@ function stopResultMusic() {
 }
 
 // ============================================================
+// RESULT POPUP — POPULATE FIELDS (design baru comic-arcade)
+// ============================================================
+// Menghitung & mengisi semua field tambahan yang dibutuhkan
+// design baru: accuracy %, rank huruf, XP gained, album art,
+// track subtitle, dan tape kesulitan.
+function rpCalcRank(accuracyPct) {
+  if (accuracyPct >= 98) return "S+";
+  if (accuracyPct >= 95) return "S";
+  if (accuracyPct >= 90) return "A";
+  if (accuracyPct >= 80) return "B";
+  if (accuracyPct >= 65) return "C";
+  return "D";
+}
+
+function populateResultPopup({ mode, finalScore, finalCombo, clicks, wrongClicks, track, diffKey }) {
+  // Accuracy
+  const totalClicks = clicks ?? 0;
+  const wrong = wrongClicks ?? 0;
+  const correct = Math.max(0, totalClicks - wrong);
+  const accuracyPct = totalClicks > 0 ? (correct / totalClicks) * 100 : 0;
+  const accuracyEl = document.getElementById("rpAccuracy");
+  if (accuracyEl) accuracyEl.textContent = accuracyPct.toFixed(1) + "%";
+
+  // Rank
+  const rankEl = document.getElementById("rpRank");
+  if (rankEl) rankEl.textContent = rpCalcRank(accuracyPct);
+
+  // XP — formula sederhana: skor/10 + bonus combo + bonus akurasi
+  const xp = Math.round((finalScore / 10) + (finalCombo * 2) + (accuracyPct * 3));
+  const xpEl = document.getElementById("rpXpGained");
+  if (xpEl) xpEl.textContent = "+" + xp.toLocaleString() + " XP";
+
+  // Track info
+  const trackNameEl = document.getElementById("basicFinalTrack");
+  const trackSubEl  = document.getElementById("rpTrackSub");
+  const tapeEl       = document.getElementById("rpDiffTape");
+  const artEl        = document.getElementById("rpAlbumArt");
+
+  if (track) {
+    if (trackNameEl) trackNameEl.textContent = track.title || "—";
+    if (trackSubEl)  trackSubEl.textContent  = track.artist || track.subtitle || "";
+    if (artEl && track.art) artEl.src = track.art;
+    if (tapeEl) {
+      const diffLabel = (diffKey || "normal").toUpperCase();
+      const bpm = track.bpm ? " · BPM " + track.bpm : "";
+      tapeEl.textContent = diffLabel + bpm;
+    }
+  } else {
+    if (trackNameEl) trackNameEl.textContent = mode === "notoriginal" ? "Not Original Mode" : "Basic Mode";
+    if (trackSubEl)  trackSubEl.textContent  = "";
+  }
+
+  // Combo display — format "×N" sesuai design baru
+  const comboEl = document.getElementById("basicFinalCombo");
+  if (comboEl) comboEl.textContent = "×" + (finalCombo ?? 0);
+
+  // Score — angka biasa, formatting locale
+  const scoreEl = document.getElementById("basicFinalScore");
+  if (scoreEl) scoreEl.textContent = (finalScore ?? 0).toLocaleString();
+}
+
+// ============================================================
 // QUIT CONFIRM POPUP
 // ============================================================
 let quitTargetMode = null;
@@ -67,15 +129,30 @@ document.getElementById("quitYesBtn")?.addEventListener("click", () => {
 
   if (quitTargetMode === "basic") {
     if (typeof bmStopEngine === "function") bmStopEngine();
+    const finalScore = window.score ?? 0;
+    const finalCombo = window.basicBestCombo ?? 0;
     if (typeof statRecordGameEnd === "function")
-      statRecordGameEnd("basic", window.score ?? 0, window.basicBestCombo ?? 0);
+      statRecordGameEnd("basic", finalScore, finalCombo);
 
     const popup = document.getElementById("basicResultPopup");
     if (popup) {
-      document.getElementById("basicFinalScore").textContent =
-        (window.score ?? 0).toLocaleString();
-      document.getElementById("basicFinalCombo").textContent =
-        "Best Combo: x" + (window.basicBestCombo ?? 0);
+      const track = typeof BM_TRACKS !== "undefined" && typeof bmTrackIdx !== "undefined"
+        ? BM_TRACKS[bmTrackIdx] : null;
+      const clicks = (typeof profile !== "undefined" && profile.stats?.basic)
+        ? profile.stats.basic.clicks : 0;
+      const wrongClicks = (typeof profile !== "undefined" && profile.stats?.basic)
+        ? profile.stats.basic.wrongClicks : 0;
+
+      populateResultPopup({
+        mode: "basic",
+        finalScore,
+        finalCombo,
+        clicks,
+        wrongClicks,
+        track,
+        diffKey: typeof bmDiffKey !== "undefined" ? bmDiffKey : "normal",
+      });
+
       window._nomResultActive = false;
       popup.classList.add("active");
       playResultMusic();
@@ -97,16 +174,22 @@ document.getElementById("quitYesBtn")?.addEventListener("click", () => {
 
     const popup = document.getElementById("basicResultPopup");
     if (popup) {
-      document.getElementById("basicFinalScore").textContent =
-        finalScore.toLocaleString();
-      document.getElementById("basicFinalCombo").textContent =
-        "Best Combo: x" + finalCombo;
-      const trackEl = document.getElementById("basicFinalTrack");
-      if (trackEl) {
-        const track = typeof NOM_TRACKS !== "undefined"
-          ? NOM_TRACKS[finalTrackIdx] : null;
-        trackEl.textContent = track ? track.title : "";
-      }
+      const track = typeof NOM_TRACKS !== "undefined" ? NOM_TRACKS[finalTrackIdx] : null;
+      const clicks = (typeof profile !== "undefined" && profile.stats?.notoriginal)
+        ? profile.stats.notoriginal.clicks : 0;
+      const wrongClicks = (typeof profile !== "undefined" && profile.stats?.notoriginal)
+        ? profile.stats.notoriginal.wrongClicks : 0;
+
+      populateResultPopup({
+        mode: "notoriginal",
+        finalScore,
+        finalCombo,
+        clicks,
+        wrongClicks,
+        track,
+        diffKey: typeof nomDiffKey !== "undefined" ? nomDiffKey : "normal",
+      });
+
       window._nomResultActive = true;
       popup.classList.add("active");
       playResultMusic();

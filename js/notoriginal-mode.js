@@ -717,33 +717,59 @@ function nomStartMusicTimer(duration) {
 // M. GAME OVER (SINKRON DATA TERBAIK: highestNotOriginalScore)
 // ============================================================
 function nomGameOver() {
+  // Snapshot dulu sebelum nomStopEngine() — sama dengan pola quitYesBtn
+  // di popups.js: baca nilai SEBELUM stop, baru stop, baru pakai nilainya.
+  const finalScore = nomScore;
+  const finalCombo = nomBestCombo;
+  const finalTrackIdx = nomTrackIdx;
+
   nomStopEngine();
 
   // FIX 1: Expose nomScore ke window.score agar popups.js & statRecordGameEnd
   // membaca nilai N.O.M, bukan bmScore dari basic mode yang masih terbaca.
-  window._nomFinalScore = nomScore;
-  window._nomFinalCombo = nomBestCombo;
-  window._nomFinalTrackIdx = nomTrackIdx;
+  window._nomFinalScore = finalScore;
+  window._nomFinalCombo = finalCombo;
+  window._nomFinalTrackIdx = finalTrackIdx;
 
   // Rekam ke slot notoriginal di profile
   if (typeof statRecordGameEnd === "function")
-    statRecordGameEnd("notoriginal", nomScore, nomBestCombo);
+    statRecordGameEnd("notoriginal", finalScore, finalCombo);
 
   // Munculkan popup result bawaan game (elemen basicResultPopup sudah ada di game.html)
   const popup = document.getElementById("basicResultPopup");
   if (popup) {
-    const scoreEl = document.getElementById("basicFinalScore");
-    const comboEl = document.getElementById("basicFinalCombo");
-    const trackEl = document.getElementById("basicFinalTrack");
-    if (scoreEl) scoreEl.textContent = nomScore.toLocaleString();
-    if (comboEl) comboEl.textContent = "Best Combo: x" + nomBestCombo;
-    if (trackEl) {
-      const track = NOM_TRACKS[nomTrackIdx];
-      trackEl.textContent = track ? track.title : "";
+    const track = typeof NOM_TRACKS !== "undefined" ? NOM_TRACKS[finalTrackIdx] : null;
+    const clicks = (typeof profile !== "undefined" && profile.stats?.notoriginal)
+      ? profile.stats.notoriginal.clicks : 0;
+    const wrongClicks = (typeof profile !== "undefined" && profile.stats?.notoriginal)
+      ? profile.stats.notoriginal.wrongClicks : 0;
+
+    if (typeof populateResultPopup === "function") {
+      // Jalur sama persis dengan quitYesBtn di popups.js — mengisi
+      // Accuracy/Rank/XP/track info, bukan cuma score & combo mentah.
+      populateResultPopup({
+        mode: "notoriginal",
+        finalScore,
+        finalCombo,
+        clicks,
+        wrongClicks,
+        track,
+        diffKey: typeof nomDiffKey !== "undefined" ? nomDiffKey : "normal",
+      });
+    } else {
+      // Fallback kalau popups.js entah kenapa belum ke-load
+      const scoreEl = document.getElementById("basicFinalScore");
+      const comboEl = document.getElementById("basicFinalCombo");
+      const trackEl = document.getElementById("basicFinalTrack");
+      if (scoreEl) scoreEl.textContent = finalScore.toLocaleString();
+      if (comboEl) comboEl.textContent = "Best Combo: x" + finalCombo;
+      if (trackEl) trackEl.textContent = track ? track.title : "";
     }
+
     // FIX 3: tandai bahwa popup ini dibuka oleh N.O.M bukan basic mode
     window._nomResultActive = true;
     popup.classList.add("active");
+    if (typeof playResultMusic === "function") playResultMusic();
   }
 }
 
