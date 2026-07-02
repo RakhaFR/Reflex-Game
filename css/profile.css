@@ -569,9 +569,9 @@
   padding-bottom: 6px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
-.title-basic { color: #ff2d78; }
-.title-nom   { color: #0051e8; }
-.card-blueprint-title:not(.title-basic):not(.title-nom) { color: #ff9f43; }
+.stats-blueprint-card .title-basic { color: #ff2d78; }
+.stats-blueprint-card .title-nom   { color: #0051e8; }
+.stats-blueprint-card .card-blueprint-title:not(.title-basic):not(.title-nom) { color: #ff9f43; }
 
 .blueprint-row {
   display: flex;
@@ -639,9 +639,10 @@
   font-size: 8px;
   letter-spacing: 0.08em;
 }
-.graph-label-hit, .graph-label-click { color: #2eff66; min-width: 52px; }
-.graph-label-wrong  { color: #ff4444;  min-width: 52px; }
-.graph-label-bonus  { color: #ffcc00;  min-width: 52px; }
+.graph-label-hit              { color: #2eff66; min-width: 72px; }
+.graph-label-click            { color: #2eff66; min-width: 72px; }
+.graph-label-wrong            { color: #ff4444; min-width: 72px; }
+.graph-label-bonus            { color: #ffcc00; min-width: 72px; }
 .graph-bar-track {
   flex: 1;
   height: 8px;
