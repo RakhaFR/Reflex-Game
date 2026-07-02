@@ -113,3 +113,744 @@
   border-color: #00e5ff; 
   box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
 }
+/* ==========================================================================
+   PROFILE MODAL — COMIC ARCADE BRIDGE REDESIGN
+   Override penuh ke language visual rp-*qc-* (popup hasil & exit).
+   Tidak ada perubahan HTML — murni CSS override di sini.
+   Token warna: navy #0e0a2e, pink #ff2a7a, oranye #ff9f43, kuning #ffcc00
+   Font: Orbitron (heading/label), Russo One (value besar)
+   ========================================================================== */
+
+/* ── OVERLAY ── */
+.profile-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 4, 10, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 16px;
+}
+.profile-modal-overlay.active { display: flex; }
+
+/* ── WRAP DENGAN GLOW BORDER (identik .rp-wrap) ── */
+.profile-modal-box {
+  position: relative;
+  width: 100%;
+  max-width: 780px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  /* glow border via box-shadow berlapis */
+  border-radius: 6px;
+  background: linear-gradient(145deg, #0e0a2e 0%, #0a0720 55%, #050310 100%);
+  border: 3px solid #000;
+  box-shadow:
+    0 0 0 3px #ff9f43,
+    0 0 0 5px #ff2a7a,
+    5px 5px 0 5px #000,
+    0 0 40px rgba(255, 159, 67, 0.25),
+    0 0 80px rgba(255, 42, 122, 0.15);
+  animation: pmCardIn 0.38s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  overflow: hidden;
+}
+@keyframes pmCardIn {
+  from { opacity: 0; transform: scale(0.93) translateY(12px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+/* Halftone dot overlay — signature visual */
+.profile-modal-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #fff 1.4px, transparent 1.4px);
+  background-size: 10px 10px;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Hapus corner accent lama */
+.modal-corner-accent { display: none; }
+
+/* ── HEADER (identik .rp-header) ── */
+.profile-modal-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 12px;
+  background: linear-gradient(90deg, #0e0a2e 0%, #1a1060 50%, #0e0a2e 100%);
+  border-bottom: 3px solid #000;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.profile-modal-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #fff 1.4px, transparent 1.4px);
+  background-size: 10px 10px;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+/* Decorative star — kiri header */
+.profile-modal-header::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 4px;
+  width: 22px;
+  height: 22px;
+  background: #ff9f43;
+  opacity: 0.7;
+  clip-path: polygon(50% 4%, 60% 35%, 92% 35%, 67% 55%, 77% 88%, 50% 67%, 23% 88%, 33% 55%, 8% 35%, 40% 35%);
+  pointer-events: none;
+}
+
+.modal-title-group {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 28px; /* ruang untuk star */
+}
+.modal-main-icon {
+  font-size: 18px;
+  color: #ff9f43;
+  text-shadow: 0 0 10px rgba(255, 159, 67, 0.5);
+}
+.modal-title-text {
+  font-family: "Orbitron", sans-serif;
+  font-size: clamp(11px, 2vw, 14px);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #ff2a7a 0%, #ff9f43 55%, #ffcc00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(1px 1px 0 #000);
+  margin: 0;
+}
+
+/* Close button — gaya rp-btn */
+.profile-modal-close {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(135deg, #ff2a7a 0%, #c0175a 100%);
+  border: 2.5px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  cursor: pointer;
+  text-shadow: 1px 1px 0 #000;
+  transition: transform 0.1s ease, filter 0.1s ease;
+  border-radius: 0;
+}
+.profile-modal-close:hover  { transform: scale(1.04); filter: brightness(1.1); }
+.profile-modal-close:active { transform: scale(0.97); }
+
+/* ── TABS (gaya diff-btn / stat-row) ── */
+.profile-modal-tabs {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 0;
+  padding: 0;
+  background: #050310;
+  border-bottom: 3px solid #000;
+  flex-shrink: 0;
+}
+.modal-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: none;
+  border-right: 2px solid #000;
+  background: #080618;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.modal-tab-btn:last-child { border-right: none; }
+.modal-tab-btn::before {
+  content: "";
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: transparent;
+  transition: background 0.15s;
+}
+.modal-tab-btn:hover {
+  background: #0e0a2e;
+  color: rgba(255, 255, 255, 0.75);
+}
+.modal-tab-btn.active {
+  background: linear-gradient(180deg, #0e0a2e 0%, #080618 100%);
+  color: #ff9f43;
+  text-shadow: 0 0 8px rgba(255, 159, 67, 0.4);
+}
+.modal-tab-btn.active::before { background: #ff9f43; }
+
+/* ── CONTENT WRAPPER ── */
+.profile-modal-content-wrapper {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: #ff9f43 #080618;
+}
+.profile-modal-content-wrapper::-webkit-scrollbar { width: 5px; }
+.profile-modal-content-wrapper::-webkit-scrollbar-track { background: #080618; }
+.profile-modal-content-wrapper::-webkit-scrollbar-thumb { background: #ff9f43; border-radius: 2px; }
+
+.modal-tab-content { display: none; }
+.modal-tab-content.active { display: block; }
+
+/* ── IDENTITY TAB ── */
+.identity-tab-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.avatar-left-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Level badge — pakai stat-row style */
+.level-badge-zone {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 6px 14px;
+  background: linear-gradient(90deg, #0e0a2e 0%, #1a1060 100%);
+  border: 2.5px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  border-left: 4px solid #ff9f43;
+}
+.lvl-label {
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+}
+.lvl-number {
+  font-family: "Orbitron", sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #ff9f43;
+  text-shadow: 0 0 12px rgba(255,159,67,0.5), 2px 2px 0 #000;
+}
+
+/* Avatar frame — identik rp-art-frame */
+.avatar-glow-frame {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border: 3px solid #000;
+  box-shadow: 5px 5px 0 #000, 0 0 20px rgba(255, 159, 67, 0.3);
+  overflow: hidden;
+  transform: rotate(-2deg);
+  background: #0a0720;
+}
+.avatar-glow-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.avatar-glow-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,159,67,0.1), transparent 60%);
+  pointer-events: none;
+}
+
+/* Avatar buttons — pakai rp-btn style */
+.avatar-buttons-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.pact-btn-blueprint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 2.5px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  background: linear-gradient(135deg, #0e0a2e 0%, #1a1060 100%);
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.1s, filter 0.1s;
+  border-radius: 0;
+  white-space: nowrap;
+}
+.pact-btn-blueprint:hover  { transform: scale(1.03); filter: brightness(1.15); }
+.pact-btn-blueprint:active { transform: scale(0.97); }
+.pact-danger-blueprint {
+  background: linear-gradient(135deg, #3a0a0a 0%, #1a0505 100%);
+  border-color: #000;
+  color: #ff4444;
+  text-shadow: 0 0 8px rgba(255,68,68,0.4);
+}
+.pact-danger-blueprint:hover { filter: brightness(1.2); }
+
+/* Identity right block */
+.identity-right-block {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Input fields — identik pfield-input + label blueprint */
+.input-blueprint-group { display: flex; flex-direction: column; gap: 6px; }
+.blueprint-field-label {
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #ff9f43;
+}
+.username-submit-row { display: flex; gap: 8px; align-items: stretch; }
+.blueprint-field-input {
+  flex: 1;
+  background: #080618;
+  border: 2.5px solid #1f2842;
+  padding: 9px 12px;
+  color: #fff;
+  font-family: "Orbitron", monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  border-radius: 0;
+}
+.blueprint-field-input:focus {
+  border-color: #ff9f43;
+  box-shadow: 0 0 0 1px #ff9f43, 3px 3px 0 #000;
+}
+.pact-btn-save-blueprint {
+  padding: 9px 16px;
+  border: 2.5px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  background: linear-gradient(135deg, #ff9f43 0%, #e07b1a 100%);
+  color: #000;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.1s, filter 0.1s;
+  border-radius: 0;
+  white-space: nowrap;
+}
+.pact-btn-save-blueprint:hover  { transform: scale(1.03); filter: brightness(1.1); }
+.pact-btn-save-blueprint:active { transform: scale(0.97); }
+
+.username-hint-text {
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* XP bar — identik rp-xp-bar */
+.xp-progression-panel { display: flex; flex-direction: column; gap: 6px; }
+.xp-text-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+.profile-modal-box .xp-bar-container {
+  width: 100%;
+  flex: none;
+  height: 12px;
+  background: #080618;
+  border: 2.5px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  overflow: hidden;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+.profile-modal-box .xp-bar-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #ff9f43 0%, #ff2a7a 100%);
+  box-shadow: 0 0 10px rgba(255,159,67,0.4);
+  transition: width 0.6s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+/* ── STATS TAB — blueprint cards ── */
+.stats-section { margin-bottom: 14px; }
+.stats-blueprint-grid { display: grid; gap: 10px; }
+.stats-grid-2col { grid-template-columns: 1fr 1fr; }
+
+.stats-blueprint-card {
+  position: relative;
+  background: linear-gradient(90deg, #080618 0%, #0e0a2e 100%);
+  border: 2.5px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  padding: 12px 14px;
+  overflow: hidden;
+}
+.stats-blueprint-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #fff 1.4px, transparent 1.4px);
+  background-size: 10px 10px;
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+/* Card accent stripe kiri */
+.card-basic  { border-left: 4px solid #ff2d78; }
+.card-nom    { border-left: 4px solid #0051e8; }
+.stats-blueprint-card:not(.card-basic):not(.card-nom) { border-left: 4px solid #ff9f43; }
+
+.card-blueprint-title {
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.title-basic { color: #ff2d78; }
+.title-nom   { color: #0051e8; }
+.card-blueprint-title:not(.title-basic):not(.title-nom) { color: #ff9f43; }
+
+.blueprint-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-family: "Orbitron", sans-serif;
+  font-size: 9.5px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.05em;
+}
+.blueprint-row:last-child { border-bottom: none; }
+.row-divider { border-top: 1px solid rgba(255,255,255,0.1); margin-top: 4px; padding-top: 8px; }
+
+.b-val {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 900;
+  font-size: 12px;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+}
+.val-basic   { color: #ff2d78; text-shadow: 0 0 8px rgba(255,45,120,0.4), 1px 1px 0 #000; }
+.val-nom     { color: #4d8aff; text-shadow: 0 0 8px rgba(77,138,255,0.4), 1px 1px 0 #000; }
+.val-accuracy { color: #ff9f43; text-shadow: 0 0 8px rgba(255,159,67,0.4), 1px 1px 0 #000; }
+.text-neon-green  { color: #2eff66; text-shadow: 0 0 8px rgba(46,255,102,0.4), 1px 1px 0 #000; }
+.text-neon-yellow { color: #ffcc00; text-shadow: 0 0 8px rgba(255,204,0,0.4),  1px 1px 0 #000; }
+
+/* Performance graph card */
+.stats-graph-card {
+  position: relative;
+  background: linear-gradient(90deg, #080618 0%, #0e0a2e 100%);
+  border: 2.5px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  border-left: 4px solid #ff9f43;
+  padding: 14px;
+  overflow: hidden;
+}
+.stats-graph-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #fff 1.4px, transparent 1.4px);
+  background-size: 10px 10px;
+  opacity: 0.03;
+  pointer-events: none;
+}
+.graph-mode-label {
+  font-family: "Orbitron", sans-serif;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin: 8px 0 6px;
+}
+.label-basic { color: #ff2d78; }
+.label-nom   { color: #4d8aff; }
+.label-total { color: #ff9f43; }
+.graph-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+.graph-label-hit, .graph-label-click { color: #2eff66; min-width: 52px; }
+.graph-label-wrong  { color: #ff4444;  min-width: 52px; }
+.graph-label-bonus  { color: #ffcc00;  min-width: 52px; }
+.graph-bar-track {
+  flex: 1;
+  height: 8px;
+  background: #080618;
+  border: 1.5px solid #1f2842;
+  overflow: hidden;
+}
+.graph-bar-fill {
+  height: 100%;
+  transition: width 0.6s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.fill-hit   { background: linear-gradient(90deg, #2eff66, #00d44f); }
+.fill-wrong { background: linear-gradient(90deg, #ff4444, #c72c2c); }
+.fill-click { background: linear-gradient(90deg, #ff9f43, #ff2a7a); }
+.fill-bonus { background: linear-gradient(90deg, #ffcc00, #f5a800); }
+.graph-val {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 900;
+  font-size: 9px;
+  color: #fff;
+  min-width: 32px;
+  text-align: right;
+}
+.graph-divider {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin: 8px 0;
+}
+
+/* ── SETTINGS TAB ── */
+.settings-blueprint-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 0;
+}
+.settings-blueprint-card {
+  position: relative;
+  background: linear-gradient(90deg, #080618 0%, #0e0a2e 100%);
+  border: 2.5px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  border-left: 4px solid #ff9f43;
+  padding: 12px 14px;
+  overflow: hidden;
+}
+.settings-blueprint-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #fff 1.4px, transparent 1.4px);
+  background-size: 10px 10px;
+  opacity: 0.03;
+  pointer-events: none;
+}
+.setting-blueprint-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-family: "Orbitron", sans-serif;
+  font-size: 9.5px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.05em;
+  gap: 10px;
+}
+.setting-blueprint-row:last-child { border-bottom: none; }
+
+/* Volume slider */
+.vol-inline-row { display: flex; align-items: center; gap: 8px; }
+.vol-slider-blueprint {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 90px;
+  height: 4px;
+  background: #1f2842;
+  outline: none;
+  border: 1px solid #000;
+}
+.vol-slider-blueprint::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #ff9f43;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 #000;
+  cursor: pointer;
+  border-radius: 0;
+}
+.vol-slider-blueprint::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #ff9f43;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 #000;
+  cursor: pointer;
+  border-radius: 0;
+}
+.vol-label-blueprint {
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  color: #ff9f43;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Toggle buttons */
+.toggle-blueprint-btn {
+  padding: 5px 14px;
+  border: 2.5px solid #000;
+  box-shadow: 2px 2px 0 #000;
+  background: linear-gradient(135deg, #ff9f43 0%, #e07b1a 100%);
+  color: #000;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.1s, filter 0.1s;
+  border-radius: 0;
+}
+.toggle-blueprint-btn:hover  { transform: scale(1.04); filter: brightness(1.1); }
+.toggle-blueprint-btn:active { transform: scale(0.97); }
+.toggle-blueprint-btn.off {
+  background: #0e0a2e;
+  color: rgba(255,255,255,0.3);
+  box-shadow: 2px 2px 0 #000;
+}
+
+/* ── KEYBIND EDITOR ── */
+.keybind-editor-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 0 6px;
+}
+.keybind-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.keybind-slot-label {
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+.keybind-key-btn {
+  width: 52px;
+  height: 52px;
+  border: 2.5px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  background: linear-gradient(135deg, #0e0a2e 0%, #1a1060 100%);
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.1s ease, filter 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  text-shadow: 2px 2px 0 #000;
+}
+.keybind-key-btn:hover {
+  transform: scale(1.06);
+  filter: brightness(1.2);
+}
+.keybind-key-btn:active { transform: scale(0.95); }
+.keybind-key-btn.listening {
+  background: linear-gradient(135deg, rgba(255,159,67,0.2) 0%, rgba(255,159,67,0.05) 100%);
+  border-color: #ff9f43;
+  box-shadow: 3px 3px 0 #000, 0 0 14px rgba(255, 159, 67, 0.4);
+  color: #ff9f43;
+  text-shadow: 0 0 8px rgba(255,159,67,0.6);
+  animation: keybindPulse 0.8s ease infinite;
+}
+@keyframes keybindPulse {
+  0%, 100% { box-shadow: 3px 3px 0 #000, 0 0 0 0 rgba(255,159,67,0.4); }
+  50%       { box-shadow: 3px 3px 0 #000, 0 0 0 6px rgba(255,159,67,0); }
+}
+.keybind-key-btn.duplicate {
+  border-color: #ff4444;
+  color: #ff4444;
+  text-shadow: 0 0 8px rgba(255,68,68,0.5);
+  box-shadow: 3px 3px 0 #000, 0 0 10px rgba(255,68,68,0.3);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  .profile-modal-box { max-height: 92vh; }
+  .profile-modal-header { padding: 10px 14px 8px; }
+  .profile-modal-header::after { display: none; }
+  .modal-title-group { padding-left: 0; }
+  .identity-tab-layout { flex-direction: column; align-items: center; }
+  .identity-right-block { width: 100%; }
+  .stats-grid-2col { grid-template-columns: 1fr; }
+  .settings-blueprint-grid { grid-template-columns: 1fr; }
+  .modal-tab-btn { font-size: 8px; padding: 8px 6px; gap: 4px; }
+}
+@media (max-height: 600px) {
+  .profile-modal-box    { max-height: 95vh; }
+  .profile-modal-header { padding: 8px 14px; }
+  .profile-modal-content-wrapper { padding: 12px 14px; }
+}

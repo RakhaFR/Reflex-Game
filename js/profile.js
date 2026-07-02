@@ -188,9 +188,16 @@ function initLobbyProfileEvents() {
 
   // Handler Buka Modal
   const openModalAction = () => {
-    triggerLobbyDOMUpdate();
     renderKeybindEditor();
     modal.classList.add("active");
+    // triggerLobbyDOMUpdate dipanggil SETELAH modal visible (double rAF)
+    // supaya browser sudah selesai render display:flex sebelum width di-set,
+    // sehingga transition CSS xp-bar-fill dari 0 → X% bisa terpicu dengan benar.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        triggerLobbyDOMUpdate();
+      });
+    });
   };
 
   if (openWidget) openWidget.addEventListener("click", (e) => {

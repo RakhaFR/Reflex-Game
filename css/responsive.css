@@ -58,6 +58,7 @@
   .popup-box .btn { padding: 10px 14px; font-size: 11px; }
   .final-score  { font-size: 38px; padding: 7px 0; }
   .final-combo  { font-size: 12px; margin-bottom: 12px; }
+  .quit-icon    { font-size: 32px; margin-bottom: 6px; }
 }
 
 /* Popup quit & result — phone landscape (lebih kecil lagi) */
@@ -78,6 +79,8 @@
   .popup-box .btn { padding: 8px 12px; font-size: 10px; }
   .final-score  { font-size: 30px; padding: 5px 0; }
   .final-combo  { font-size: 11px; margin-bottom: 10px; }
+  .quit-icon    { font-size: 26px; margin-bottom: 4px; }
+  .quit-buttons { gap: 8px; }
 }
 
 
@@ -561,9 +564,9 @@
   .username-submit-row   { gap: 5px; }
   .pact-btn-save-blueprint { padding: 0 10px; font-size: 9px; border-radius: 5px; }
   .username-hint-text    { font-size: 8px; }
-  .xp-progression-panel { padding: 7px; border-radius: 6px; }
-  .xp-text-row           { font-size: 8px; margin-bottom: 3px; }
-  .xp-bar-container      { height: 4px; }
+  .xp-progression-panel              { padding: 7px; }
+  .xp-text-row                       { font-size: 8px; margin-bottom: 3px; }
+  .profile-modal-box .xp-bar-container { height: 6px; }
 
   /* ── TAB STATISTICS ── */
   .stats-blueprint-grid {
@@ -696,9 +699,11 @@
    IV. GAME.HTML — BASIC MODE & NOT ORIGINAL MODE
    ========================================================================== */
 
-/* ── Sembunyikan keybind editor & mouse click card di semua touch landscape ──
-   Touch device pakai tap-on-note, keyboard & mouse integration tidak relevan. */
-@media (orientation: landscape) and (max-height: 800px) {
+/* ── Sembunyikan keybind editor & mouse click card di touch device landscape ──
+   Touch device pakai tap-on-note, keyboard & mouse integration tidak relevan.
+   Pakai pointer:coarse (touch) bukan hanya orientation:landscape supaya
+   desktop monitor landscape tidak ikut tersembunyi. */
+@media (orientation: landscape) and (max-height: 800px) and (pointer: coarse) {
   /* Card "// GAMEPLAY INPUT" (berisi mouse click toggle) */
   .settings-blueprint-card:has(#mouseClickToggleBtn) {
     display: none !important;
