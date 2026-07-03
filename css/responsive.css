@@ -330,7 +330,7 @@
   .mode-switch-current    { font-size: 12px; }
 
   /* Profile widget */
-  .player-profile-widget { width: 190px; flex: 0 0 190px; padding: 5px 12px; }
+  .player-profile-widget { width: 190px; flex: 0 0 190px; padding: 5px 12px; height: 50px;}
   .widget-avatar-wrapper { width: 36px; height: 36px; }
   .widget-name { font-size: 11px; }
   .lvl-badge   { font-size: 9px; }
@@ -500,6 +500,7 @@
   .player-profile-widget {
     width: 155px; flex: 0 0 155px;
     padding: 3px 8px; gap: 6px;
+    height: 45px;
   }
   .widget-avatar-wrapper { width: 26px; height: 26px; border-width: 1.5px; }
   .widget-name   { font-size: 9px; }
@@ -641,7 +642,7 @@
 
 /* ── Phone landscape (iPhone SE/12 Pro: max-height 430) ── */
 @media (orientation: landscape) and (max-height: 430px) {
-  .rp-wrap { max-width: 92vw; }
+  .rp-wrap { max-width: 72vw; }
   .rp-glow-border { inset: -2px; }
   .rp-card { box-shadow: 4px 4px 0 #000; }
 
