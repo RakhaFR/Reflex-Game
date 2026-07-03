@@ -330,7 +330,7 @@
   .mode-switch-current    { font-size: 12px; }
 
   /* Profile widget */
-  .player-profile-widget { width: 190px; flex: 0 0 190px; padding: 5px 12px; height: 50px;}
+  .player-profile-widget { width: 190px; flex: 0 0 220px; padding: 5px 12px; height: 50px;}
   .widget-avatar-wrapper { width: 36px; height: 36px; }
   .widget-name { font-size: 11px; }
   .lvl-badge   { font-size: 9px; }
@@ -498,7 +498,7 @@
 
   /* Profile widget */
   .player-profile-widget {
-    width: 155px; flex: 0 0 155px;
+    width: 165px; flex: 0 0 165px;
     padding: 3px 8px; gap: 6px;
     height: 45px;
   }
