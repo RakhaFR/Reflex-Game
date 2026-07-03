@@ -7,6 +7,7 @@ const PROFILE_DEFAULT = {
   identity: {
     username: "Player",
     avatar: "default", // "default" | "custom_base64"
+    bannerSkin: "arcade-spark", // default banner ID
   },
   stats: {
     totalGamesPlayed: 0,

@@ -31,6 +31,12 @@
     <header class="lobby-header">
 
       <div class="player-profile-widget" id="lobbyProfileWidget">
+        <!-- Banner background SVG — di-inject JS berdasarkan bannerSkin aktif -->
+        <div class="widget-banner-bg" id="widgetBannerBg" aria-hidden="true"></div>
+        <!-- Dot grid overlay -->
+        <div class="widget-dot-grid" aria-hidden="true"></div>
+        <!-- Vignette overlay -->
+        <div class="widget-vignette" aria-hidden="true"></div>
         <div class="widget-avatar-wrapper">
           <img src="assets/picture/new-logo.png" alt="Avatar" id="widgetAvatar"
             onerror="this.src='https://placehold.co/80x80/0d0d1a/ffffff?text=P'">
@@ -39,9 +45,14 @@
           <div class="widget-name" id="widgetUsername">PLAYER</div>
           <div class="widget-level-row">
             <span class="lvl-badge" id="widgetLevelNumber">LV 1</span>
-            <div class="xp-bar-container">
-              <div class="xp-bar-fill" id="widgetXpBarFill" style="width: 0%;"></div>
+            <div class="widget-stars" id="widgetStars">
+              <span class="widget-star">★</span>
+              <span class="widget-star">★</span>
+              <span class="widget-star">★</span>
             </div>
+          </div>
+          <div class="xp-bar-container">
+            <div class="xp-bar-fill" id="widgetXpBarFill" style="width: 0%;"></div>
           </div>
         </div>
         <button class="widget-settings-btn" id="widgetSettingsBtn" title="Pengaturan">
@@ -137,6 +148,15 @@
                   <div class="xp-bar-container">
                     <div class="xp-bar-fill" id="modalXpBarFill" style="width: 0%;"></div>
                   </div>
+                </div>
+
+                <!-- BANNER SKIN SELECTOR -->
+                <div class="banner-selector-panel">
+                  <div class="blueprint-field-label">// BANNER SKIN</div>
+                  <div class="banner-swatches-row" id="bannerSwatchesRow">
+                    <!-- Di-render otomatis oleh JS dari BANNER_SKINS -->
+                  </div>
+                  <div class="banner-active-label" id="bannerActiveLabel">Arcade Spark</div>
                 </div>
               </div>
 

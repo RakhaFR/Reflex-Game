@@ -660,80 +660,110 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 14px 6px 10px;
-  width: 220px;
-  flex: 0 0 220px;
+  padding: 0 12px 0 10px;
+  width: 280px;
+  flex: 0 0 280px;
+  height: 62px;
   overflow: hidden;
   cursor: pointer;
   user-select: none;
-  /* Comic arcade card style */
-  background: linear-gradient(135deg, #0e0a2e 0%, #0a0720 100%);
-  border: 2.5px solid #000;
+  background: #0e0e18;
   box-shadow:
-    0 0 0 2px #ff9f43,
-    0 0 0 4px #ff2a7a,
-    4px 4px 0 4px #000,
-    0 0 20px rgba(255, 159, 67, 0.2);
+    5px 5px 0 #020001,
+    0 0 14px rgba(255, 45, 120, 0.35),
+    inset 0 0 10px rgba(255, 45, 120, 0.08);
   transition: box-shadow 0.2s ease, transform 0.15s ease;
-}
-.player-profile-widget::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, #fff 1.4px, transparent 1.4px);
-  background-size: 10px 10px;
-  opacity: 0.03;
-  pointer-events: none;
 }
 .player-profile-widget:hover {
   box-shadow:
-    0 0 0 2px #ffcc00,
-    0 0 0 4px #ff9f43,
-    4px 4px 0 4px #000,
-    0 0 30px rgba(255, 204, 0, 0.3);
+    5px 5px 0 #000,
+    0 0 22px rgba(255, 106, 0, 0.5),
+    inset 0 0 12px rgba(255, 106, 0, 0.12);
   transform: scale(1.02);
 }
 
-.player-profile-widget > * {
-  position: relative;
+/* Banner SVG background */
+.widget-banner-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.widget-banner-bg svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Dot grid overlay */
+.widget-dot-grid {
+  position: absolute;
+  inset: 0;
   z-index: 1;
-  transform: none; /* hapus skew lama */
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+/* Vignette overlay */
+.widget-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0.72) 0%,
+    rgba(0,0,0,0.2) 40%,
+    rgba(0,0,0,0.2) 70%,
+    rgba(0,0,0,0.6) 100%);
+}
+
+/* All content above layers */
+.player-profile-widget > *:not(.widget-banner-bg):not(.widget-dot-grid):not(.widget-vignette) {
+  position: relative;
+  z-index: 3;
 }
 
 .widget-avatar-wrapper {
-  width: 36px;
-  height: 36px;
-  border: 2.5px solid #000;
-  box-shadow: 2px 2px 0 #000, 0 0 8px rgba(255, 159, 67, 0.4);
+  width: 42px;
+  height: 42px;
+  border: 3px solid #000;
+  outline: 2px solid var(--widget-accent, #ff6a00);
+  box-shadow: 0 0 8px var(--widget-accent, #ff6a00);
   overflow: hidden;
   flex-shrink: 0;
-  border-radius: 0; /* kotak, bukan bulat */
+  border-radius: 0;
+  background: #111;
 }
 .widget-avatar-wrapper img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: contrast(1.1) saturate(1.2);
 }
 
 .widget-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   flex: 1;
   min-width: 0;
+  width: 0; /* force flex child to respect min-width */
 }
 
 .widget-name {
   font-family: "Orbitron", sans-serif;
-  font-weight: 900;
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.12em;
   color: #ffffff;
+  text-shadow: 0 0 12px rgba(255,255,255,0.4), 1px 1px 0 #000;
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 1px 1px 0 #000;
+  line-height: 1;
 }
 
 .widget-level-row {
@@ -745,46 +775,80 @@
 .lvl-badge {
   font-family: "Orbitron", sans-serif;
   font-size: 9px;
-  font-weight: 900;
-  background: linear-gradient(135deg, #ff9f43 0%, #e07b1a 100%);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  background: #ff6a00;
   color: #000;
-  padding: 1px 5px;
-  border: 1.5px solid #000;
-  box-shadow: 1px 1px 0 #000;
-  border-radius: 0;
-  letter-spacing: 0.05em;
-  text-shadow: none;
+  padding: 2px 7px;
+  clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%);
+  box-shadow: 0 0 8px #ff6a00;
+  line-height: 1.4;
+  flex-shrink: 0;
 }
 
+/* Stars — aksesori dekoratif, warna mengikuti accent banner */
+.widget-stars {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  pointer-events: none;
+}
+.widget-star {
+  font-size: 8px;
+  color: var(--widget-accent, #ff6a00);
+  opacity: 0.75;
+  line-height: 1;
+  text-shadow: 0 0 4px var(--widget-accent, #ff6a00);
+}
+
+/* XP bar — full width di dalam widget-info */
+.widget-xp-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+.widget-xp-label {
+  font-family: "Orbitron", sans-serif;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: rgba(136,136,153,0.8);
+  flex-shrink: 0;
+}
 .xp-bar-container {
   flex: 1;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 159, 67, 0.2);
+  height: 4px;
+  background: rgba(0,0,0,0.6);
   overflow: hidden;
   border-radius: 0;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+  min-width: 0;
 }
 
 .xp-bar-fill {
+  display: block;
   height: 100%;
-  background: linear-gradient(90deg, #ff9f43, #ff2a7a);
-  box-shadow: 0 0 6px rgba(255, 159, 67, 0.5);
+  width: 0%;
+  background: var(--widget-accent, #ff6a00);
+  box-shadow: 0 0 6px var(--widget-accent, #ff6a00);
   transition: width 0.5s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
 
 .widget-settings-btn {
   background: none;
   border: none;
-  color: rgba(255, 159, 67, 0.6);
+  color: rgba(136, 136, 153, 0.8);
   cursor: pointer;
   font-size: 13px;
   padding: 4px;
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition: color 0.2s ease, transform 0.3s ease;
+  filter: drop-shadow(0 0 3px rgba(255, 106, 0, 0.4));
   flex-shrink: 0;
 }
 .widget-settings-btn:hover {
   color: #ff9f43;
-  transform: rotate(60deg);
+  transform: rotate(45deg);
 }
 
 /* ==========================================================================

@@ -625,6 +625,18 @@
   .rp-xp-value { font-size: 14px; }
   .rp-btn { padding: 11px 10px; font-size: 12px; gap: 6px; }
   .rp-btn-icon { width: 14px; height: 14px; }
+
+  /* ── Quit confirm popup (qc-*) — tablet landscape ── */
+  .qc-wrap       { max-width: 420px; }
+  .qc-header     { padding: 10px 18px 8px; }
+  .qc-title-abort { font-size: clamp(22px, 5vw, 32px); }
+  .qc-body       { padding: 14px 16px 12px; gap: 8px; }
+  .qc-icon       { font-size: 40px; }
+  .qc-stat-row   { padding: 6px 12px; }
+  .qc-stat-label { font-size: 9px; }
+  .qc-stat-value { font-size: 11px; }
+  .qc-btn { padding: 12px 10px; font-size: 13px; gap: 7px; }
+  .qc-btn-icon { width: 14px; height: 14px; }
 }
 
 /* ── Phone landscape (iPhone SE/12 Pro: max-height 430) ── */
@@ -693,6 +705,36 @@
     letter-spacing: 0.04em;
   }
   .rp-btn-icon { width: 11px; height: 11px; }
+
+  /* Pastikan overlay scrollable kalau konten masih melebihi tinggi layar */
+  .popup-overlay {
+    align-items: flex-start;
+    padding: 6px 0;
+    overflow-y: auto;
+  }
+  .rp-wrap {
+    max-height: 94vh;
+    overflow-y: auto;
+  }
+
+  /* ── Quit confirm popup (qc-*) — phone landscape ── */
+  .qc-wrap       { max-width: 72vw; margin: auto; }
+  .qc-glow-border { inset: -2px; }
+  .qc-card       { box-shadow: 3px 3px 0 #000; }
+  .qc-header     { padding: 5px 12px 4px; }
+  .qc-star       { display: none; }
+  .qc-sublabel   { font-size: 7px; letter-spacing: 0.15em; margin-bottom: 0; }
+  .qc-title-mission { font-size: 7px; }
+  .qc-title-abort   { font-size: clamp(14px, 4vw, 20px); }
+  .qc-body       { padding: 8px 10px 6px; gap: 5px; }
+  .qc-icon       { font-size: 28px; }
+  .qc-stat-row   { padding: 3px 8px; box-shadow: 1.5px 1.5px 0 #000; border-width: 1.5px; border-left-width: 3px; }
+  .qc-stat-label { font-size: 7px; }
+  .qc-stat-value { font-size: 8px; }
+  .qc-confirm-bar { padding: 5px 10px; box-shadow: 2px 2px 0 #000; border-width: 1.5px; }
+  .qc-confirm-label { font-size: 8px; }
+  .qc-btn        { padding: 7px 8px; font-size: 9px; gap: 4px; }
+  .qc-btn-icon   { width: 10px; height: 10px; }
 }
 
 /* ==========================================================================
