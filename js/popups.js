@@ -81,10 +81,11 @@ function populateResultPopup({ mode, finalScore, finalCombo, clicks, wrongClicks
   const rankEl = document.getElementById("rpRank");
   if (rankEl) rankEl.textContent = rpCalcRank(accuracyPct);
 
-  // XP — formula sederhana: skor/10 + bonus combo + bonus akurasi
-  const xp = Math.round((finalScore / 10) + (finalCombo * 2) + (accuracyPct * 3));
+  // XP — formula tunggal, dipakai BAIK untuk display maupun untuk disimpan ke profile
+  // Ini satu-satunya tempat XP dihitung supaya display = yang masuk profile
+  const xpGained = Math.round((finalScore / 10) + (finalCombo * 2) + (accuracyPct * 3));
   const xpEl = document.getElementById("rpXpGained");
-  if (xpEl) xpEl.textContent = "+" + xp.toLocaleString() + " XP";
+  if (xpEl) xpEl.textContent = "+" + xpGained.toLocaleString() + " XP";
 
   // Track info
   const trackNameEl = document.getElementById("basicFinalTrack");
@@ -113,6 +114,9 @@ function populateResultPopup({ mode, finalScore, finalCombo, clicks, wrongClicks
   // Score — angka biasa, formatting locale
   const scoreEl = document.getElementById("basicFinalScore");
   if (scoreEl) scoreEl.textContent = (finalScore ?? 0).toLocaleString();
+
+  // Return xpGained supaya caller bisa pass ke statRecordGameEnd
+  return xpGained;
 }
 
 // ============================================================
@@ -149,8 +153,6 @@ document.getElementById("quitYesBtn")?.addEventListener("click", () => {
     if (typeof bmStopEngine === "function") bmStopEngine();
     const finalScore = window.score ?? 0;
     const finalCombo = window.basicBestCombo ?? 0;
-    if (typeof statRecordGameEnd === "function")
-      statRecordGameEnd("basic", finalScore, finalCombo);
 
     const popup = document.getElementById("basicResultPopup");
     if (popup) {
@@ -161,7 +163,8 @@ document.getElementById("quitYesBtn")?.addEventListener("click", () => {
       const wrongClicks = (typeof profile !== "undefined" && profile.stats?.basic)
         ? profile.stats.basic.wrongClicks : 0;
 
-      populateResultPopup({
+      // populateResultPopup menghitung & menampilkan XP, dan return nilainya
+      const xpGained = populateResultPopup({
         mode: "basic",
         finalScore,
         finalCombo,
@@ -171,24 +174,22 @@ document.getElementById("quitYesBtn")?.addEventListener("click", () => {
         diffKey: typeof bmDiffKey !== "undefined" ? bmDiffKey : "normal",
       });
 
+      // statRecordGameEnd dipanggil SETELAH populateResultPopup
+      // supaya xpGained yang masuk ke lifetimeScore = yang ditampilkan
+      if (typeof statRecordGameEnd === "function")
+        statRecordGameEnd("basic", finalScore, finalCombo, xpGained);
+
       window._nomResultActive = false;
       popup.classList.add("active");
       playResultMusic();
     }
 
   } else if (quitTargetMode === "notoriginal") {
-    // PENTING: baca nilai skor SEBELUM nomStopEngine() dipanggil.
-    // nomStopEngine() tidak reset nomScore/nomBestCombo, tapi untuk keamanan
-    // kita snapshot dulu agar tidak ada race condition apapun.
     const finalScore   = window.nomScore   ?? 0;
     const finalCombo   = window.nomBestCombo ?? 0;
     const finalTrackIdx = window.nomTrackIdx ?? 0;
 
-    // Stop engine SETELAH baca nilai — urutan ini penting!
     if (typeof nomStopEngine === "function") nomStopEngine();
-
-    if (typeof statRecordGameEnd === "function")
-      statRecordGameEnd("notoriginal", finalScore, finalCombo);
 
     const popup = document.getElementById("basicResultPopup");
     if (popup) {
@@ -198,7 +199,7 @@ document.getElementById("quitYesBtn")?.addEventListener("click", () => {
       const wrongClicks = (typeof profile !== "undefined" && profile.stats?.notoriginal)
         ? profile.stats.notoriginal.wrongClicks : 0;
 
-      populateResultPopup({
+      const xpGained = populateResultPopup({
         mode: "notoriginal",
         finalScore,
         finalCombo,
@@ -207,6 +208,9 @@ document.getElementById("quitYesBtn")?.addEventListener("click", () => {
         track,
         diffKey: typeof nomDiffKey !== "undefined" ? nomDiffKey : "normal",
       });
+
+      if (typeof statRecordGameEnd === "function")
+        statRecordGameEnd("notoriginal", finalScore, finalCombo, xpGained);
 
       window._nomResultActive = true;
       popup.classList.add("active");

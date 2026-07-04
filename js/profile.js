@@ -138,9 +138,13 @@ function statRecordFreeze() {
   profileSave(profile);
 }
 
-function statRecordGameEnd(mode, finalScore, maxCombo) {
+function statRecordGameEnd(mode, finalScore, maxCombo, xpGained) {
   profile.stats.totalGamesPlayed++;
-  profile.stats.lifetimeScore += finalScore;
+  // XP yang masuk ke lifetimeScore adalah xpGained (dari formula popup),
+  // BUKAN finalScore mentah — supaya konsisten dengan angka yang ditampilkan.
+  // Fallback ke finalScore hanya jika xpGained tidak diberikan (backward compat).
+  const xpToAdd = (typeof xpGained === "number" && xpGained >= 0) ? xpGained : finalScore;
+  profile.stats.lifetimeScore += xpToAdd;
 
   const r = profile.stats.records;
   if (mode === "basic") {

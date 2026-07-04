@@ -572,8 +572,9 @@ function bmGameOver() {
 
   bmStopEngine();
 
-  if (typeof statRecordGameEnd === "function")
-    statRecordGameEnd("basic", finalScore, finalCombo);
+  // CATATAN: statRecordGameEnd TIDAK dipanggil di sini.
+  // Dipanggil SATU KALI oleh popups.js (quitYesBtn atau populateResultPopup)
+  // untuk menghindari double-counting lifetimeScore/XP.
 
   const popup = document.getElementById("basicResultPopup");
   if (popup) {
@@ -584,9 +585,8 @@ function bmGameOver() {
       ? profile.stats.basic.wrongClicks : 0;
 
     if (typeof populateResultPopup === "function") {
-      // Jalur sama persis dengan quitYesBtn di popups.js — mengisi
-      // Accuracy/Rank/XP/track info, bukan cuma score & combo mentah.
-      populateResultPopup({
+      // populateResultPopup menghitung XP, menampilkannya, dan return nilainya
+      const xpGained = populateResultPopup({
         mode: "basic",
         finalScore,
         finalCombo,
@@ -595,6 +595,10 @@ function bmGameOver() {
         track,
         diffKey: typeof bmDiffKey !== "undefined" ? bmDiffKey : "normal",
       });
+      // statRecordGameEnd dipanggil SETELAH populateResultPopup
+      // supaya xpGained yang masuk lifetimeScore = yang ditampilkan di popup
+      if (typeof statRecordGameEnd === "function")
+        statRecordGameEnd("basic", finalScore, finalCombo, xpGained);
     } else {
       // Fallback kalau popups.js entah kenapa belum ke-load
       const scoreEl = document.getElementById("basicFinalScore");

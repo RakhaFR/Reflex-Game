@@ -740,16 +740,50 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
   if (typeof profile === "undefined") return;
 
   // --- 1. PROSES KALKULASI DATA UTAMA ---
-  const computedLevel      = Math.max(1, Math.floor((profile.stats.lifetimeScore || 0) / 25000) + 1);
-  const currentExpInLevel  = (profile.stats.lifetimeScore || 0) % 25000;
-  const expWidthPercentage = (currentExpInLevel / 25000) * 100;
+  // ── XP & LEVEL SYSTEM (stacking per-level) ──────────────────────────────
+  // XP dibutuhkan untuk level N = 5000 × N
+  // Total XP untuk reach level N = 2500 × N × (N-1)
+  // Inverse: level dari total XP → cari N terbesar dimana 2500×N×(N-1) ≤ totalXP
+  // Solusi kuadrat: N = (1 + sqrt(1 + 8×totalXP/5000)) / 2
+
+  const MAX_LEVEL = 500;
+
+  function xpToReachLevel(n) {
+    // Total XP kumulatif yang dibutuhkan untuk mulai level n
+    return 2500 * n * (n - 1);
+  }
+  function xpNeededForLevel(n) {
+    // XP yang dibutuhkan di dalam level n
+    return 5000 * n;
+  }
+  function computeLevelFromXP(totalXP) {
+    // Hitung level dari total XP menggunakan rumus kuadrat
+    const n = Math.floor((1 + Math.sqrt(1 + (8 * totalXP) / 5000)) / 2);
+    return Math.min(Math.max(1, n), MAX_LEVEL);
+  }
+  function fmtXP(n) {
+    // Format angka besar — K mulai dari 10.000 supaya angka kecil tetap terbaca penuh
+    if (n >= 1e12) return (n / 1e12).toFixed(1).replace(/\.0$/, "") + "T";
+    if (n >= 1e9)  return (n / 1e9 ).toFixed(1).replace(/\.0$/, "") + "B";
+    if (n >= 1e6)  return (n / 1e6 ).toFixed(1).replace(/\.0$/, "") + "M";
+    if (n >= 10000) return (n / 1e3).toFixed(1).replace(/\.0$/, "") + "K";
+    return n.toLocaleString();
+  }
+
+  const totalXP         = profile.stats.lifetimeScore || 0;
+  const computedLevel   = computeLevelFromXP(totalXP);
+  const xpThisLevel     = xpNeededForLevel(computedLevel);
+  const xpStartOfLevel  = xpToReachLevel(computedLevel);
+  const currentExpInLevel = Math.min(totalXP - xpStartOfLevel, xpThisLevel);
+  const expWidthPercentage = Math.min((currentExpInLevel / xpThisLevel) * 100, 100);
+  const isMaxLevel      = computedLevel >= MAX_LEVEL;
 
   // --- 2. SINKRONISASI WIDGET LOBBY UTAMA ---
   const widgetLevelNumber = document.getElementById("widgetLevelNumber");
   const widgetXpBarFill   = document.getElementById("widgetXpBarFill");
   const widgetUsername    = document.getElementById("widgetUsername");
   const widgetAvatar      = document.getElementById("widgetAvatar");
-  if (widgetLevelNumber) widgetLevelNumber.textContent = "LV " + computedLevel;
+  if (widgetLevelNumber) widgetLevelNumber.textContent = isMaxLevel ? "MAX" : "LV " + computedLevel;
   if (widgetXpBarFill)   widgetXpBarFill.style.width   = `${expWidthPercentage}%`;
   if (widgetUsername)    widgetUsername.textContent     = profile.identity.username.toUpperCase();
   if (widgetAvatar) {
@@ -775,7 +809,15 @@ window.syncLobbyProfileDOM = function syncLobbyProfileDOM() {
   const modalProfileImg   = document.getElementById("modalProfileImg");
   if (modalLevelNumber)  modalLevelNumber.textContent  = computedLevel;
   if (modalXpBarFill)    modalXpBarFill.style.width    = `${expWidthPercentage}%`;
-  if (modalXpTextRow)    modalXpTextRow.innerHTML      = `<span>EXP PROGRESSION</span><span>${currentExpInLevel.toLocaleString()} / 25,000 PTS</span>`;
+  if (modalXpTextRow) {
+    if (isMaxLevel) {
+      modalXpTextRow.innerHTML = `<span>EXP PROGRESSION</span><span>MAX LEVEL ★</span>`;
+    } else {
+      const curFmt  = fmtXP(currentExpInLevel);
+      const maxFmt  = fmtXP(xpThisLevel);
+      modalXpTextRow.innerHTML = `<span>EXP PROGRESSION</span><span>${curFmt} / ${maxFmt} PTS</span>`;
+    }
+  }
   if (modalUsernameText) modalUsernameText.textContent = profile.identity.username.toUpperCase();
   if (modalUsernameInput && !modalUsernameInput.matches(":focus"))
     modalUsernameInput.value = profile.identity.username;

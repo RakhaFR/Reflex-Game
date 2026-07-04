@@ -731,9 +731,8 @@ function nomGameOver() {
   window._nomFinalCombo = finalCombo;
   window._nomFinalTrackIdx = finalTrackIdx;
 
-  // Rekam ke slot notoriginal di profile
-  if (typeof statRecordGameEnd === "function")
-    statRecordGameEnd("notoriginal", finalScore, finalCombo);
+  // CATATAN: statRecordGameEnd TIDAK dipanggil di sini.
+  // Dipanggil SATU KALI oleh popups.js untuk menghindari double-counting XP.
 
   // Munculkan popup result bawaan game (elemen basicResultPopup sudah ada di game.html)
   const popup = document.getElementById("basicResultPopup");
@@ -745,9 +744,8 @@ function nomGameOver() {
       ? profile.stats.notoriginal.wrongClicks : 0;
 
     if (typeof populateResultPopup === "function") {
-      // Jalur sama persis dengan quitYesBtn di popups.js — mengisi
-      // Accuracy/Rank/XP/track info, bukan cuma score & combo mentah.
-      populateResultPopup({
+      // populateResultPopup menghitung XP, menampilkannya, dan return nilainya
+      const xpGained = populateResultPopup({
         mode: "notoriginal",
         finalScore,
         finalCombo,
@@ -756,6 +754,10 @@ function nomGameOver() {
         track,
         diffKey: typeof nomDiffKey !== "undefined" ? nomDiffKey : "normal",
       });
+      // statRecordGameEnd dipanggil SETELAH populateResultPopup
+      // supaya xpGained yang masuk lifetimeScore = yang ditampilkan di popup
+      if (typeof statRecordGameEnd === "function")
+        statRecordGameEnd("notoriginal", finalScore, finalCombo, xpGained);
     } else {
       // Fallback kalau popups.js entah kenapa belum ke-load
       const scoreEl = document.getElementById("basicFinalScore");
