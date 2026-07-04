@@ -51,6 +51,24 @@ function rpCalcRank(accuracyPct) {
 }
 
 function populateResultPopup({ mode, finalScore, finalCombo, clicks, wrongClicks, track, diffKey }) {
+  // Reset tombol: sembunyikan dulu, aktifkan setelah 3 detik
+  const btns = document.getElementById("basicResultPopup")?.querySelector(".rp-buttons");
+  if (btns) {
+    btns.classList.remove("rp-buttons-ready");
+    // Restart animasi CSS dengan re-flow trick
+    btns.style.animation = "none";
+    void btns.offsetWidth;
+    btns.style.animation = "";
+    // Aktifkan pointer-events setelah delay animasi selesai
+    setTimeout(() => btns.classList.add("rp-buttons-ready"), 3100);
+  }
+
+  // Reset animasi stat rows agar stagger berjalan dari awal setiap popup
+  document.querySelectorAll(".rp-stat-row, .rp-xp-bar").forEach(el => {
+    el.style.animation = "none";
+    void el.offsetWidth;
+    el.style.animation = "";
+  });
   // Accuracy
   const totalClicks = clicks ?? 0;
   const wrong = wrongClicks ?? 0;

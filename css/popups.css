@@ -425,6 +425,29 @@
   flex-direction: column;
   gap: 8px;
 }
+/* ── STAGGERED REVEAL ANIMATION ── */
+@keyframes rpRevealUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes rpRevealLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Semua stat row + xp bar: awalnya tidak terlihat, muncul satu per satu */
 .rp-stat-row {
   position: relative;
   display: flex;
@@ -436,8 +459,19 @@
   border: 2.5px solid #000;
   box-shadow: 3px 3px 0 #000;
   border-left: 4px solid #ff9f43;
+  /* Reveal animation */
+  opacity: 0;
+    animation:
+    rpRevealLeft 0.35s cubic-bezier(0.34, 1.2, 0.64, 1) forwards,
+    rpXpGrow   0.5s  cubic-bezier(0.28, 1.2, 0.64, 1) forwards;
 }
 .rp-stat-row.rp-accent { border-left-color: #ff2a7a; }
+
+/* Staggered delay — setiap baris muncul 0.12s setelah yang sebelumnya */
+.rp-stat-grid .rp-stat-row:nth-child(1) { animation-delay: 0.15s; }
+.rp-stat-grid .rp-stat-row:nth-child(2) { animation-delay: 0.30s; }
+.rp-stat-grid .rp-stat-row:nth-child(3) { animation-delay: 0.45s; }
+.rp-stat-grid .rp-stat-row:nth-child(4) { animation-delay: 0.60s; }
 .rp-stat-row::before {
   content: "";
   position: absolute;
@@ -480,8 +514,12 @@
   background: linear-gradient(90deg, #ff9f43 0%, #ff2a7a 100%);
   border: 3px solid #000;
   box-shadow: 4px 4px 0 #000, 0 0 16px rgba(255, 159, 67, 0.35);
-  animation: rpXpGrow 0.5s cubic-bezier(0.28, 1.2, 0.64, 1) forwards;
   transform-origin: left;
+  /* Reveal: muncul setelah semua stat row, lalu grow dari kiri */
+  opacity: 0;
+  animation:
+    rpRevealUp 0.35s cubic-bezier(0.34, 1.2, 0.64, 1) 0.8s forwards,
+    rpXpGrow   0.5s  cubic-bezier(0.28, 1.2, 0.64, 1) 0.8s forwards;
 }
 @keyframes rpXpGrow {
   from { transform: scaleX(0); }
@@ -523,6 +561,17 @@
 .rp-buttons {
   display: flex;
   border-top: 3px solid #000;
+  /* Muncul setelah 3 detik — animasi slide up dari bawah */
+  opacity: 0;
+  transform: translateY(16px);
+  animation: rpRevealUp 0.4s cubic-bezier(0.34, 1.2, 0.64, 1) 3s forwards,
+    rpXpGrow   0.5s  cubic-bezier(0.28, 1.2, 0.64, 1) 3s forwards;
+  /* Tidak bisa diklik sebelum tombol muncul */
+  pointer-events: none;
+}
+/* Aktifkan pointer-events setelah animasi selesai */
+.rp-buttons.rp-buttons-ready {
+  pointer-events: auto;
 }
 .rp-btn {
   flex: 1;
