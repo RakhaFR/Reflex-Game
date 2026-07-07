@@ -66,6 +66,23 @@ function profileSave(data) {
   } catch (e) { console.warn("Profile save failed", e); }
 }
 
+// Debounced save — untuk statRecordClick yang dipanggil ratusan kali per game.
+// Menghindari throttle localStorage saat note banyak, tapi tetap simpan
+// setelah 500ms idle. Force save (non-debounced) dipakai di statRecordGameEnd.
+let _saveTimer = null;
+function profileSaveDebounced(data) {
+  if (_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    _saveTimer = null;
+    profileSave(data);
+  }, 500);
+}
+function profileSaveForce(data) {
+  // Cancel debounce yang pending dan langsung save
+  if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
+  profileSave(data);
+}
+
 function deepMerge(target, source) {
   for (const key of Object.keys(source)) {
     if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
@@ -96,21 +113,25 @@ function applySoundSettings() {
 function statRecordClick(mode) {
   profile.stats.totalClicks++;
   if (mode === "basic") {
+    if (!profile.stats.basic) profile.stats.basic = { clicks: 0, wrongClicks: 0, gamesPlayed: 0 };
     profile.stats.basic.clicks++;
-  } else if (mode === "notoriginal" && profile.stats.notoriginal) {
+  } else if (mode === "notoriginal") {
+    if (!profile.stats.notoriginal) profile.stats.notoriginal = { clicks: 0, wrongClicks: 0, gamesPlayed: 0 };
     profile.stats.notoriginal.clicks++;
   }
-  profileSave(profile);
+  profileSaveDebounced(profile);
 }
 
 function statRecordWrongClick(mode) {
   profile.stats.totalWrongClicks++;
   if (mode === "basic") {
+    if (!profile.stats.basic) profile.stats.basic = { clicks: 0, wrongClicks: 0, gamesPlayed: 0 };
     profile.stats.basic.wrongClicks++;
-  } else if (mode === "notoriginal" && profile.stats.notoriginal) {
+  } else if (mode === "notoriginal") {
+    if (!profile.stats.notoriginal) profile.stats.notoriginal = { clicks: 0, wrongClicks: 0, gamesPlayed: 0 };
     profile.stats.notoriginal.wrongClicks++;
   }
-  profileSave(profile);
+  profileSaveDebounced(profile);
 }
 
 // Helper bawaan fungsi toggle status tombol (dipanggil oleh main.js)
@@ -123,7 +144,7 @@ function syncToggleState(id, state) {
 
 function statRecordBonus() {
   profile.stats.totalBonusTriggered++;
-  profileSave(profile);
+  profileSaveDebounced(profile);
 }
 
 // Pemanggil trigger update layar aman (menghubungkan ke main.js)
@@ -135,37 +156,37 @@ function triggerLobbyDOMUpdate() {
 
 function statRecordFreeze() {
   profile.stats.totalFreezeUsed++;
-  profileSave(profile);
+  profileSaveDebounced(profile);
 }
 
 function statRecordGameEnd(mode, finalScore, maxCombo, xpGained) {
   profile.stats.totalGamesPlayed++;
-  // XP yang masuk ke lifetimeScore adalah xpGained (dari formula popup),
-  // BUKAN finalScore mentah — supaya konsisten dengan angka yang ditampilkan.
-  // Fallback ke finalScore hanya jika xpGained tidak diberikan (backward compat).
   const xpToAdd = (typeof xpGained === "number" && xpGained >= 0) ? xpGained : finalScore;
   profile.stats.lifetimeScore += xpToAdd;
 
   const r = profile.stats.records;
   if (mode === "basic") {
+    if (!profile.stats.basic) profile.stats.basic = { clicks: 0, wrongClicks: 0, gamesPlayed: 0 };
     profile.stats.basic.gamesPlayed++;
-    if (finalScore > r.highestBasicScore) r.highestBasicScore = finalScore;
+    if (finalScore > (r.highestBasicScore || 0)) r.highestBasicScore = finalScore;
   } else if (mode === "notoriginal") {
-    if (profile.stats.notoriginal) profile.stats.notoriginal.gamesPlayed++;
-    if (r.highestNotOriginalScore !== undefined && finalScore > r.highestNotOriginalScore) {
-      r.highestNotOriginalScore = finalScore;
-    }
+    if (!profile.stats.notoriginal) profile.stats.notoriginal = { clicks: 0, wrongClicks: 0, gamesPlayed: 0 };
+    profile.stats.notoriginal.gamesPlayed++;
+    // Pastikan highestNotOriginalScore selalu diupdate — tanpa guard !== undefined
+    if (finalScore > (r.highestNotOriginalScore || 0)) r.highestNotOriginalScore = finalScore;
   }
 
-  if (maxCombo > r.longestCombo) r.longestCombo = maxCombo;
-  profileSave(profile);
+  if (maxCombo > (r.longestCombo || 0)) r.longestCombo = maxCombo;
+  // Force save — cancel debounce yang pending dari statRecordClick,
+  // pastikan data game end tersimpan langsung tidak tertunda
+  profileSaveForce(profile);
 }
 
 function statRecordReaction(ms) {
   const r = profile.stats.records;
   if (r.fastestReactionTime === 0 || ms < r.fastestReactionTime) {
     r.fastestReactionTime = ms;
-    profileSave(profile);
+    profileSaveForce(profile);
   }
 }
 
