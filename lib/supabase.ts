@@ -104,6 +104,36 @@ export async function syncLocalProfileToCloud(user: User, localProfile: ProfileD
   }
 }
 
+export async function syncAllLocalBestScoresToCloud(user: User, localProfile: ProfileData) {
+  if (!isSupabaseConfigured() || !user) return;
+  const trackBestObj = (localProfile.stats as any)?.trackBest || {};
+  const keys = Object.keys(trackBestObj);
+  if (keys.length === 0) return;
+
+  for (const key of keys) {
+    const parts = key.split("_");
+    if (parts.length >= 3) {
+      const trackId = parts[0];
+      const mode = parts[1];
+      const difficulty = parts.slice(2).join("_");
+      const best = trackBestObj[key];
+      if (best && typeof best.score === "number") {
+        await recordBestScoreToCloud(
+          user,
+          localProfile,
+          trackId,
+          mode,
+          difficulty,
+          best.score,
+          best.maxCombo || 0,
+          best.accuracy || "0%",
+          best.rank || "D"
+        );
+      }
+    }
+  }
+}
+
 export async function fetchCloudProfile(user: User, localProfile: ProfileData): Promise<ProfileData | null> {
   if (!isSupabaseConfigured() || !user) return null;
   try {
@@ -113,11 +143,36 @@ export async function fetchCloudProfile(user: User, localProfile: ProfileData): 
       .eq("id", user.id)
       .single();
 
+    const { data: cloudBestScores } = await supabase
+      .from("best_scores")
+      .select("*")
+      .eq("user_id", user.id);
+
+    const mergedTrackBest: Record<string, any> = {
+      ...((localProfile.stats as any)?.trackBest || {}),
+    };
+
+    if (cloudBestScores && Array.isArray(cloudBestScores)) {
+      cloudBestScores.forEach((item) => {
+        const key = `${item.track_id}_${item.mode}_${item.difficulty}`;
+        const localScore = mergedTrackBest[key]?.score || 0;
+        if (item.score >= localScore) {
+          mergedTrackBest[key] = {
+            score: item.score,
+            rank: item.rank,
+            maxCombo: item.max_combo,
+            accuracy: item.accuracy,
+            updatedAt: item.updated_at,
+          };
+        }
+      });
+    }
+
     const googleName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "";
     const googleAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || "";
 
     if (error || !data) {
-      // First time user profile created in cloud
+      // First time user profile created in cloud -> MIGRATE ALL GUEST DATA
       const newProfile: ProfileData = {
         ...localProfile,
         identity: {
@@ -125,8 +180,13 @@ export async function fetchCloudProfile(user: User, localProfile: ProfileData): 
           username: googleName || localProfile.identity.username,
           avatar: googleAvatar || localProfile.identity.avatar,
         },
+        stats: {
+          ...localProfile.stats,
+          trackBest: mergedTrackBest,
+        } as any,
       };
       await syncLocalProfileToCloud(user, newProfile);
+      await syncAllLocalBestScoresToCloud(user, newProfile);
       profileSave(newProfile);
       return newProfile;
     }
@@ -154,12 +214,16 @@ export async function fetchCloudProfile(user: User, localProfile: ProfileData): 
         ...localProfile.stats,
         ...(data.stats || {}),
         lifetimeScore: typeof data.xp === "number" ? data.xp : localProfile.stats.lifetimeScore,
-      },
+        trackBest: mergedTrackBest,
+      } as any,
       settings: {
         ...localProfile.settings,
         ...(data.settings || {}),
       },
     };
+
+    // Auto-migrate any new local guest best scores to cloud
+    syncAllLocalBestScoresToCloud(user, merged);
 
     profileSave(merged);
     return merged;
