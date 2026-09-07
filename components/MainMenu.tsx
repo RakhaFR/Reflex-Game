@@ -219,7 +219,7 @@ export default function MainMenu() {
           else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
         }}
         className="update-log-trigger"
-        style={{ bottom: "60px", background: "rgba(0,229,255,0.08)", borderColor: "rgba(0,229,255,0.4)", color: "#00e5ff" }}
+        style={{ bottom: "60px", background: "rgba(0,229,255,0.08)", borderColor: "rgba(0,229,255,0.4)", color: "#00e5ff", padding: "6px 12px", fontSize: "10px", gap: "5px" }}
         type="button"
         title="Toggle Fullscreen Mode"
       >
