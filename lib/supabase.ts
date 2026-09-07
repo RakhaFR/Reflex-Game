@@ -31,10 +31,15 @@ export async function signInWithGoogle() {
   if (!isSupabaseConfigured()) {
     return { data: null, error: new Error("Supabase belum di-setup di .env.local") };
   }
+  const redirectUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/lobby?openProfile=true`
+      : undefined;
+
   return await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+      redirectTo: redirectUrl,
     },
   });
 }
@@ -107,16 +112,30 @@ export async function fetchCloudProfile(user: User, localProfile: ProfileData): 
       .eq("id", user.id)
       .single();
 
+    const googleName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "";
+    const googleAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || "";
+
     if (error || !data) {
-      return null;
+      // First time user profile created in cloud
+      const newProfile: ProfileData = {
+        ...localProfile,
+        identity: {
+          ...localProfile.identity,
+          username: googleName || localProfile.identity.username,
+          avatar: googleAvatar || localProfile.identity.avatar,
+        },
+      };
+      await syncLocalProfileToCloud(user, newProfile);
+      profileSave(newProfile);
+      return newProfile;
     }
 
     const merged: ProfileData = {
       ...localProfile,
       identity: {
         ...localProfile.identity,
-        username: data.username || localProfile.identity.username,
-        avatar: data.avatar_url || localProfile.identity.avatar,
+        username: data.username && data.username !== "Player" ? data.username : (googleName || localProfile.identity.username),
+        avatar: data.avatar_url && data.avatar_url !== "default" ? data.avatar_url : (googleAvatar || localProfile.identity.avatar),
         bannerSkin: data.banner_skin || localProfile.identity.bannerSkin,
       },
       stats: {
