@@ -59,6 +59,9 @@ export default function Lobby() {
   const profileRef = useRef<ProfileData>(profile);
   profileRef.current = profile;
 
+  const modeIdxRef = useRef<number>(modeIdx);
+  modeIdxRef.current = modeIdx;
+
   const currentMode = BM_GAME_MODES[modeIdx] || BM_GAME_MODES[0];
   const activeTracks: Track[] = currentMode.id === "notoriginal" ? NOM_TRACKS : BM_TRACKS;
   const currentTrack: Track = activeTracks[activeTrackIdx] || activeTracks[0];
@@ -205,8 +208,9 @@ export default function Lobby() {
 
   // ── Select Track ───────────────────────────────────────────
   const selectTrack = useCallback(
-    (idx: number, playAudio = true) => {
-      const tracks = modeIdx === 1 ? NOM_TRACKS : BM_TRACKS;
+    (idx: number, playAudio = true, targetModeIdx?: number) => {
+      const activeMode = targetModeIdx ?? modeIdxRef.current;
+      const tracks = activeMode === 1 ? NOM_TRACKS : BM_TRACKS;
       const clampedIdx = Math.max(0, Math.min(idx, tracks.length - 1));
       setActiveTrackIdx(clampedIdx);
       localStorage.setItem("rhg_active_track", String(clampedIdx));
@@ -251,7 +255,7 @@ export default function Lobby() {
         }, 50);
       }
     },
-    [modeIdx, activeDiff, startPreview]
+    [activeDiff, startPreview]
   );
 
   // ── Switch Game Mode ───────────────────────────────────────
@@ -260,8 +264,9 @@ export default function Lobby() {
       playSfx("clickSound");
       stopPreview();
 
-      const nextModeIdx = (modeIdx + dir + BM_GAME_MODES.length) % BM_GAME_MODES.length;
+      const nextModeIdx = (modeIdxRef.current + dir + BM_GAME_MODES.length) % BM_GAME_MODES.length;
       setModeIdx(nextModeIdx);
+      modeIdxRef.current = nextModeIdx;
       localStorage.setItem("rhg_active_mode", String(nextModeIdx));
       localStorage.setItem("rhg_active_track", "0");
       setActiveTrackIdx(0);
@@ -299,7 +304,7 @@ export default function Lobby() {
         }
       }, 50);
     },
-    [modeIdx, stopPreview, startPreview]
+    [stopPreview, startPreview]
   );
 
   // ── Initial Mount Setup ────────────────────────────────────
@@ -314,6 +319,7 @@ export default function Lobby() {
     const savedMode = parseInt(localStorage.getItem("rhg_active_mode") || "0");
     const validMode = !isNaN(savedMode) && savedMode >= 0 && savedMode < BM_GAME_MODES.length ? savedMode : 0;
     setModeIdx(validMode);
+    modeIdxRef.current = validMode;
 
     const savedTrack = parseInt(localStorage.getItem("rhg_active_track") || "0");
     const tracks = validMode === 1 ? NOM_TRACKS : BM_TRACKS;
@@ -321,20 +327,25 @@ export default function Lobby() {
     setActiveTrackIdx(validTrack);
 
     const initialTrack = tracks[validTrack] || tracks[0];
-      if (initialTrack) {
-        if (initialTrack.difficulties?.length) {
-          setActiveDiff(initialTrack.difficulties[0]);
-        }
-        if (initialTrack.color) {
-          document.documentElement.style.setProperty("--track-accent", initialTrack.color);
-        }
-        if (bgVideoRef.current && initialTrack.bg) {
-          bgVideoRef.current.src = initialTrack.bg;
-          bgVideoRef.current.load();
-          bgVideoRef.current.play().catch(() => {});
-        }
-        startPreview(initialTrack);
+    if (initialTrack) {
+      if (initialTrack.difficulties?.length) {
+        setActiveDiff(initialTrack.difficulties[0]);
       }
+      if (initialTrack.color) {
+        document.documentElement.style.setProperty("--track-accent", initialTrack.color);
+      }
+      if (bgVideoRef.current && initialTrack.bg) {
+        bgVideoRef.current.src = initialTrack.bg;
+        bgVideoRef.current.load();
+        bgVideoRef.current.play().catch(() => {});
+      }
+      startPreview(initialTrack);
+    }
+
+    // Automatically trigger and scroll to the last played track in the correct mode
+    setTimeout(() => {
+      selectTrack(validTrack, true, validMode);
+    }, 150);
 
     return () => {
       document.body.className = "";
