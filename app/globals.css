@@ -1,0 +1,6 @@
+/* 
+  globals.css — HANYA berisi @import Tailwind.
+  Semua styling game ada di CSS vanilla yang di-link via <link> di layout.tsx.
+  Tailwind cuma dipakai untuk utilities minimal kalau diperlukan.
+*/
+@import "tailwindcss";
