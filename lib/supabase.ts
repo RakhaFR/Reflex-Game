@@ -1,5 +1,5 @@
 import { createClient, User } from "@supabase/supabase-js";
-import { ProfileData, profileSave } from "./profile";
+import { ProfileData, profileSave, computeLevelFromXP } from "./profile";
 
 const rawUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim().replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
 const supabaseUrl = rawUrl;
@@ -285,10 +285,13 @@ export async function recordBestScoreToCloud(
 ) {
   if (!isSupabaseConfigured() || !user) return null;
   try {
+    const userLevel = computeLevelFromXP(profile.stats.lifetimeScore || 0);
     const payload = {
       user_id: user.id,
       username: profile.identity.username || "Operator",
       avatar_url: profile.identity.avatar || "default",
+      banner_skin: profile.identity.bannerSkin || "arcade-spark",
+      level: userLevel,
       track_id: trackId,
       mode: mode,
       difficulty: difficulty,
@@ -346,6 +349,8 @@ export interface TrackLeaderboardItem {
   user_id: string;
   username: string;
   avatar_url: string;
+  banner_skin?: string;
+  level?: number;
   score: number;
   max_combo: number;
   accuracy: string;

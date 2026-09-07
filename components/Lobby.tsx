@@ -1593,44 +1593,81 @@ export default function Lobby() {
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "320px", overflowY: "auto" }}>
-                    {leaderboardData.map((item, index) => (
-                      <div
-                        key={item.id || index}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          padding: "8px 12px",
-                          background: index === 0 ? "rgba(255, 229, 0, 0.1)" : "rgba(255, 255, 255, 0.03)",
-                          border: index === 0 ? "1px solid rgba(255, 229, 0, 0.4)" : "1px solid rgba(255, 255, 255, 0.08)",
-                          borderRadius: "6px"
-                        }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          <span style={{ width: "22px", height: "22px", borderRadius: "50%", background: index === 0 ? "#ffe500" : index === 1 ? "#c0c0c0" : index === 2 ? "#cd7f32" : "#222", color: index < 3 ? "#000" : "#fff", fontWeight: "bold", fontSize: "11px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            {index + 1}
-                          </span>
-                          <img
-                            src={getAvatarDisplay(item.avatar_url)}
-                            alt="Avatar"
-                            style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }}
-                          />
-                          <div>
-                            <div style={{ color: "#fff", fontWeight: "bold", fontSize: "0.85rem" }}>
-                              {item.username}
+                    {leaderboardData.map((item, index) => {
+                      const banner = getBannerById(item.banner_skin || "arcade-spark");
+                      const userLevel = item.level || 1;
+                      const isTop1 = index === 0;
+                      const isTop2 = index === 1;
+                      const isTop3 = index === 2;
+
+                      const rankBadgeColor = isTop1 ? "#ffe500" : isTop2 ? "#e0e0e0" : isTop3 ? "#cd7f32" : "#222";
+
+                      return (
+                        <div
+                          key={item.id || index}
+                          style={{
+                            position: "relative",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "10px 14px",
+                            background: isTop1
+                              ? "linear-gradient(90deg, rgba(255,229,0,0.12) 0%, rgba(10,10,20,0.8) 100%)"
+                              : "rgba(255, 255, 255, 0.03)",
+                            border: isTop1
+                              ? "1px solid rgba(255, 229, 0, 0.5)"
+                              : isTop2
+                              ? "1px solid rgba(220, 220, 220, 0.3)"
+                              : isTop3
+                              ? "1px solid rgba(205, 127, 50, 0.3)"
+                              : "1px solid rgba(255, 255, 255, 0.08)",
+                            borderLeft: `4px solid ${banner.accent || rankBadgeColor}`,
+                            borderRadius: "6px",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "12px", zIndex: 1 }}>
+                            <div style={{ position: "relative" }}>
+                              <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: rankBadgeColor, color: index < 3 ? "#000" : "#fff", fontWeight: "900", fontSize: "11px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isTop1 ? "0 0 10px rgba(255,229,0,0.8)" : "none" }}>
+                                {isTop1 ? <i className="fa-solid fa-crown"></i> : index + 1}
+                              </span>
                             </div>
-                            <div style={{ color: "#aaa", fontSize: "0.7rem" }}>
-                              Rank {item.rank} · Acc {item.accuracy} · Max Combo x{item.max_combo}
+
+                            <div style={{ position: "relative", width: "36px", height: "36px" }}>
+                              <img
+                                src={getAvatarDisplay(item.avatar_url)}
+                                alt="Avatar"
+                                style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${banner.accent || "#00ffcc"}` }}
+                              />
+                              <span style={{ position: "absolute", bottom: "-4px", right: "-6px", background: "#0a0a0a", color: "#00ffcc", border: "1px solid #00ffcc", borderRadius: "8px", fontSize: "8px", padding: "1px 4px", fontWeight: "bold" }}>
+                                LVL {userLevel}
+                              </span>
+                            </div>
+
+                            <div>
+                              <div style={{ color: "#fff", fontWeight: "bold", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                                <span>{item.username}</span>
+                                <span style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "3px", background: "rgba(255,255,255,0.08)", color: banner.accent, border: `1px solid ${banner.accent}` }}>
+                                  {banner.label}
+                                </span>
+                              </div>
+                              <div style={{ color: "#aaa", fontSize: "0.72rem", marginTop: "2px" }}>
+                                Rank <strong style={{ color: item.rank === "S+" || item.rank === "S" ? "#ffe500" : "#00ffcc" }}>{item.rank}</strong> · Acc {item.accuracy} · Combo x{item.max_combo}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ textAlign: "right", zIndex: 1 }}>
+                            <div style={{ color: isTop1 ? "#ffe500" : "#00ffcc", fontWeight: "900", fontSize: "1.05rem", textShadow: isTop1 ? "0 0 10px rgba(255,229,0,0.5)" : "none" }}>
+                              {item.score.toLocaleString()}
+                            </div>
+                            <div style={{ color: "#666", fontSize: "9px", marginTop: "2px" }}>
+                              PTS
                             </div>
                           </div>
                         </div>
-                        <div style={{ textAlign: "right" }}>
-                          <div style={{ color: index === 0 ? "#ffe500" : "#00ffcc", fontWeight: "bold", fontSize: "0.95rem" }}>
-                            {item.score.toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
