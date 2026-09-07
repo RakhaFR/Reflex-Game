@@ -29,7 +29,7 @@ export const isSupabaseConfigured = (): boolean => {
 
 export async function signInWithGoogle() {
   if (!isSupabaseConfigured()) {
-    return { data: null, error: new Error("Supabase belum di-setup di .env.local") };
+    return { data: null, error: new Error("Layanan Cloud belum di-setup di .env.local") };
   }
   const redirectUrl =
     typeof window !== "undefined"
@@ -46,14 +46,14 @@ export async function signInWithGoogle() {
 
 export async function signInWithEmail(email: string, pass: string) {
   if (!isSupabaseConfigured()) {
-    return { data: null, error: new Error("Supabase belum di-setup di .env.local") };
+    return { data: null, error: new Error("Layanan Cloud belum di-setup di .env.local") };
   }
   return await supabase.auth.signInWithPassword({ email, password: pass });
 }
 
 export async function signUpWithEmail(email: string, pass: string, username: string) {
   if (!isSupabaseConfigured()) {
-    return { data: null, error: new Error("Supabase belum di-setup di .env.local") };
+    return { data: null, error: new Error("Layanan Cloud belum di-setup di .env.local") };
   }
   return await supabase.auth.signUp({
     email,

@@ -46,7 +46,7 @@ export default function Lobby() {
   // ── Profile State ──────────────────────────────────────────
   const [profile, setProfile] = useState<ProfileData>(PROFILE_DEFAULT);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [activeModalTab, setActiveModalTab] = useState<"tabIdentity" | "tabStats" | "tabSettings" | "tabCloud">("tabIdentity");
+  const [activeModalTab, setActiveModalTab] = useState<"tabIdentity" | "tabStats" | "tabSettings">("tabIdentity");
   const [usernameInput, setUsernameInput] = useState(PROFILE_DEFAULT.identity.username);
   const [keybindListeningIdx, setKeybindListeningIdx] = useState<number>(-1);
   const [toastMsg, setToastMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
@@ -478,7 +478,7 @@ export default function Lobby() {
     setAuthLoading(true);
     await syncLocalProfileToCloud(authUser, profile);
     setAuthLoading(false);
-    showToast("Profile tersimpan di Supabase Cloud!", "success");
+    showToast("Profile tersimpan di Cloud Server!", "success");
   };
 
   // ── Handle Play Button (Start Game) ────────────────────────
@@ -864,16 +864,6 @@ export default function Lobby() {
                 type="button"
               >
                 <i className="fa-solid fa-sliders"></i> SETTINGS
-              </button>
-              <button
-                className={`modal-tab-btn ${activeModalTab === "tabCloud" ? "active" : ""}`}
-                onClick={() => {
-                  playSfx("clickSound");
-                  setActiveModalTab("tabCloud");
-                }}
-                type="button"
-              >
-                <i className="fa-solid fa-cloud"></i> ACCOUNT &amp; CLOUD
               </button>
             </div>
 
@@ -1374,161 +1364,6 @@ export default function Lobby() {
                   </div>
                 </div>
               )}
-
-              {/* TAB 4: ACCOUNT & CLOUD */}
-              {activeModalTab === "tabCloud" && (
-                <div className="modal-tab-content active" id="tabCloud">
-                  {!isSupabaseConfigured() ? (
-                    <div style={{ padding: "20px", textAlign: "center", background: "rgba(255,100,100,0.08)", border: "1px dashed rgba(255,100,100,0.3)", borderRadius: "8px" }}>
-                      <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: "2rem", color: "#ff4757", marginBottom: "10px" }}></i>
-                      <h4 style={{ color: "#fff", margin: "0 0 8px 0" }}>SUPABASE CREDENTIALS NEEDED</h4>
-                      <p style={{ color: "#aaa", fontSize: "0.85rem", lineHeight: "1.4" }}>
-                        Supabase belum dikonfigurasi di <code>.env.local</code>. <br />
-                        Isi <code>NEXT_PUBLIC_SUPABASE_URL</code> dan <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> untuk mengaktifkan login Google &amp; Cloud Sync.
-                      </p>
-                    </div>
-                  ) : authUser ? (
-                    <div style={{ padding: "20px", background: "rgba(0,255,200,0.05)", border: "1px solid rgba(0,255,200,0.2)", borderRadius: "8px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "20px" }}>
-                        <img
-                          src={authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || getAvatarDisplay(profile.identity.avatar)}
-                          alt="Google Avatar"
-                          style={{ width: "60px", height: "60px", borderRadius: "50%", border: "2px solid #00ffcc" }}
-                        />
-                        <div>
-                          <div style={{ color: "#00ffcc", fontSize: "0.75rem", letterSpacing: "1px", fontWeight: "bold" }}>
-                            // CONNECTED ACCOUNT
-                          </div>
-                          <div style={{ color: "#fff", fontSize: "1.1rem", fontWeight: "bold" }}>
-                            {authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "Operator"}
-                          </div>
-                          <div style={{ color: "#888", fontSize: "0.85rem" }}>{authUser.email}</div>
-                        </div>
-                      </div>
-
-                      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                        <button
-                          type="button"
-                          className="pact-btn-blueprint"
-                          onClick={handleManualSyncCloud}
-                          disabled={authLoading}
-                        >
-                          <i className="fa-solid fa-rotate"></i> {authLoading ? "SAVING..." : "SAVE PROFILE TO CLOUD"}
-                        </button>
-
-                        <button
-                          type="button"
-                          className="pact-btn-blueprint pact-danger-blueprint"
-                          onClick={handleSignOut}
-                          disabled={authLoading}
-                        >
-                          <i className="fa-solid fa-right-from-bracket"></i> LOGOUT
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ padding: "10px" }}>
-                      <div style={{ textAlign: "center", marginBottom: "20px" }}>
-                        <h4 style={{ color: "#fff", margin: "0 0 5px 0" }}>SYNC GAME PROGRESS TO CLOUD</h4>
-                        <p style={{ color: "#aaa", fontSize: "0.85rem", margin: 0 }}>
-                          Login untuk menyimpan Rank, Score, Level &amp; Skin ke Database Supabase
-                        </p>
-                      </div>
-
-                      {authError && (
-                        <div style={{ padding: "10px", background: "rgba(255,0,0,0.15)", border: "1px solid #ff4757", borderRadius: "6px", color: "#ff6b81", fontSize: "0.85rem", marginBottom: "15px", textAlign: "center" }}>
-                          {authError}
-                        </div>
-                      )}
-
-                      {/* GOOGLE LOGIN BUTTON */}
-                      <button
-                        type="button"
-                        onClick={handleGoogleLogin}
-                        disabled={authLoading}
-                        style={{
-                          width: "100%",
-                          padding: "12px",
-                          background: "#fff",
-                          color: "#333",
-                          border: "none",
-                          borderRadius: "6px",
-                          fontWeight: "bold",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "10px",
-                          cursor: "pointer",
-                          marginBottom: "15px",
-                          fontSize: "0.95rem"
-                        }}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                        </svg>
-                        {authLoading ? "CONNECTING..." : "CONTINUE WITH GOOGLE"}
-                      </button>
-
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "15px 0", color: "#666", fontSize: "0.8rem" }}>
-                        <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
-                        <span>OR WITH EMAIL</span>
-                        <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
-                      </div>
-
-                      {/* EMAIL & PASSWORD FORM */}
-                      <form onSubmit={handleEmailAuth} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                        <input
-                          type="email"
-                          placeholder="Email Address"
-                          className="blueprint-field-input"
-                          value={authEmail}
-                          onChange={(e) => setAuthEmail(e.target.value)}
-                          required
-                        />
-                        <input
-                          type="password"
-                          placeholder="Password"
-                          className="blueprint-field-input"
-                          value={authPassword}
-                          onChange={(e) => setAuthPassword(e.target.value)}
-                          required
-                        />
-
-                        <button
-                          type="submit"
-                          className="pact-btn-save-blueprint"
-                          disabled={authLoading}
-                          style={{ width: "100%", marginTop: "5px", padding: "10px" }}
-                        >
-                          {authLoading
-                            ? "PROCESSING..."
-                            : authMode === "login"
-                            ? "LOGIN WITH EMAIL"
-                            : "REGISTER WITH EMAIL"}
-                        </button>
-                      </form>
-
-                      <div style={{ textAlign: "center", marginTop: "12px" }}>
-                        <button
-                          type="button"
-                          style={{ background: "none", border: "none", color: "#00ffcc", cursor: "pointer", fontSize: "0.8rem", textDecoration: "underline" }}
-                          onClick={() => {
-                            setAuthMode(authMode === "login" ? "signup" : "login");
-                            setAuthError("");
-                          }}
-                        >
-                          {authMode === "login"
-                            ? "Belum punya akun? Daftar Email"
-                            : "Sudah punya akun? Login Email"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -1563,9 +1398,9 @@ export default function Lobby() {
                 {!isSupabaseConfigured() ? (
                   <div style={{ padding: "16px", textAlign: "center", background: "rgba(255,100,100,0.08)", border: "1px dashed rgba(255,100,100,0.3)", borderRadius: "8px" }}>
                     <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: "1.8rem", color: "#ff4757", marginBottom: "8px" }}></i>
-                    <h4 style={{ color: "#fff", margin: "0 0 6px 0" }}>SUPABASE CREDENTIALS NEEDED</h4>
+                    <h4 style={{ color: "#fff", margin: "0 0 6px 0" }}>CLOUD SERVER CONFIG NEEDED</h4>
                     <p style={{ color: "#aaa", fontSize: "0.8rem", lineHeight: "1.4" }}>
-                      Isi <code>NEXT_PUBLIC_SUPABASE_URL</code> &amp; <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> di <code>.env.local</code>.
+                      Kredensial Cloud belum dikonfigurasi
                     </p>
                   </div>
                 ) : (
