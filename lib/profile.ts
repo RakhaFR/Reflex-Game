@@ -216,8 +216,12 @@ export function recordGameEnd(
   score: number,
   maxCombo: number,
   mode: "basic" | "notoriginal",
-  customXpGained?: number
-): { totalXP: number; gainedXP: number; oldLevel: number; newLevel: number } {
+  customXpGained?: number,
+  trackId?: string,
+  difficulty?: string,
+  accuracy?: string,
+  rank?: string
+): { totalXP: number; gainedXP: number; oldLevel: number; newLevel: number; previousBest: number; isNewBest: boolean } {
   const profile = profileLoad();
   const oldXP = profile.stats.lifetimeScore || 0;
   const oldLevel = computeLevelFromXP(oldXP);
@@ -248,8 +252,40 @@ export function recordGameEnd(
     profile.stats.records.longestCombo = maxCombo;
   }
 
+  // Personal Best per Track/Mode/Difficulty
+  let previousBest = 0;
+  let isNewBest = false;
+
+  if (trackId && difficulty) {
+    const key = `${trackId}_${mode}_${difficulty}`;
+    const trackBestObj = (profile.stats as any).trackBest || {};
+    previousBest = trackBestObj[key]?.score || 0;
+    if (score > previousBest) {
+      isNewBest = true;
+      trackBestObj[key] = {
+        score,
+        rank: rank || "D",
+        maxCombo,
+        accuracy: accuracy || "0%",
+        updatedAt: new Date().toISOString(),
+      };
+      (profile.stats as any).trackBest = trackBestObj;
+    }
+  }
+
   const newLevel = computeLevelFromXP(newXP);
   profileSaveForce(profile);
 
-  return { totalXP: newXP, gainedXP, oldLevel, newLevel };
+  return { totalXP: newXP, gainedXP, oldLevel, newLevel, previousBest, isNewBest };
+}
+
+export function getTrackBestScore(
+  trackId: string,
+  mode: string,
+  difficulty: string
+): { score: number; rank: string; maxCombo: number; accuracy: string } | null {
+  const profile = profileLoad();
+  const key = `${trackId}_${mode}_${difficulty}`;
+  const trackBestObj = (profile.stats as any).trackBest || {};
+  return trackBestObj[key] || null;
 }

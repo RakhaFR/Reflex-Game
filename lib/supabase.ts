@@ -131,12 +131,23 @@ export async function fetchCloudProfile(user: User, localProfile: ProfileData): 
       return newProfile;
     }
 
+    const localAvatar = localProfile.identity.avatar;
+    const isLocalCustom = localAvatar && localAvatar !== "default";
+    const cloudAvatar = data.avatar_url;
+    const isCloudCustom = cloudAvatar && cloudAvatar !== "default";
+
+    const resolvedAvatar = isCloudCustom
+      ? cloudAvatar
+      : isLocalCustom
+      ? localAvatar
+      : (googleAvatar || "default");
+
     const merged: ProfileData = {
       ...localProfile,
       identity: {
         ...localProfile.identity,
         username: data.username && data.username !== "Player" ? data.username : (googleName || localProfile.identity.username),
-        avatar: data.avatar_url && data.avatar_url !== "default" ? data.avatar_url : (googleAvatar || localProfile.identity.avatar),
+        avatar: resolvedAvatar,
         bannerSkin: data.banner_skin || localProfile.identity.bannerSkin,
       },
       stats: {
@@ -194,5 +205,110 @@ export async function recordScoreToCloud(
   } catch (err) {
     console.error("Error recording score to cloud:", err);
     return null;
+  }
+}
+
+export async function recordBestScoreToCloud(
+  user: User | null,
+  profile: ProfileData,
+  trackId: string,
+  mode: string,
+  difficulty: string,
+  score: number,
+  maxCombo: number,
+  accuracy: string,
+  rank: string
+) {
+  if (!isSupabaseConfigured() || !user) return null;
+  try {
+    const payload = {
+      user_id: user.id,
+      username: profile.identity.username || "Operator",
+      avatar_url: profile.identity.avatar || "default",
+      track_id: trackId,
+      mode: mode,
+      difficulty: difficulty,
+      score: score,
+      max_combo: maxCombo,
+      accuracy: accuracy,
+      rank: rank,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from("best_scores")
+      .upsert(payload, { onConflict: "user_id,track_id,mode,difficulty" })
+      .select();
+
+    if (error) {
+      console.warn("Failed to record best score to cloud:", error.message);
+    }
+    return data;
+  } catch (err) {
+    console.error("Error recording best score to cloud:", err);
+    return null;
+  }
+}
+
+// ── STORAGE AVATAR UPLOAD ──────────────────────────────────────
+
+export async function uploadAvatarToStorage(user: User, file: File): Promise<string | null> {
+  if (!isSupabaseConfigured() || !user) return null;
+  try {
+    const fileExt = file.name.split(".").pop() || "jpg";
+    const filePath = `${user.id}-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      console.warn("Avatar storage upload error:", uploadError.message);
+      return null;
+    }
+
+    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+    return data.publicUrl;
+  } catch (err) {
+    console.error("Avatar upload exception:", err);
+    return null;
+  }
+}
+
+// ── TRACK LEADERBOARD FETCH ───────────────────────────────────
+
+export interface TrackLeaderboardItem {
+  id: number;
+  user_id: string;
+  username: string;
+  avatar_url: string;
+  score: number;
+  max_combo: number;
+  accuracy: string;
+  rank: string;
+  updated_at: string;
+}
+
+export async function fetchTrackLeaderboardFromCloud(
+  trackId: string,
+  mode: string,
+  difficulty: string
+): Promise<TrackLeaderboardItem[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data, error } = await supabase
+      .from("best_scores")
+      .select("*")
+      .eq("track_id", trackId)
+      .eq("mode", mode)
+      .eq("difficulty", difficulty)
+      .order("score", { ascending: false })
+      .limit(10);
+
+    if (error || !data) return [];
+    return data as TrackLeaderboardItem[];
+  } catch (err) {
+    console.error("Failed to fetch track leaderboard:", err);
+    return [];
   }
 }

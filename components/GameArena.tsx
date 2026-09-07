@@ -30,6 +30,7 @@ import {
   isSupabaseConfigured,
   syncLocalProfileToCloud,
   recordScoreToCloud,
+  recordBestScoreToCloud,
 } from "@/lib/supabase";
 
 interface ActiveNote {
@@ -53,6 +54,27 @@ interface Particle {
   color: string;
   alpha: number;
   size: number;
+  type: "circle" | "square" | "star";
+  gravity: number;
+  rotation: number;
+  rotSpeed: number;
+  decay: number;
+}
+
+function drawStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, spikes: number, outerR: number, innerR: number) {
+  let rot = (Math.PI / 2) * 3;
+  const step = Math.PI / spikes;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - outerR);
+  for (let i = 0; i < spikes; i++) {
+    ctx.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+    rot += step;
+    ctx.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
+    rot += step;
+  }
+  ctx.lineTo(cx, cy - outerR);
+  ctx.closePath();
+  ctx.fill();
 }
 
 function GameArenaInner() {
@@ -97,6 +119,8 @@ function GameArenaInner() {
     accuracy: string;
     rank: string;
     xpGained: number;
+    previousBest: number;
+    isNewBest: boolean;
   } | null>(null);
 
   // ── Stable Refs for Engine ─────────────────────────────────
@@ -137,28 +161,92 @@ function GameArenaInner() {
   const currentScoreRef = useRef(0);
   const currentComboRef = useRef(0);
 
-  // ── Particle Explosion Effect ──────────────────────────────
-  const triggerParticles = useCallback((xPercent: number, yPercent: number, color: string) => {
-    if (!profileRef.current.settings.particleEffectEnabled) return;
+  // ── Particle & Confetti Explosion Effect ───────────────────
+  const triggerParticles = useCallback((xPercent: number, yPercent: number, mainColor: string, count: number = 30) => {
+    if (profileRef.current.settings?.particleEffectEnabled === false) return;
     const canvas = particleCanvasRef.current;
     if (!canvas) return;
+
+    if (!canvas.width) canvas.width = window.innerWidth || 1280;
+    if (!canvas.height) canvas.height = window.innerHeight || 720;
 
     const screenX = (xPercent / 100) * canvas.width;
     const screenY = (yPercent / 100) * canvas.height;
 
-    for (let i = 0; i < 20; i++) {
+    const palettes: Record<string, string[]> = {
+      "#00ffcc": ["#00ffcc", "#00ff88", "#ffe500", "#ffffff", "#00e5ff"],
+      "#00ff88": ["#00ff88", "#00c851", "#a8ffcb", "#ffffff", "#00ffcc"],
+      "#ff4444": ["#ff4444", "#ff0000", "#ff8888", "#ffffff", "#cc0000"],
+      "#ffe500": ["#ffe500", "#fff533", "#ff9500", "#ffffff", "#ffcc00"],
+      "#00d4ff": ["#00d4ff", "#a0f0ff", "#ffffff", "#00bfff", "#7fffff"],
+    };
+
+    const colors = palettes[mainColor] || [mainColor, "#ffffff", "#ffe500", "#00ffcc"];
+    const types: ("circle" | "square" | "star")[] = ["circle", "square", "star"];
+
+    for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 6 + 2;
+      const speed = Math.random() * 8 + 3;
+      const chosenColor = colors[Math.floor(Math.random() * colors.length)];
+      const chosenType = types[Math.floor(Math.random() * types.length)];
+
       particlesRef.current.push({
         x: screenX,
         y: screenY,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        color,
+        vy: Math.sin(angle) * speed - Math.random() * 3,
+        color: chosenColor,
         alpha: 1,
-        size: Math.random() * 4 + 2,
+        size: Math.random() * 8 + 4,
+        type: chosenType,
+        gravity: 0.22,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.3,
+        decay: Math.random() * 0.02 + 0.015,
       });
     }
+  }, []);
+
+  const triggerConfettiBlast = useCallback(() => {
+    if (profileRef.current.settings?.particleEffectEnabled === false) return;
+    const canvas = particleCanvasRef.current;
+    if (!canvas) return;
+
+    if (!canvas.width) canvas.width = window.innerWidth || 1280;
+    if (!canvas.height) canvas.height = window.innerHeight || 720;
+
+    const colors = ["#00ffcc", "#ff2d78", "#ffe500", "#00e5ff", "#ffffff", "#ff9500", "#a8ffcb"];
+    const types: ("circle" | "square" | "star")[] = ["square", "star", "circle"];
+
+    const origins = [
+      { x: canvas.width * 0.15, y: canvas.height * 0.3 },
+      { x: canvas.width * 0.85, y: canvas.height * 0.3 },
+      { x: canvas.width * 0.5, y: canvas.height * 0.2 },
+    ];
+
+    origins.forEach((orig) => {
+      for (let i = 0; i < 45; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 12 + 5;
+        const chosenColor = colors[Math.floor(Math.random() * colors.length)];
+        const chosenType = types[Math.floor(Math.random() * types.length)];
+
+        particlesRef.current.push({
+          x: orig.x,
+          y: orig.y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - Math.random() * 5,
+          color: chosenColor,
+          alpha: 1,
+          size: Math.random() * 10 + 5,
+          type: chosenType,
+          gravity: 0.25,
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.4,
+          decay: Math.random() * 0.015 + 0.01,
+        });
+      }
+    });
   }, []);
 
   // ── Render Particle Canvas Loop ────────────────────────────
@@ -182,16 +270,28 @@ function GameArenaInner() {
         for (const p of particlesRef.current) {
           p.x += p.vx;
           p.y += p.vy;
-          p.alpha -= 0.035;
-          p.size *= 0.96;
+          p.vy += p.gravity;
+          p.vx *= 0.98;
+          p.alpha -= p.decay;
+          p.size *= 0.98;
+          p.rotation += p.rotSpeed;
 
-          if (p.alpha > 0.05 && p.size > 0.5) {
+          if (p.alpha > 0.02 && p.size > 0.5) {
             ctx.save();
-            ctx.globalAlpha = p.alpha;
+            ctx.globalAlpha = Math.max(0, p.alpha);
             ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+
+            if (p.type === "star") {
+              drawStar(ctx, 0, 0, 5, p.size, p.size / 2);
+            } else if (p.type === "square") {
+              ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+            } else {
+              ctx.beginPath();
+              ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+              ctx.fill();
+            }
             ctx.restore();
             nextParticles.push(p);
           }
@@ -207,7 +307,7 @@ function GameArenaInner() {
       window.removeEventListener("resize", resize);
       if (animParticleRef.current) cancelAnimationFrame(animParticleRef.current);
     };
-  }, []);
+  }, [mounted]);
 
   // ── Trigger Judge Animation Text ───────────────────────────
   const showJudge = useCallback((text: string, cls: string) => {
@@ -445,7 +545,16 @@ function GameArenaInner() {
     }
 
     const calculatedXP = calcXpGained(finalScore, finalCombo, accNum, rank, diffParam);
-    const { gainedXP } = recordGameEnd(finalScore, finalCombo, modeParamRef.current, calculatedXP);
+    const { gainedXP, previousBest, isNewBest } = recordGameEnd(
+      finalScore,
+      finalCombo,
+      modeParamRef.current,
+      calculatedXP,
+      currentTrack.id,
+      diffParam,
+      accStr,
+      rank
+    );
     const updatedProf = profileLoad();
     setProfile(updatedProf);
 
@@ -465,9 +574,22 @@ function GameArenaInner() {
             accStr,
             rank
           );
+          recordBestScoreToCloud(
+            data.user,
+            updatedProf,
+            currentTrack.id,
+            modeParamRef.current,
+            diffParam,
+            finalScore,
+            finalCombo,
+            accStr,
+            rank
+          );
         }
       });
     }
+
+    triggerConfettiBlast();
 
     setGameResult({
       score: finalScore,
@@ -475,6 +597,8 @@ function GameArenaInner() {
       accuracy: accStr,
       rank,
       xpGained: gainedXP,
+      previousBest,
+      isNewBest,
     });
     setResultAnimKey(Date.now());
     setIsRpButtonsReady(false);
@@ -737,7 +861,19 @@ function GameArenaInner() {
 
   return (
     <>
-      <canvas ref={particleCanvasRef} id="particleCanvas"></canvas>
+      <canvas
+        ref={particleCanvasRef}
+        id="particleCanvas"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          pointerEvents: "none",
+          zIndex: 999999,
+        }}
+      ></canvas>
       <div id="flashOverlay"></div>
 
       {/* COUNTDOWN OVERLAY 3..2..1..GO! */}
@@ -1042,6 +1178,11 @@ function GameArenaInner() {
                 <span className="rp-title-mission">Track</span>
                 <span className="rp-title-completed">Completed!</span>
               </div>
+              {gameResult?.isNewBest && (
+                <div style={{ display: "inline-block", background: "linear-gradient(90deg, #ffe500, #ff9500)", color: "#0a0a0a", fontWeight: "bold", fontSize: "11px", padding: "4px 14px", borderRadius: "12px", letterSpacing: "1px", marginTop: "6px", textTransform: "uppercase", boxShadow: "0 0 14px rgba(255, 229, 0, 0.7)" }}>
+                  <i className="fa-solid fa-crown" style={{ marginRight: "6px" }}></i>NEW PERSONAL BEST!
+                </div>
+              )}
             </div>
 
             <div className="rp-body">
@@ -1074,8 +1215,14 @@ function GameArenaInner() {
                 <div className="rp-stat-grid">
                   <div className="rp-stat-row">
                     <span className="rp-stat-label">Total Score</span>
-                    <span className="rp-stat-value" id="basicFinalScore">
+                    <span className="rp-stat-value" id="basicFinalScore" style={{ color: gameResult?.isNewBest ? "#ffe500" : "#fff" }}>
                       {gameResult?.score.toLocaleString() || "0"}
+                    </span>
+                  </div>
+                  <div className="rp-stat-row" style={{ opacity: 0.85 }}>
+                    <span className="rp-stat-label">Previous Best</span>
+                    <span className="rp-stat-value" style={{ fontSize: "0.88rem", color: "#aaa" }}>
+                      {gameResult?.previousBest ? gameResult.previousBest.toLocaleString() : "-"}
                     </span>
                   </div>
                   <div className="rp-stat-row">

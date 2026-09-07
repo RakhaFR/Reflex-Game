@@ -22,6 +22,7 @@ import {
   calcAccuracy,
   getBannerById,
   getAvatarDisplay,
+  getTrackBestScore,
   playSfx,
   ProfileData,
 } from "@/lib/profile";
@@ -35,6 +36,9 @@ import {
   signOutSupabase,
   syncLocalProfileToCloud,
   fetchCloudProfile,
+  uploadAvatarToStorage,
+  fetchTrackLeaderboardFromCloud,
+  TrackLeaderboardItem,
 } from "@/lib/supabase";
 
 export default function Lobby() {
@@ -59,6 +63,11 @@ export default function Lobby() {
   const [authPassword, setAuthPassword] = useState<string>("");
   const [authError, setAuthError] = useState<string>("");
   const [authLoading, setAuthLoading] = useState<boolean>(false);
+
+  // ── Track Leaderboard State ───────────────────────────────
+  const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
+  const [leaderboardData, setLeaderboardData] = useState<TrackLeaderboardItem[]>([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
 
   // ── Game Mode & Track State ────────────────────────────────
   const [modeIdx, setModeIdx] = useState<number>(0);
@@ -481,6 +490,15 @@ export default function Lobby() {
     showToast("Profile tersimpan di Cloud Server!", "success");
   };
 
+  const handleOpenTrackLeaderboard = async () => {
+    playSfx("clickSound");
+    setIsLeaderboardModalOpen(true);
+    setLeaderboardLoading(true);
+    const data = await fetchTrackLeaderboardFromCloud(currentTrack.id, currentMode.id, activeDiff);
+    setLeaderboardData(data);
+    setLeaderboardLoading(false);
+  };
+
   // ── Handle Play Button (Start Game) ────────────────────────
   const handleStartPlay = () => {
     playSfx("clickSound");
@@ -576,6 +594,7 @@ export default function Lobby() {
     };
     setProfile(updated);
     profileSave(updated);
+    if (authUser) syncLocalProfileToCloud(authUser, updated);
     showToast("Username Updated!", "success");
   };
 
@@ -587,9 +606,10 @@ export default function Lobby() {
     };
     setProfile(updated);
     profileSave(updated);
+    if (authUser) syncLocalProfileToCloud(authUser, updated);
   };
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -601,38 +621,56 @@ export default function Lobby() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX = 300;
-        let { width: w, height: h } = img;
-        if (w > h && w > MAX) {
-          h = Math.round((h * MAX) / w);
-          w = MAX;
-        } else if (h > MAX) {
-          w = Math.round((w * MAX) / h);
-          h = MAX;
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, w, h);
-          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-          const updated = {
-            ...profile,
-            identity: { ...profile.identity, avatar: dataUrl },
-          };
-          setProfile(updated);
-          profileSave(updated);
-          showToast("Avatar Updated!", "success");
-        }
+    let finalAvatarUrl: string | null = null;
+    if (authUser) {
+      showToast("Uploading avatar to Cloud Storage...", "success");
+      finalAvatarUrl = await uploadAvatarToStorage(authUser, file);
+    }
+
+    if (finalAvatarUrl) {
+      const updated = {
+        ...profile,
+        identity: { ...profile.identity, avatar: finalAvatarUrl },
       };
-      img.src = ev.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+      setProfile(updated);
+      profileSave(updated);
+      if (authUser) await syncLocalProfileToCloud(authUser, updated);
+      showToast("Avatar Updated & Saved to Cloud!", "success");
+    } else {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 200;
+          let { width: w, height: h } = img;
+          if (w > h && w > MAX) {
+            h = Math.round((h * MAX) / w);
+            w = MAX;
+          } else if (h > MAX) {
+            w = Math.round((w * MAX) / h);
+            h = MAX;
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
+            const updated = {
+              ...profile,
+              identity: { ...profile.identity, avatar: dataUrl },
+            };
+            setProfile(updated);
+            profileSave(updated);
+            if (authUser) syncLocalProfileToCloud(authUser, updated);
+            showToast("Avatar Updated!", "success");
+          }
+        };
+        img.src = ev.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
     e.target.value = "";
   };
 
@@ -1507,6 +1545,99 @@ export default function Lobby() {
           </div>
         )}
 
+        {/* DEDICATED TRACK LEADERBOARD POP-UP MODAL */}
+        {isLeaderboardModalOpen && (
+          <div className="profile-modal-overlay active" style={{ zIndex: 100006 }}>
+            <div className="profile-modal-box" style={{ maxWidth: "520px", margin: "auto" }}>
+              <div className="modal-corner-accent top-left"></div>
+              <div className="modal-corner-accent bottom-right"></div>
+
+              <div className="profile-modal-header">
+                <div className="modal-title-group">
+                  <span className="modal-main-icon" style={{ color: "#ffe500" }}>
+                    <i className="fa-solid fa-trophy"></i>
+                  </span>
+                  <h3 className="modal-title-text">[T] {currentTrack.title} LEADERBOARD</h3>
+                </div>
+                <button
+                  className="profile-modal-close"
+                  type="button"
+                  onClick={() => {
+                    playSfx("clickSound");
+                    setIsLeaderboardModalOpen(false);
+                  }}
+                >
+                  ✕ CLOSE
+                </button>
+              </div>
+
+              <div style={{ padding: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "15px", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "10px" }}>
+                  <div>
+                    <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "0.85rem" }}>
+                      MODE: {currentMode.label.toUpperCase()} · {activeDiff.toUpperCase()}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "0.8rem", color: "#aaa" }}>
+                    TOP 10 PLAYERS
+                  </div>
+                </div>
+
+                {leaderboardLoading ? (
+                  <div style={{ textAlign: "center", padding: "30px", color: "#00ffcc", fontSize: "0.9rem" }}>
+                    LOADING LEADERBOARD...
+                  </div>
+                ) : leaderboardData.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "30px", color: "#aaa", fontSize: "0.85rem" }}>
+                    Belum ada rekor skor publik di difficulty ini.<br />Jadilah pemain pertama yang mencetak skor!
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "320px", overflowY: "auto" }}>
+                    {leaderboardData.map((item, index) => (
+                      <div
+                        key={item.id || index}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "8px 12px",
+                          background: index === 0 ? "rgba(255, 229, 0, 0.1)" : "rgba(255, 255, 255, 0.03)",
+                          border: index === 0 ? "1px solid rgba(255, 229, 0, 0.4)" : "1px solid rgba(255, 255, 255, 0.08)",
+                          borderRadius: "6px"
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <span style={{ width: "22px", height: "22px", borderRadius: "50%", background: index === 0 ? "#ffe500" : index === 1 ? "#c0c0c0" : index === 2 ? "#cd7f32" : "#222", color: index < 3 ? "#000" : "#fff", fontWeight: "bold", fontSize: "11px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {index + 1}
+                          </span>
+                          <img
+                            src={getAvatarDisplay(item.avatar_url)}
+                            alt="Avatar"
+                            style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }}
+                          />
+                          <div>
+                            <div style={{ color: "#fff", fontWeight: "bold", fontSize: "0.85rem" }}>
+                              {item.username}
+                            </div>
+                            <div style={{ color: "#aaa", fontSize: "0.7rem" }}>
+                              Rank {item.rank} · Acc {item.accuracy} · Max Combo x{item.max_combo}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ color: index === 0 ? "#ffe500" : "#00ffcc", fontWeight: "bold", fontSize: "0.95rem" }}>
+                            {item.score.toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* LOBBY CONTENT GRID */}
         <div className="lobby-content-grid">
           {/* LEFT INFO PANEL */}
@@ -1586,38 +1717,71 @@ export default function Lobby() {
                           </span>
                         </div>
                         <span className="song-status-tag">
-                          {isActive && isPreviewing ? "♪ PREVIEW" : "SELECT"}
+                          {isActive && isPreviewing ? (
+                            <>
+                              <i className="fa-solid fa-music" style={{ marginRight: "4px" }}></i>PREVIEW
+                            </>
+                          ) : (
+                            "SELECT"
+                          )}
                         </span>
                       </button>
 
                       {/* INLINE DIFFICULTY PANEL */}
-                      {isActive && (
-                        <div className="diff-panel" id={`diffPanel-${i}`} style={{ display: "block" }}>
-                          <div className="diff-panel-label">// DIFFICULTY</div>
-                          <div className="diff-btn-row">
-                            {track.difficulties.map((diffKey) => {
-                              const d = diffConfigs[diffKey] || BM_DIFF[diffKey] || { label: diffKey.toUpperCase(), color: "#00ff88" };
-                              const isDiffActive = activeDiff === diffKey;
+                      {isActive && (() => {
+                        const currentPB = getTrackBestScore(track.id, currentMode.id, activeDiff);
+                        return (
+                          <div className="diff-panel" id={`diffPanel-${i}`} style={{ display: "block" }}>
+                            <div className="diff-panel-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <span>// DIFFICULTY</span>
+                              <button
+                                type="button"
+                                style={{ background: "none", border: "none", color: "#00ffcc", cursor: "pointer", fontSize: "10px", fontWeight: "bold" }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenTrackLeaderboard();
+                                }}
+                              >
+                                <i className="fa-solid fa-trophy" style={{ marginRight: "4px" }}></i>RANKING &amp; HISTORY
+                              </button>
+                            </div>
+                            <div className="diff-btn-row">
+                              {track.difficulties.map((diffKey) => {
+                                const d = diffConfigs[diffKey] || BM_DIFF[diffKey] || { label: diffKey.toUpperCase(), color: "#00ff88" };
+                                const isDiffActive = activeDiff === diffKey;
 
-                              return (
-                                <button
-                                  key={diffKey}
-                                  type="button"
-                                  className={`diff-btn ${isDiffActive ? "active" : ""}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    playSfx("clickSound");
-                                    setActiveDiff(diffKey);
-                                  }}
-                                >
-                                  <span className="diff-dot" style={{ background: d.color }}></span>
-                                  {d.label}
-                                </button>
-                              );
-                            })}
-                  </div>
-                </div>
-              )}
+                                return (
+                                  <button
+                                    key={diffKey}
+                                    type="button"
+                                    className={`diff-btn ${isDiffActive ? "active" : ""}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      playSfx("clickSound");
+                                      setActiveDiff(diffKey);
+                                    }}
+                                  >
+                                    <span className="diff-dot" style={{ background: d.color }}></span>
+                                    {d.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* PERSONAL BEST SUMMARY STRIP */}
+                            <div style={{ marginTop: "8px", padding: "6px 10px", background: "rgba(0, 229, 255, 0.05)", border: "1px solid rgba(0, 229, 255, 0.2)", borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px" }}>
+                              <span style={{ color: "#aaa" }}>
+                                BEST ({activeDiff.toUpperCase()}): <strong style={{ color: "#00ffcc" }}>{currentPB ? currentPB.score.toLocaleString() : "NONE"}</strong>
+                              </span>
+                              {currentPB && (
+                                <span style={{ color: "#ffe500", fontWeight: "bold" }}>
+                                  RANK {currentPB.rank} · {currentPB.accuracy}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}
