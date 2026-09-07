@@ -474,6 +474,8 @@
 .rp-stat-grid .rp-stat-row:nth-child(2) { animation-delay: 0.30s; }
 .rp-stat-grid .rp-stat-row:nth-child(3) { animation-delay: 0.45s; }
 .rp-stat-grid .rp-stat-row:nth-child(4) { animation-delay: 0.60s; }
+.rp-stat-grid .rp-stat-row:nth-child(5) { animation-delay: 0.75s; }
+.rp-stat-grid .rp-stat-row:nth-child(6) { animation-delay: 0.90s; }
 .rp-stat-row::before {
   content: "";
   position: absolute;
@@ -520,8 +522,8 @@
   /* Reveal: muncul setelah semua stat row, lalu grow dari kiri */
   opacity: 0;
   animation:
-    rpRevealUp 0.35s cubic-bezier(0.34, 1.2, 0.64, 1) 0.8s forwards,
-    rpXpGrow   0.5s  cubic-bezier(0.28, 1.2, 0.64, 1) 0.8s forwards;
+    rpRevealUp 0.35s cubic-bezier(0.34, 1.2, 0.64, 1) 0.88s forwards,
+    rpXpGrow   0.5s  cubic-bezier(0.28, 1.2, 0.64, 1) 0.88s forwards;
 }
 @keyframes rpXpGrow {
   from { transform: scaleX(0); }
