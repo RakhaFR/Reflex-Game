@@ -1,8 +1,9 @@
 import { createClient, User } from "@supabase/supabase-js";
 import { ProfileData, profileSave } from "./profile";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const rawUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim().replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
+const supabaseUrl = rawUrl;
+const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
 
 export const supabase = createClient(
   supabaseUrl && supabaseUrl !== "https://your-project-ref.supabase.co"
