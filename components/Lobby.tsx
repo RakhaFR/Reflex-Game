@@ -1289,121 +1289,6 @@ export default function Lobby() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-
-        {/* LOBBY CONTENT GRID */}
-        <div className="lobby-content-grid">
-          {/* LEFT INFO PANEL */}
-          <section className="info-panel-left">
-            <div className="mode-info-block mode-info-block-basic" id="modeInfoBlock">
-              <div className="slide-meta">
-                <span className="slide-num slide-num-basic">{String(activeTrackIdx + 1).padStart(2, "0")}</span>
-                <span className="char-role">{currentTrack.role}</span>
-              </div>
-              <h2 className={`mode-title ${currentTrack.titleClass || "title-basic"}`} id="displayModeTitle">
-                {currentTrack.title}
-              </h2>
-              <p className="mode-description" id="displayModeDesc">
-                {currentTrack.desc}
-              </p>
-            </div>
-            <div className="lobby-visualizer-wrap">
-              <canvas ref={canvasRef} id="lobbyVisualizer"></canvas>
-            </div>
-          </section>
-
-          {/* RIGHT CONTROL PANEL */}
-          <section className="control-panel-right">
-            <div className="song-list-container">
-              <div className="song-list-header">
-                <div className="cd-icon-wrap">
-                  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="32" cy="32" r="30" fill="#0a0a0a" />
-                    <circle cx="32" cy="32" r="30" fill="none" stroke="#00e5ff" strokeWidth="1.5" opacity="0.5" />
-                    <path d="M32 2 A30 30 0 0 1 62 32" fill="none" stroke="#00e5ff" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
-                    <circle cx="32" cy="32" r="20" fill="none" stroke="#1a1a1a" strokeWidth="1" />
-                    <circle cx="32" cy="32" r="13" fill="none" stroke="#1a1a1a" strokeWidth="1" />
-                    <circle cx="32" cy="32" r="6" fill="#00e5ff" />
-                    <circle cx="32" cy="32" r="2.5" fill="#0a0a0a" />
-                  </svg>
-                </div>
-                <span className="song-list-header-text">TRACK LIST ({activeTracks.length})</span>
-                <span className="track-switch-hint" title="Gunakan panah atas/bawah untuk ganti track">
-                  <kbd className="hint-key">▲</kbd>
-                  <kbd className="hint-key">▼</kbd>
-                  <span className="hint-label">SWITCH</span>
-                </span>
-              </div>
-
-              {/* SONG LIST WRAPPER */}
-              <div className="song-list-wrapper" id="songListWrapper">
-                {activeTracks.map((track, i) => {
-                  const isActive = i === activeTrackIdx;
-                  const isNear = i === activeTrackIdx - 1 || i === activeTrackIdx + 1;
-                  const accent = track.color || "#00e5ff";
-
-                  return (
-                    <div key={track.id} className="song-track-group">
-                      <button
-                        type="button"
-                        id={`songItem-${i}`}
-                        className={`song-item ${isActive ? "active" : ""} ${isNear ? "near" : ""} ${isActive && isPreviewing ? "previewing" : ""}`}
-                        style={{ "--song-accent": accent } as React.CSSProperties}
-                        onClick={() => {
-                          playSfx("clickSound");
-                          selectTrack(i, true);
-                        }}
-                      >
-                        <span className="song-index">{String(i + 1).padStart(2, "0")}</span>
-                        <img
-                          className="song-album-art"
-                          src={track.art || "/assets/picture/new-logo.png"}
-                          alt="album"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.opacity = "0";
-                          }}
-                        />
-                        <div className="song-details">
-                          <span className="song-title">{track.title}</span>
-                          <span className="song-artist">
-                            {track.artist} // BPM: {track.bpm} // {Math.floor(track.duration / 60)}:{String(track.duration % 60).padStart(2, "0")}
-                          </span>
-                        </div>
-                        <span className="song-status-tag">
-                          {isActive && isPreviewing ? "♪ PREVIEW" : "SELECT"}
-                        </span>
-                      </button>
-
-                      {/* INLINE DIFFICULTY PANEL */}
-                      {isActive && (
-                        <div className="diff-panel" id={`diffPanel-${i}`} style={{ display: "block" }}>
-                          <div className="diff-panel-label">// DIFFICULTY</div>
-                          <div className="diff-btn-row">
-                            {track.difficulties.map((diffKey) => {
-                              const d = diffConfigs[diffKey] || BM_DIFF[diffKey] || { label: diffKey.toUpperCase(), color: "#00ff88" };
-                              const isDiffActive = activeDiff === diffKey;
-
-                              return (
-                                <button
-                                  key={diffKey}
-                                  type="button"
-                                  className={`diff-btn ${isDiffActive ? "active" : ""}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    playSfx("clickSound");
-                                    setActiveDiff(diffKey);
-                                  }}
-                                >
-                                  <span className="diff-dot" style={{ background: d.color }}></span>
-                                  {d.label}
-                                </button>
-                              );
-                            })}
-                  </div>
-                </div>
-              )}
 
               {/* TAB 4: ACCOUNT & CLOUD */}
               {activeModalTab === "tabCloud" && (
@@ -1557,6 +1442,121 @@ export default function Lobby() {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* LOBBY CONTENT GRID */}
+        <div className="lobby-content-grid">
+          {/* LEFT INFO PANEL */}
+          <section className="info-panel-left">
+            <div className="mode-info-block mode-info-block-basic" id="modeInfoBlock">
+              <div className="slide-meta">
+                <span className="slide-num slide-num-basic">{String(activeTrackIdx + 1).padStart(2, "0")}</span>
+                <span className="char-role">{currentTrack.role}</span>
+              </div>
+              <h2 className={`mode-title ${currentTrack.titleClass || "title-basic"}`} id="displayModeTitle">
+                {currentTrack.title}
+              </h2>
+              <p className="mode-description" id="displayModeDesc">
+                {currentTrack.desc}
+              </p>
+            </div>
+            <div className="lobby-visualizer-wrap">
+              <canvas ref={canvasRef} id="lobbyVisualizer"></canvas>
+            </div>
+          </section>
+
+          {/* RIGHT CONTROL PANEL */}
+          <section className="control-panel-right">
+            <div className="song-list-container">
+              <div className="song-list-header">
+                <div className="cd-icon-wrap">
+                  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="32" r="30" fill="#0a0a0a" />
+                    <circle cx="32" cy="32" r="30" fill="none" stroke="#00e5ff" strokeWidth="1.5" opacity="0.5" />
+                    <path d="M32 2 A30 30 0 0 1 62 32" fill="none" stroke="#00e5ff" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+                    <circle cx="32" cy="32" r="20" fill="none" stroke="#1a1a1a" strokeWidth="1" />
+                    <circle cx="32" cy="32" r="13" fill="none" stroke="#1a1a1a" strokeWidth="1" />
+                    <circle cx="32" cy="32" r="6" fill="#00e5ff" />
+                    <circle cx="32" cy="32" r="2.5" fill="#0a0a0a" />
+                  </svg>
+                </div>
+                <span className="song-list-header-text">TRACK LIST ({activeTracks.length})</span>
+                <span className="track-switch-hint" title="Gunakan panah atas/bawah untuk ganti track">
+                  <kbd className="hint-key">▲</kbd>
+                  <kbd className="hint-key">▼</kbd>
+                  <span className="hint-label">SWITCH</span>
+                </span>
+              </div>
+
+              {/* SONG LIST WRAPPER */}
+              <div className="song-list-wrapper" id="songListWrapper">
+                {activeTracks.map((track, i) => {
+                  const isActive = i === activeTrackIdx;
+                  const isNear = i === activeTrackIdx - 1 || i === activeTrackIdx + 1;
+                  const accent = track.color || "#00e5ff";
+
+                  return (
+                    <div key={track.id} className="song-track-group">
+                      <button
+                        type="button"
+                        id={`songItem-${i}`}
+                        className={`song-item ${isActive ? "active" : ""} ${isNear ? "near" : ""} ${isActive && isPreviewing ? "previewing" : ""}`}
+                        style={{ "--song-accent": accent } as React.CSSProperties}
+                        onClick={() => {
+                          playSfx("clickSound");
+                          selectTrack(i, true);
+                        }}
+                      >
+                        <span className="song-index">{String(i + 1).padStart(2, "0")}</span>
+                        <img
+                          className="song-album-art"
+                          src={track.art || "/assets/picture/new-logo.png"}
+                          alt="album"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.opacity = "0";
+                          }}
+                        />
+                        <div className="song-details">
+                          <span className="song-title">{track.title}</span>
+                          <span className="song-artist">
+                            {track.artist} // BPM: {track.bpm} // {Math.floor(track.duration / 60)}:{String(track.duration % 60).padStart(2, "0")}
+                          </span>
+                        </div>
+                        <span className="song-status-tag">
+                          {isActive && isPreviewing ? "♪ PREVIEW" : "SELECT"}
+                        </span>
+                      </button>
+
+                      {/* INLINE DIFFICULTY PANEL */}
+                      {isActive && (
+                        <div className="diff-panel" id={`diffPanel-${i}`} style={{ display: "block" }}>
+                          <div className="diff-panel-label">// DIFFICULTY</div>
+                          <div className="diff-btn-row">
+                            {track.difficulties.map((diffKey) => {
+                              const d = diffConfigs[diffKey] || BM_DIFF[diffKey] || { label: diffKey.toUpperCase(), color: "#00ff88" };
+                              const isDiffActive = activeDiff === diffKey;
+
+                              return (
+                                <button
+                                  key={diffKey}
+                                  type="button"
+                                  className={`diff-btn ${isDiffActive ? "active" : ""}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    playSfx("clickSound");
+                                    setActiveDiff(diffKey);
+                                  }}
+                                >
+                                  <span className="diff-dot" style={{ background: d.color }}></span>
+                                  {d.label}
+                                </button>
+                              );
+                            })}
+                  </div>
                 </div>
               )}
                     </div>
