@@ -69,6 +69,59 @@ export default function Lobby() {
   const [leaderboardData, setLeaderboardData] = useState<TrackLeaderboardItem[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
 
+  // ── Periodic Fullscreen Prompt State ─────────────────────
+  const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const isFS = !!(
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement
+    );
+
+    if (isFS) return;
+
+    const lastDismissed = localStorage.getItem("rhg_fullscreen_prompt_dismissed");
+    const now = Date.now();
+    const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+
+    if (!lastDismissed || now - parseInt(lastDismissed) > TWELVE_HOURS) {
+      const timer = setTimeout(() => {
+        if (
+          !(
+            document.fullscreenElement ||
+            (document as any).webkitFullscreenElement ||
+            (document as any).mozFullScreenElement ||
+            (document as any).msFullscreenElement
+          )
+        ) {
+          setShowFullscreenPrompt(true);
+        }
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleEnableFullscreen = () => {
+    playSfx("clickSound");
+    setShowFullscreenPrompt(false);
+    const docEl = document.documentElement as any;
+    if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
+    else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+    else if (docEl.mozRequestFullScreen) docEl.mozRequestFullScreen();
+    else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
+  };
+
+  const handleDismissFullscreenPrompt = () => {
+    playSfx("clickSound");
+    setShowFullscreenPrompt(false);
+    localStorage.setItem("rhg_fullscreen_prompt_dismissed", String(Date.now()));
+  };
+
   // ── Game Mode & Track State ────────────────────────────────
   const [modeIdx, setModeIdx] = useState<number>(0);
   const [activeTrackIdx, setActiveTrackIdx] = useState<number>(0);
@@ -806,6 +859,18 @@ export default function Lobby() {
               }}
             >
               <i className="fas fa-cog"></i>
+            </button>
+            <button
+              className="widget-settings-btn"
+              title="Toggle Fullscreen Mode"
+              type="button"
+              style={{ marginLeft: "6px" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEnableFullscreen();
+              }}
+            >
+              <i className="fa-solid fa-expand"></i>
             </button>
           </div>
 
@@ -1838,7 +1903,58 @@ export default function Lobby() {
                                 <span style={{ color: "#ffe500", fontWeight: "bold" }}>
                                   RANK {currentPB.rank} · {currentPB.accuracy}
                                 </span>
-                              )}
+        )}
+
+        {/* PERIODIC FULLSCREEN PROMPT MODAL */}
+        {showFullscreenPrompt && (
+          <div className="profile-modal-overlay active" style={{ zIndex: 100007 }}>
+            <div className="profile-modal-box" style={{ maxWidth: "460px", margin: "auto", textAlign: "center" }}>
+              <div className="modal-corner-accent top-left"></div>
+              <div className="modal-corner-accent bottom-right"></div>
+
+              <div className="profile-modal-header" style={{ justifyContent: "center" }}>
+                <div className="modal-title-group">
+                  <span className="modal-main-icon" style={{ color: "#00e5ff" }}>
+                    <i className="fa-solid fa-expand"></i>
+                  </span>
+                  <h3 className="modal-title-text">[R] RECOMMENDED IMMERSION</h3>
+                </div>
+              </div>
+
+              <div style={{ padding: "24px 20px" }}>
+                <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "rgba(0, 229, 255, 0.1)", border: "1.5px solid #00e5ff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "#00e5ff", fontSize: "1.4rem" }}>
+                  <i className="fa-solid fa-display"></i>
+                </div>
+
+                <h4 style={{ color: "#fff", margin: "0 0 8px 0", fontSize: "1.1rem", fontFamily: "Orbitron, sans-serif" }}>
+                  FULLSCREEN MODE RECOMMENDED
+                </h4>
+                <p style={{ color: "#aaa", fontSize: "0.85rem", lineHeight: "1.5", margin: "0 0 20px 0" }}>
+                  Mainkan ReflexRHYTHM dalam mode Layar Penuh untuk pengalaman ritme terbaik dan bebas gangguan browser!
+                </p>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <button
+                    type="button"
+                    className="pact-btn-save-blueprint"
+                    style={{ width: "100%", padding: "12px", fontSize: "0.9rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                    onClick={handleEnableFullscreen}
+                  >
+                    <i className="fa-solid fa-expand"></i> MASUK MODE FULLSCREEN
+                  </button>
+
+                  <button
+                    type="button"
+                    style={{ background: "none", border: "none", color: "#888", fontSize: "0.8rem", cursor: "pointer", textDecoration: "underline", marginTop: "4px" }}
+                    onClick={handleDismissFullscreenPrompt}
+                  >
+                    Nanti Saja / Abaikan
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
                             </div>
                           </div>
                         );

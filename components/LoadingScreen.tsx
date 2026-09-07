@@ -431,7 +431,7 @@ export default function LoadingScreen() {
         <div id="rrLoadingScreen" className={fading ? "rr-fade-out" : ""}>
           <div className="rr-wrap">
             <div className="rr-top-banner">
-              <span>REFLEX ENGINE // Pre-Test</span>
+              <span>REFLEX ENGINE // Alpha</span>
             </div>
             <div className="rr-title-block">
               <h1 className="rr-main-title">LOADING DATA</h1>

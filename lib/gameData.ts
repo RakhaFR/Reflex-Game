@@ -729,12 +729,27 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
-    version: "Pre-Test",
+    version: "v0.2.0 — Alpha Build",
+    date: "07 SEP 2026",
+    badgeClass: "cyan",
+    bannerImg: "/assets/picture/new-logo.png",
+    changes: [
+      { type: "add", text: "Integrasi Cloud Server: Login Google OAuth & Email untuk sinkronisasi progres otomatis." },
+      { type: "add", text: "Sistem Leaderboard Global (Top 10 Pemain) per lagu, mode, dan tingkat kesulitan." },
+      { type: "add", text: "Pencatatan Rekor Personal Best per lagu dengan indikator 'NEW PERSONAL BEST!' di Result Popup." },
+      { type: "add", text: "Cloud Storage Bucket: Upload foto avatar profil kustom secara aman." },
+      { type: "add", text: "Animasi Partikel Arcade & Ledakan Confetti multi-bentuk (Circle, Square, Star) pada hit note & result popup." },
+      { type: "upd", text: "Desain Pop-up Leaderboard yang lebih lapang dengan latar belakang Banner Skin milik masing-masing player." },
+      { type: "fix", text: "Memperbaiki bug sinkronisasi mode (NOM/Basic) dan scroll otomatis lagu terakhir di Lobby." },
+    ],
+  },
+  {
+    version: "v0.1.0 — Initial Alpha",
     date: "28 MEI 2026",
     badgeClass: "yellow",
     bannerImg: "/assets/picture/pre-test.png",
     changes: [
-      { type: "upd", text: "Penataan ulang layout menu & gameplay dengan konsep *Stylized Arcade Interface*. Masih tahap pre-test kemungkinan data anda bakal hilang di update selanjutnya.." },
+      { type: "upd", text: "Penataan ulang layout menu & gameplay dengan konsep Stylized Arcade Interface." },
       { type: "add", text: "Integrasi Not Original Mode (NOM_TRACKS) ke dalam sistem lobby." },
       { type: "add", text: "Mengimplementasikan stylized loading screen bertema ReflexRHYTHM." },
       { type: "fix", text: "Memperbaiki bug audio preview yang tumpang tindih saat mengganti trek lagu dengan cepat." },

@@ -88,7 +88,7 @@ export default function MainMenu() {
         {/* BRANDING TITLE */}
         <header className="menu-header">
           <div className="brand-box">
-            <span className="splash-text">PRE-TEST!</span>
+            <span className="splash-text">ALPHA BUILD!</span>
             <h1 className="game-title-main">
               REFLEX<span className="accent">RHYTHM</span>
             </h1>
@@ -207,6 +207,25 @@ export default function MainMenu() {
           </div>
         </footer>
       </main>
+
+      {/* FULLSCREEN QUICK SHORTCUT BUTTON */}
+      <button
+        onClick={() => {
+          playSfx("clickSound");
+          const docEl = document.documentElement as any;
+          if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
+          else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+          else if (docEl.mozRequestFullScreen) docEl.mozRequestFullScreen();
+          else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
+        }}
+        className="update-log-trigger"
+        style={{ bottom: "60px", background: "rgba(0,229,255,0.08)", borderColor: "rgba(0,229,255,0.4)", color: "#00e5ff" }}
+        type="button"
+        title="Toggle Fullscreen Mode"
+      >
+        <i className="fa-solid fa-expand"></i>
+        <span>FULLSCREEN</span>
+      </button>
 
       {/* UPDATE LOG BUTTON */}
       <button
