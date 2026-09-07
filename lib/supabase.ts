@@ -84,6 +84,7 @@ export async function syncLocalProfileToCloud(user: User, localProfile: ProfileD
       xp: localProfile.stats.lifetimeScore || 0,
       banner_skin: localProfile.identity.bannerSkin || "arcade-spark",
       stats: localProfile.stats,
+      settings: localProfile.settings,
       updated_at: new Date().toISOString(),
     };
 
@@ -143,12 +144,55 @@ export async function fetchCloudProfile(user: User, localProfile: ProfileData): 
         ...(data.stats || {}),
         lifetimeScore: typeof data.xp === "number" ? data.xp : localProfile.stats.lifetimeScore,
       },
+      settings: {
+        ...localProfile.settings,
+        ...(data.settings || {}),
+      },
     };
 
     profileSave(merged);
     return merged;
   } catch (err) {
     console.error("Failed to fetch cloud profile:", err);
+    return null;
+  }
+}
+
+// ── CLOUD SCORE RECORDING ──────────────────────────────────────
+
+export async function recordScoreToCloud(
+  user: User | null,
+  profile: ProfileData,
+  trackId: string,
+  mode: string,
+  difficulty: string,
+  score: number,
+  maxCombo: number,
+  accuracy: string,
+  rank: string
+) {
+  if (!isSupabaseConfigured() || !user) return null;
+  try {
+    const payload = {
+      user_id: user.id,
+      username: profile.identity.username || "Operator",
+      track_id: trackId,
+      mode: mode,
+      difficulty: difficulty,
+      score: score,
+      max_combo: maxCombo,
+      accuracy: accuracy,
+      rank: rank,
+      created_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase.from("scores").insert([payload]).select();
+    if (error) {
+      console.warn("Failed to record score to cloud:", error.message);
+    }
+    return data;
+  } catch (err) {
+    console.error("Error recording score to cloud:", err);
     return null;
   }
 }

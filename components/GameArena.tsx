@@ -25,6 +25,12 @@ import {
   playSfx,
   ProfileData,
 } from "@/lib/profile";
+import {
+  supabase,
+  isSupabaseConfigured,
+  syncLocalProfileToCloud,
+  recordScoreToCloud,
+} from "@/lib/supabase";
 
 interface ActiveNote {
   id: string;
@@ -442,6 +448,26 @@ function GameArenaInner() {
     const { gainedXP } = recordGameEnd(finalScore, finalCombo, modeParamRef.current, calculatedXP);
     const updatedProf = profileLoad();
     setProfile(updatedProf);
+
+    // Auto-sync stats, XP & score entry to Supabase Cloud if user is authenticated
+    if (isSupabaseConfigured()) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user) {
+          syncLocalProfileToCloud(data.user, updatedProf);
+          recordScoreToCloud(
+            data.user,
+            updatedProf,
+            currentTrack.id,
+            modeParamRef.current,
+            diffParam,
+            finalScore,
+            finalCombo,
+            accStr,
+            rank
+          );
+        }
+      });
+    }
 
     setGameResult({
       score: finalScore,
