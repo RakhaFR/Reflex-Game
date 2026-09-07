@@ -1548,7 +1548,7 @@ export default function Lobby() {
         {/* DEDICATED TRACK LEADERBOARD POP-UP MODAL */}
         {isLeaderboardModalOpen && (
           <div className="profile-modal-overlay active" style={{ zIndex: 100006 }}>
-            <div className="profile-modal-box" style={{ maxWidth: "520px", margin: "auto" }}>
+            <div className="profile-modal-box" style={{ maxWidth: "680px", margin: "auto" }}>
               <div className="modal-corner-accent top-left"></div>
               <div className="modal-corner-accent bottom-right"></div>
 
@@ -1571,10 +1571,10 @@ export default function Lobby() {
                 </button>
               </div>
 
-              <div style={{ padding: "20px" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "15px", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "10px" }}>
+              <div style={{ padding: "20px 24px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "10px" }}>
                   <div>
-                    <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "0.85rem" }}>
+                    <span style={{ color: "#00ffcc", fontWeight: "bold", fontSize: "0.9rem", letterSpacing: "1px" }}>
                       MODE: {currentMode.label.toUpperCase()} · {activeDiff.toUpperCase()}
                     </span>
                   </div>
@@ -1584,15 +1584,15 @@ export default function Lobby() {
                 </div>
 
                 {leaderboardLoading ? (
-                  <div style={{ textAlign: "center", padding: "30px", color: "#00ffcc", fontSize: "0.9rem" }}>
+                  <div style={{ textAlign: "center", padding: "40px", color: "#00ffcc", fontSize: "0.95rem" }}>
                     LOADING LEADERBOARD...
                   </div>
                 ) : leaderboardData.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: "30px", color: "#aaa", fontSize: "0.85rem" }}>
+                  <div style={{ textAlign: "center", padding: "40px", color: "#aaa", fontSize: "0.85rem" }}>
                     Belum ada rekor skor publik di difficulty ini.<br />Jadilah pemain pertama yang mencetak skor!
                   </div>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "320px", overflowY: "auto" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxHeight: "380px", overflowY: "auto", paddingRight: "4px" }}>
                     {leaderboardData.map((item, index) => {
                       const banner = getBannerById(item.banner_skin || "arcade-spark");
                       const userLevel = item.level || 1;
@@ -1610,58 +1610,82 @@ export default function Lobby() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "space-between",
-                            padding: "10px 14px",
-                            background: isTop1
-                              ? "linear-gradient(90deg, rgba(255,229,0,0.12) 0%, rgba(10,10,20,0.8) 100%)"
-                              : "rgba(255, 255, 255, 0.03)",
+                            padding: "12px 18px",
+                            minHeight: "64px",
                             border: isTop1
-                              ? "1px solid rgba(255, 229, 0, 0.5)"
+                              ? "1.5px solid #ffe500"
                               : isTop2
-                              ? "1px solid rgba(220, 220, 220, 0.3)"
+                              ? "1.5px solid #c0c0c0"
                               : isTop3
-                              ? "1px solid rgba(205, 127, 50, 0.3)"
-                              : "1px solid rgba(255, 255, 255, 0.08)",
-                            borderLeft: `4px solid ${banner.accent || rankBadgeColor}`,
-                            borderRadius: "6px",
+                              ? "1.5px solid #cd7f32"
+                              : "1px solid rgba(255, 255, 255, 0.12)",
+                            borderRadius: "8px",
                             overflow: "hidden",
+                            boxShadow: isTop1 ? "0 0 15px rgba(255,229,0,0.25)" : "none",
                           }}
                         >
-                          <div style={{ display: "flex", alignItems: "center", gap: "12px", zIndex: 1 }}>
+                          {/* BANNER SKIN SVG BACKGROUND */}
+                          <div
+                            style={{ position: "absolute", inset: 0, opacity: 0.55, zIndex: 0, pointerEvents: "none" }}
+                            dangerouslySetInnerHTML={{ __html: banner.svg }}
+                          />
+                          <div
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              background: "linear-gradient(90deg, rgba(6,6,14,0.85) 0%, rgba(10,10,24,0.65) 50%, rgba(6,6,14,0.9) 100%)",
+                              zIndex: 0,
+                              pointerEvents: "none",
+                            }}
+                          />
+
+                          <div style={{ display: "flex", alignItems: "center", gap: "14px", zIndex: 1 }}>
                             <div style={{ position: "relative" }}>
-                              <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: rankBadgeColor, color: index < 3 ? "#000" : "#fff", fontWeight: "900", fontSize: "11px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isTop1 ? "0 0 10px rgba(255,229,0,0.8)" : "none" }}>
+                              <span
+                                style={{
+                                  width: "28px",
+                                  height: "28px",
+                                  borderRadius: "50%",
+                                  background: rankBadgeColor,
+                                  color: index < 3 ? "#000" : "#fff",
+                                  fontWeight: "900",
+                                  fontSize: "12px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  boxShadow: isTop1 ? "0 0 12px rgba(255,229,0,0.9)" : "none",
+                                }}
+                              >
                                 {isTop1 ? <i className="fa-solid fa-crown"></i> : index + 1}
                               </span>
                             </div>
 
-                            <div style={{ position: "relative", width: "36px", height: "36px" }}>
+                            <div style={{ position: "relative", width: "40px", height: "40px" }}>
                               <img
                                 src={getAvatarDisplay(item.avatar_url)}
                                 alt="Avatar"
-                                style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${banner.accent || "#00ffcc"}` }}
+                                style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${banner.accent || "#00ffcc"}` }}
                               />
-                              <span style={{ position: "absolute", bottom: "-4px", right: "-6px", background: "#0a0a0a", color: "#00ffcc", border: "1px solid #00ffcc", borderRadius: "8px", fontSize: "8px", padding: "1px 4px", fontWeight: "bold" }}>
+                              <span style={{ position: "absolute", bottom: "-4px", right: "-6px", background: "#0a0a0a", color: "#00ffcc", border: "1px solid #00ffcc", borderRadius: "8px", fontSize: "8px", padding: "1px 5px", fontWeight: "bold" }}>
                                 LVL {userLevel}
                               </span>
                             </div>
 
                             <div>
-                              <div style={{ color: "#fff", fontWeight: "bold", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "6px" }}>
-                                <span>{item.username}</span>
-                                <span style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "3px", background: "rgba(255,255,255,0.08)", color: banner.accent, border: `1px solid ${banner.accent}` }}>
-                                  {banner.label}
-                                </span>
+                              <div style={{ color: "#fff", fontWeight: "bold", fontSize: "0.95rem" }}>
+                                {item.username}
                               </div>
-                              <div style={{ color: "#aaa", fontSize: "0.72rem", marginTop: "2px" }}>
-                                Rank <strong style={{ color: item.rank === "S+" || item.rank === "S" ? "#ffe500" : "#00ffcc" }}>{item.rank}</strong> · Acc {item.accuracy} · Combo x{item.max_combo}
+                              <div style={{ color: "#bbb", fontSize: "0.75rem", marginTop: "2px" }}>
+                                Rank <strong style={{ color: item.rank === "S+" || item.rank === "S" ? "#ffe500" : "#00ffcc" }}>{item.rank}</strong> · Acc {item.accuracy} · Max Combo x{item.max_combo}
                               </div>
                             </div>
                           </div>
 
                           <div style={{ textAlign: "right", zIndex: 1 }}>
-                            <div style={{ color: isTop1 ? "#ffe500" : "#00ffcc", fontWeight: "900", fontSize: "1.05rem", textShadow: isTop1 ? "0 0 10px rgba(255,229,0,0.5)" : "none" }}>
+                            <div style={{ color: isTop1 ? "#ffe500" : "#00ffcc", fontWeight: "900", fontSize: "1.15rem", textShadow: isTop1 ? "0 0 10px rgba(255,229,0,0.6)" : "none" }}>
                               {item.score.toLocaleString()}
                             </div>
-                            <div style={{ color: "#666", fontSize: "9px", marginTop: "2px" }}>
+                            <div style={{ color: "#888", fontSize: "10px", marginTop: "2px", fontWeight: "bold", letterSpacing: "1px" }}>
                               PTS
                             </div>
                           </div>
