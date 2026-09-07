@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import LoadingScreen from "@/components/LoadingScreen";
 
 export const metadata: Metadata = {
   title: {
@@ -72,6 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         Ini pattern standar Next.js untuk body class per-page.
       */}
       <body suppressHydrationWarning>
+        <LoadingScreen />
         {children}
       </body>
     </html>
