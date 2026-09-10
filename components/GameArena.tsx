@@ -107,6 +107,17 @@ function GameArenaInner() {
     null
   );
   const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isTouch =
+        "ontouchstart" in window ||
+        navigator.maxTouchPoints > 0 ||
+        window.matchMedia("(pointer: coarse)").matches;
+      setIsTouchDevice(isTouch);
+    }
+  }, []);
 
   // ── Popups State ───────────────────────────────────────────
   const [isQuitConfirmOpen, setIsQuitConfirmOpen] = useState(false);
@@ -893,8 +904,8 @@ function GameArenaInner() {
         className="active"
         suppressHydrationWarning
         onClick={(e) => {
-          if (!profile.settings.mouseClickEnabled) return;
-          // Trigger first active note if clicking background
+          if (isTouchDevice || !profile.settings.mouseClickEnabled) return;
+          // Trigger first active note if clicking background on desktop with mouseClick enabled
           if ((e.target as HTMLElement).closest(".bm-note")) return;
           const firstNote = activeNotesRef.current.find((n) => !n.isExiting);
           if (firstNote) {
@@ -1027,7 +1038,7 @@ function GameArenaInner() {
                 handleNoteClickOrKey(note.id, true);
               }}
             >
-              <span className="bm-key-label">{note.key.toUpperCase()}</span>
+              {!isTouchDevice && <span className="bm-key-label">{note.key.toUpperCase()}</span>}
               <div className="bm-ring"></div>
             </div>
           ))}
@@ -1057,33 +1068,35 @@ function GameArenaInner() {
         </div>
 
         {/* KEY LEGEND (BOTTOM) */}
-        <div
-          id="bmKeyLegend"
-          style={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: "76px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "7px",
-            background: "linear-gradient(to top,rgba(4,4,10,.97) 60%,transparent)",
-            zIndex: 20,
-            paddingBottom: "10px",
-          }}
-        >
-          {keybinds.map((k, idx) => (
-            <div
-              key={idx}
-              id={`bmChip-${k}`}
-              className={`bm-key-chip ${pressedKey === k ? "pressed" : ""}`}
-            >
-              {k.toUpperCase()}
-            </div>
-          ))}
-        </div>
+        {!isTouchDevice && (
+          <div
+            id="bmKeyLegend"
+            style={{
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: "76px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "7px",
+              background: "linear-gradient(to top,rgba(4,4,10,.97) 60%,transparent)",
+              zIndex: 20,
+              paddingBottom: "10px",
+            }}
+          >
+            {keybinds.map((k, idx) => (
+              <div
+                key={idx}
+                id={`bmChip-${k}`}
+                className={`bm-key-chip ${pressedKey === k ? "pressed" : ""}`}
+              >
+                {k.toUpperCase()}
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
       {/* QUIT CONFIRM POPUP */}

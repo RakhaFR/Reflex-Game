@@ -71,9 +71,16 @@ export default function Lobby() {
 
   // ── Periodic Fullscreen Prompt State ─────────────────────
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    const isTouch =
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia("(pointer: coarse)").matches;
+    setIsTouchDevice(isTouch);
 
     const isFS = !!(
       document.fullscreenElement ||
@@ -819,6 +826,8 @@ export default function Lobby() {
                 src={getAvatarDisplay(profile.identity.avatar)}
                 alt="Avatar"
                 id="widgetAvatar"
+                referrerPolicy="no-referrer"
+                crossOrigin="anonymous"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = "/assets/picture/new-logo.png";
                 }}
@@ -985,6 +994,11 @@ export default function Lobby() {
                           src={getAvatarDisplay(profile.identity.avatar)}
                           alt="Player Avatar"
                           id="modalProfileImg"
+                          referrerPolicy="no-referrer"
+                          crossOrigin="anonymous"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/assets/picture/new-logo.png";
+                          }}
                         />
                       </div>
                       <div className="avatar-buttons-stack">
@@ -1097,6 +1111,11 @@ export default function Lobby() {
                               <img
                                 src={authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || getAvatarDisplay(profile.identity.avatar)}
                                 alt="Google Avatar"
+                                referrerPolicy="no-referrer"
+                                crossOrigin="anonymous"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/assets/picture/new-logo.png";
+                                }}
                                 style={{ width: "34px", height: "34px", borderRadius: "50%", border: "1px solid #00ffcc", objectFit: "cover" }}
                               />
                               <div>
@@ -1399,72 +1418,76 @@ export default function Lobby() {
                       </div>
                     </div>
 
-                    <div className="settings-blueprint-card">
-                      <div className="card-blueprint-title">// GAMEPLAY INPUT</div>
-                      <div className="setting-blueprint-row">
-                        <span>Mouse Click</span>
+                    {!isTouchDevice && (
+                      <div className="settings-blueprint-card">
+                        <div className="card-blueprint-title">// GAMEPLAY INPUT</div>
+                        <div className="setting-blueprint-row">
+                          <span>Mouse Click</span>
+                          <button
+                            type="button"
+                            className={`toggle-blueprint-btn ${profile.settings.mouseClickEnabled ? "on" : "off"}`}
+                            onClick={() => handleToggleSetting("mouseClickEnabled")}
+                          >
+                            {profile.settings.mouseClickEnabled ? "ON" : "OFF"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {!isTouchDevice && (
+                    <div className="settings-blueprint-card" style={{ marginTop: "14px" }}>
+                      <div className="card-blueprint-title">
+                        // GAMEPLAY KEYBINDS <span style={{ fontSize: "10px", color: "#52638a", fontWeight: 400 }}>(4 KEYS)</span>
+                      </div>
+                      <div className="keybind-editor-row" id="keybindEditorRow">
+                        {["KEY 1", "KEY 2", "KEY 3", "KEY 4"].map((label, idx) => {
+                          const keys = Array.isArray(profile.settings.keybinds) ? profile.settings.keybinds : ["q", "w", "e", "r"];
+                          const currentKey = keys[idx] || "q";
+                          const isListening = keybindListeningIdx === idx;
+                          const isDup = keys.filter((k) => k === currentKey).length > 1;
+
+                          return (
+                            <div className="keybind-slot" key={idx}>
+                              <span className="keybind-slot-label">{label}</span>
+                              <button
+                                type="button"
+                                className={`keybind-key-btn ${isListening ? "listening" : ""} ${isDup ? "duplicate" : ""}`}
+                                onClick={() => {
+                                  playSfx("clickSound");
+                                  setKeybindListeningIdx(idx);
+                                }}
+                              >
+                                {currentKey.toUpperCase()}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div style={{ marginTop: "10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: "10px", color: "#52638a" }}>Klik key lalu tekan tombol keyboard baru</span>
                         <button
+                          id="keybindResetBtn"
+                          className="pact-btn-blueprint"
                           type="button"
-                          className={`toggle-blueprint-btn ${profile.settings.mouseClickEnabled ? "on" : "off"}`}
-                          onClick={() => handleToggleSetting("mouseClickEnabled")}
+                          style={{ fontSize: "10px", padding: "5px 12px" }}
+                          onClick={() => {
+                            playSfx("clickSound");
+                            const updated = {
+                              ...profile,
+                              settings: { ...profile.settings, keybinds: ["q", "w", "e", "r"] },
+                            };
+                            setProfile(updated);
+                            profileSave(updated);
+                            setKeybindListeningIdx(-1);
+                            showToast("Keybinds reset ke Q W E R", "success");
+                          }}
                         >
-                          {profile.settings.mouseClickEnabled ? "ON" : "OFF"}
+                          RESET DEFAULT
                         </button>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="settings-blueprint-card" style={{ marginTop: "14px" }}>
-                    <div className="card-blueprint-title">
-                      // GAMEPLAY KEYBINDS <span style={{ fontSize: "10px", color: "#52638a", fontWeight: 400 }}>(4 KEYS)</span>
-                    </div>
-                    <div className="keybind-editor-row" id="keybindEditorRow">
-                      {["KEY 1", "KEY 2", "KEY 3", "KEY 4"].map((label, idx) => {
-                        const keys = Array.isArray(profile.settings.keybinds) ? profile.settings.keybinds : ["q", "w", "e", "r"];
-                        const currentKey = keys[idx] || "q";
-                        const isListening = keybindListeningIdx === idx;
-                        const isDup = keys.filter((k) => k === currentKey).length > 1;
-
-                        return (
-                          <div className="keybind-slot" key={idx}>
-                            <span className="keybind-slot-label">{label}</span>
-                            <button
-                              type="button"
-                              className={`keybind-key-btn ${isListening ? "listening" : ""} ${isDup ? "duplicate" : ""}`}
-                              onClick={() => {
-                                playSfx("clickSound");
-                                setKeybindListeningIdx(idx);
-                              }}
-                            >
-                              {currentKey.toUpperCase()}
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div style={{ marginTop: "10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: "10px", color: "#52638a" }}>Klik key lalu tekan tombol keyboard baru</span>
-                      <button
-                        id="keybindResetBtn"
-                        className="pact-btn-blueprint"
-                        type="button"
-                        style={{ fontSize: "10px", padding: "5px 12px" }}
-                        onClick={() => {
-                          playSfx("clickSound");
-                          const updated = {
-                            ...profile,
-                            settings: { ...profile.settings, keybinds: ["q", "w", "e", "r"] },
-                          };
-                          setProfile(updated);
-                          profileSave(updated);
-                          setKeybindListeningIdx(-1);
-                          showToast("Keybinds reset ke Q W E R", "success");
-                        }}
-                      >
-                        RESET DEFAULT
-                      </button>
-                    </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1729,6 +1752,11 @@ export default function Lobby() {
                               <img
                                 src={getAvatarDisplay(item.avatar_url)}
                                 alt="Avatar"
+                                referrerPolicy="no-referrer"
+                                crossOrigin="anonymous"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/assets/picture/new-logo.png";
+                                }}
                                 style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${banner.accent || "#00ffcc"}` }}
                               />
                               <span style={{ position: "absolute", bottom: "-4px", right: "-6px", background: "#0a0a0a", color: "#00ffcc", border: "1px solid #00ffcc", borderRadius: "8px", fontSize: "8px", padding: "1px 5px", fontWeight: "bold" }}>

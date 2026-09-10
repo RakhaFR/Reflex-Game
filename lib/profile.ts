@@ -45,7 +45,7 @@ export function getBannerById(id: string): BannerSkin {
 }
 
 export function getAvatarDisplay(avatar: string | undefined): string {
-  if (!avatar || avatar === "default") {
+  if (!avatar || avatar === "default" || avatar === "null" || avatar === "undefined") {
     return "/assets/picture/new-logo.png";
   }
   return avatar;

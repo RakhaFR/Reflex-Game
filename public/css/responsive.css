@@ -1406,11 +1406,12 @@
    IV. GAME.HTML — BASIC MODE & NOT ORIGINAL MODE
    ========================================================================== */
 
-/* ── Sembunyikan keybind editor & mouse click card di touch device landscape ──
+/* ── Sembunyikan keybind editor, label node & mouse click card di touch device landscape ──
    Touch device pakai tap-on-note, keyboard & mouse integration tidak relevan.
    Pakai pointer:coarse (touch) bukan hanya orientation:landscape supaya
    desktop monitor landscape tidak ikut tersembunyi. */
-@media (orientation: landscape) and (max-height: 800px) and (pointer: coarse) {
+@media (orientation: landscape) and (max-height: 850px) and (pointer: coarse),
+       (orientation: landscape) and (max-height: 600px) {
   /* Card "// GAMEPLAY INPUT" (berisi mouse click toggle) */
   .settings-blueprint-card:has(#mouseClickToggleBtn) {
     display: none !important;
@@ -1419,10 +1420,48 @@
   .settings-blueprint-card:has(#keybindEditorRow) {
     display: none !important;
   }
-  /* Key legend bar di game.html — disembunyikan via JS juga,
+  /* Key legend bar di game — disembunyikan via JS juga,
      ini sebagai backup CSS supaya tidak flicker saat JS load */
   #bmKeyLegend {
     display: none !important;
+  }
+  /* Sembunyikan huruf keybind (Q W E R) di dalam node pada touch / mobile landscape */
+  .bm-key-label {
+    display: none !important;
+  }
+  /* Perluas arena note agar tidak terpotong legend strip */
+  #bmArena {
+    inset: 52px 0 10px 0 !important;
+  }
+}
+
+/* ── Responsive Modals (Profile, Leaderboard, Auth, Fullscreen) for Landscape View ── */
+@media (orientation: landscape) and (max-height: 700px) {
+  .profile-modal-overlay {
+    padding: 10px !important;
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+  }
+  .profile-modal-box {
+    max-height: 92vh !important;
+    margin: 10px auto !important;
+    overflow-y: auto !important;
+  }
+  .profile-modal-content-wrapper {
+    max-height: calc(92vh - 90px) !important;
+    overflow-y: auto !important;
+  }
+  .identity-tab-layout {
+    gap: 16px !important;
+  }
+  .avatar-left-block {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+  .avatar-glow-frame img {
+    width: 70px !important;
+    height: 70px !important;
   }
 }
 
