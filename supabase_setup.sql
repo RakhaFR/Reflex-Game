@@ -15,8 +15,13 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+-- Pastikan kolom settings & avatar_url ada jika tabel sudah pernah dibuat sebelumnya
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT 'default';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS xp BIGINT DEFAULT 0;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS banner_skin TEXT DEFAULT 'arcade-spark';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stats JSONB DEFAULT '{}'::jsonb;
+
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 DO $$ 
@@ -34,16 +39,43 @@ BEGIN
   END IF;
 END $$;
 
--- ── 2. TRIGGER AUTOMATIC PROFILE ON SIGNUP ─────────────────────
+-- ── 2. TRIGGER AUTOMATIC PROFILE ON SIGNUP (GOOGLE / MANUAL EMAIL) ──
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  extracted_name TEXT;
+  extracted_avatar TEXT;
 BEGIN
-  INSERT INTO public.profiles (id, username, avatar_url)
+  extracted_name := COALESCE(
+    NULLIF(NEW.raw_user_meta_data->>'username', ''),
+    NULLIF(NEW.raw_user_meta_data->>'full_name', ''),
+    NULLIF(NEW.raw_user_meta_data->>'name', ''),
+    SPLIT_PART(NEW.email, '@', 1),
+    'Operator'
+  );
+
+  extracted_avatar := COALESCE(
+    NULLIF(NEW.raw_user_meta_data->>'avatar_url', ''),
+    NULLIF(NEW.raw_user_meta_data->>'picture', ''),
+    'default'
+  );
+
+  INSERT INTO public.profiles (id, username, avatar_url, xp, banner_skin, stats, settings, updated_at)
   VALUES (
     NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', SPLIT_PART(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'avatar_url', NEW.raw_user_meta_data->>'picture', 'default')
-  );
+    extracted_name,
+    extracted_avatar,
+    0,
+    'arcade-spark',
+    '{}'::jsonb,
+    '{}'::jsonb,
+    NOW()
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    username = COALESCE(NULLIF(EXCLUDED.username, ''), public.profiles.username),
+    avatar_url = COALESCE(NULLIF(EXCLUDED.avatar_url, ''), public.profiles.avatar_url),
+    updated_at = NOW();
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -72,9 +104,9 @@ CREATE TABLE IF NOT EXISTS public.best_scores (
   CONSTRAINT unique_user_track_mode_diff UNIQUE (user_id, track_id, mode, difficulty)
 );
 
--- Pastikan kolom level & banner_skin ada jika tabel sudah pernah di-create sebelumnya
 ALTER TABLE public.best_scores ADD COLUMN IF NOT EXISTS level INTEGER DEFAULT 1;
 ALTER TABLE public.best_scores ADD COLUMN IF NOT EXISTS banner_skin TEXT DEFAULT 'arcade-spark';
+ALTER TABLE public.best_scores ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT 'default';
 
 ALTER TABLE public.best_scores ENABLE ROW LEVEL SECURITY;
 
@@ -114,7 +146,8 @@ BEGIN
 
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert their own score') THEN
     CREATE POLICY "Users can insert their own score" ON public.scores FOR INSERT WITH CHECK (auth.uid() = user_id);
-  END IF;END $$;
+  END IF;
+END $$;
 
 -- ── 5. STORAGE BUCKET AVATARS ─────────────────────────────────
 INSERT INTO storage.buckets (id, name, public) 

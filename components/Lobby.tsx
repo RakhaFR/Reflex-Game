@@ -35,6 +35,7 @@ import {
   signUpWithEmail,
   signOutSupabase,
   syncLocalProfileToCloud,
+  syncAllLocalBestScoresToCloud,
   fetchCloudProfile,
   uploadAvatarToStorage,
   fetchTrackLeaderboardFromCloud,
@@ -59,10 +60,30 @@ export default function Lobby() {
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [isAuthSubModalOpen, setIsAuthSubModalOpen] = useState<boolean>(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [authUsername, setAuthUsername] = useState<string>("");
   const [authEmail, setAuthEmail] = useState<string>("");
   const [authPassword, setAuthPassword] = useState<string>("");
   const [authError, setAuthError] = useState<string>("");
   const [authLoading, setAuthLoading] = useState<boolean>(false);
+
+  const passStrength = (() => {
+    if (!authPassword) return null;
+    if (authPassword.length < 6) {
+      return { label: "LOW (Sangat Lemah)", color: "#ff4757", pct: 33 };
+    }
+    const hasNumber = /[0-9]/.test(authPassword);
+    const hasLetter = /[a-zA-Z]/.test(authPassword);
+    const hasUpper = /[A-Z]/.test(authPassword);
+    const hasSpecial = /[^A-Za-z0-9]/.test(authPassword);
+
+    if (authPassword.length >= 8 && hasNumber && hasLetter && (hasUpper || hasSpecial)) {
+      return { label: "STRONG (Sangat Kuat)", color: "#00ffcc", pct: 100 };
+    }
+    if (hasNumber && hasLetter) {
+      return { label: "MID (Sedang)", color: "#ffe500", pct: 66 };
+    }
+    return { label: "LOW (Lemah)", color: "#ff4757", pct: 33 };
+  })();
 
   // ── Track Leaderboard State ───────────────────────────────
   const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
@@ -512,42 +533,93 @@ export default function Lobby() {
       setAuthError("Email dan password wajib diisi");
       return;
     }
+    if (authMode === "signup" && !authUsername.trim()) {
+      setAuthError("Nama Operator / Username wajib diisi");
+      return;
+    }
     setAuthLoading(true);
     setAuthError("");
 
-    if (authMode === "login") {
-      const { data, error } = await signInWithEmail(authEmail, authPassword);
-      setAuthLoading(false);
-      if (error) {
-        setAuthError(error.message);
-      } else if (data.user) {
-        showToast("Berhasil login!", "success");
+    try {
+      if (authMode === "login") {
+        const { data, error } = await signInWithEmail(authEmail, authPassword);
+        if (error) {
+          setAuthError(error.message);
+        } else if (data.user) {
+          setAuthUser(data.user);
+          await syncLocalProfileToCloud(data.user, profileRef.current);
+          await syncAllLocalBestScoresToCloud(data.user, profileRef.current);
+          const cloudData = await fetchCloudProfile(data.user, profileRef.current);
+          if (cloudData) {
+            setProfile(cloudData);
+            setUsernameInput(cloudData.identity.username);
+          }
+          setIsAuthSubModalOpen(false);
+          setIsProfileModalOpen(true);
+          setActiveModalTab("tabIdentity");
+          showToast("Berhasil login & tersinkron!", "success");
+        }
+      } else {
+        const targetUsername = authUsername.trim() || authEmail.split("@")[0];
+        const { data, error } = await signUpWithEmail(authEmail, authPassword, targetUsername);
+        if (error) {
+          setAuthError(error.message);
+        } else if (data.user) {
+          const updated = {
+            ...profileRef.current,
+            identity: { ...profileRef.current.identity, username: targetUsername },
+          };
+          setProfile(updated);
+          profileSave(updated);
+          setUsernameInput(targetUsername);
+
+          if (data.session) {
+            setAuthUser(data.user);
+            await syncLocalProfileToCloud(data.user, updated);
+            await syncAllLocalBestScoresToCloud(data.user, updated);
+            setIsAuthSubModalOpen(false);
+            setIsProfileModalOpen(true);
+            setActiveModalTab("tabIdentity");
+            showToast("Registrasi berhasil & tersinkron!", "success");
+          } else {
+            setIsAuthSubModalOpen(false);
+            showToast("Registrasi berhasil! Silakan login atau cek email verifikasi.", "success");
+          }
+        }
       }
-    } else {
-      const { data, error } = await signUpWithEmail(authEmail, authPassword, profile.identity.username);
+    } catch (err: any) {
+      setAuthError(err?.message || "Terjadi kesalahan autentikasi");
+    } finally {
       setAuthLoading(false);
-      if (error) {
-        setAuthError(error.message);
-      } else if (data.user) {
-        showToast("Registrasi berhasil! Silakan cek email / login.", "success");
-      }
     }
   };
 
   const handleSignOut = async () => {
     setAuthLoading(true);
-    await signOutSupabase();
-    setAuthUser(null);
-    setAuthLoading(false);
-    showToast("Berhasil Logout", "success");
+    try {
+      await signOutSupabase();
+      setAuthUser(null);
+      showToast("Berhasil Logout", "success");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const handleManualSyncCloud = async () => {
     if (!authUser) return;
     setAuthLoading(true);
-    await syncLocalProfileToCloud(authUser, profile);
-    setAuthLoading(false);
-    showToast("Profile tersimpan di Cloud Server!", "success");
+    try {
+      await syncLocalProfileToCloud(authUser, profile);
+      await syncAllLocalBestScoresToCloud(authUser, profile);
+      showToast("Profile tersimpan di Cloud Server!", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal menyimpan ke Cloud Server", "error");
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const handleOpenTrackLeaderboard = async () => {
@@ -1582,6 +1654,17 @@ export default function Lobby() {
                     </div>
 
                     <form onSubmit={handleEmailAuth} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      {authMode === "signup" && (
+                        <input
+                          type="text"
+                          placeholder="Nama Operator / Username"
+                          className="blueprint-field-input"
+                          maxLength={14}
+                          value={authUsername}
+                          onChange={(e) => setAuthUsername(e.target.value)}
+                          required
+                        />
+                      )}
                       <input
                         type="email"
                         placeholder="Email Address"
@@ -1598,6 +1681,20 @@ export default function Lobby() {
                         onChange={(e) => setAuthPassword(e.target.value)}
                         required
                       />
+
+                      {passStrength && (
+                        <div style={{ marginTop: "-2px", marginBottom: "4px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10px", color: "#888", marginBottom: "3px" }}>
+                            <span>PASSWORD STRENGTH:</span>
+                            <span style={{ color: passStrength.color, fontWeight: "bold" }}>
+                              {passStrength.label}
+                            </span>
+                          </div>
+                          <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.1)", borderRadius: "2px", overflow: "hidden" }}>
+                            <div style={{ width: `${passStrength.pct}%`, height: "100%", background: passStrength.color, transition: "all 0.3s ease" }}></div>
+                          </div>
+                        </div>
+                      )}
 
                       <button
                         type="submit"

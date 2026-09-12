@@ -55,13 +55,15 @@ export async function signUpWithEmail(email: string, pass: string, username: str
   if (!isSupabaseConfigured()) {
     return { data: null, error: new Error("Layanan Cloud belum di-setup di .env.local") };
   }
+  const displayUsername = username.trim() || email.split("@")[0];
   return await supabase.auth.signUp({
     email,
     password: pass,
     options: {
       data: {
-        username: username || email.split("@")[0],
-        full_name: username || email.split("@")[0],
+        username: displayUsername,
+        full_name: displayUsername,
+        name: displayUsername,
       },
     },
   });
@@ -77,14 +79,15 @@ export async function signOutSupabase() {
 export async function syncLocalProfileToCloud(user: User, localProfile: ProfileData) {
   if (!isSupabaseConfigured() || !user) return null;
   try {
+    const fallbackName = user.user_metadata?.username || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Operator";
     const payload = {
       id: user.id,
-      username: localProfile.identity.username || user.user_metadata?.full_name || "Operator",
+      username: localProfile.identity.username && localProfile.identity.username !== "Player" ? localProfile.identity.username : fallbackName,
       avatar_url: localProfile.identity.avatar || user.user_metadata?.avatar_url || "default",
       xp: localProfile.stats.lifetimeScore || 0,
       banner_skin: localProfile.identity.bannerSkin || "arcade-spark",
-      stats: localProfile.stats,
-      settings: localProfile.settings,
+      stats: localProfile.stats || {},
+      settings: localProfile.settings || {},
       updated_at: new Date().toISOString(),
     };
 
