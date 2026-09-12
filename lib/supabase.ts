@@ -56,10 +56,16 @@ export async function signUpWithEmail(email: string, pass: string, username: str
     return { data: null, error: new Error("Layanan Cloud belum di-setup di .env.local") };
   }
   const displayUsername = username.trim() || email.split("@")[0];
+  const redirectUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/lobby?openProfile=true`
+      : undefined;
+
   return await supabase.auth.signUp({
     email,
     password: pass,
     options: {
+      emailRedirectTo: redirectUrl,
       data: {
         username: displayUsername,
         full_name: displayUsername,

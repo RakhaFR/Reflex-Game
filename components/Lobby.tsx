@@ -481,15 +481,15 @@ export default function Lobby() {
           }
         });
 
-        const isOAuthReturn =
+        const isAuthReturn =
           typeof window !== "undefined" &&
           (window.location.hash.includes("access_token") || window.location.search.includes("openProfile=true"));
 
-        if (isOAuthReturn) {
+        if (isAuthReturn) {
           setIsProfileModalOpen(true);
           setActiveModalTab("tabIdentity");
           window.history.replaceState(null, "", window.location.pathname);
-          showToast("Connected & Synced with Google!", "success");
+          showToast("Connected & Synced with Account!", "success");
         }
       }
     });
