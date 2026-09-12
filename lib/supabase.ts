@@ -285,6 +285,21 @@ export async function recordBestScoreToCloud(
 ) {
   if (!isSupabaseConfigured() || !user) return null;
   try {
+    // Check existing best score in cloud first -> Only update if new score is higher
+    const { data: existing } = await supabase
+      .from("best_scores")
+      .select("score")
+      .eq("user_id", user.id)
+      .eq("track_id", trackId)
+      .eq("mode", mode)
+      .eq("difficulty", difficulty)
+      .maybeSingle();
+
+    if (existing && typeof existing.score === "number" && score <= existing.score) {
+      // New score is lower than or equal to existing best score in cloud -> DO NOT OVERWRITE!
+      return null;
+    }
+
     const userLevel = computeLevelFromXP(profile.stats.lifetimeScore || 0);
     const payload = {
       user_id: user.id,

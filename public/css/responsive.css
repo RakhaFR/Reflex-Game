@@ -1413,6 +1413,7 @@
 @media (orientation: landscape) and (max-height: 850px) and (pointer: coarse),
        (orientation: landscape) and (max-height: 600px) {
   /* Card "// GAMEPLAY INPUT" (berisi mouse click toggle) */
+  #mouseClickToggleCard,
   .settings-blueprint-card:has(#mouseClickToggleBtn) {
     display: none !important;
   }
@@ -1450,18 +1451,6 @@
   .profile-modal-content-wrapper {
     max-height: calc(92vh - 90px) !important;
     overflow-y: auto !important;
-  }
-  .identity-tab-layout {
-    gap: 16px !important;
-  }
-  .avatar-left-block {
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 12px !important;
-  }
-  .avatar-glow-frame img {
-    width: 70px !important;
-    height: 70px !important;
   }
 }
 

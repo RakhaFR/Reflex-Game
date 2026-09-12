@@ -585,17 +585,19 @@ function GameArenaInner() {
             accStr,
             rank
           );
-          recordBestScoreToCloud(
-            data.user,
-            updatedProf,
-            currentTrack.id,
-            modeParamRef.current,
-            diffParam,
-            finalScore,
-            finalCombo,
-            accStr,
-            rank
-          );
+          if (isNewBest) {
+            recordBestScoreToCloud(
+              data.user,
+              updatedProf,
+              currentTrack.id,
+              modeParamRef.current,
+              diffParam,
+              finalScore,
+              finalCombo,
+              accStr,
+              rank
+            );
+          }
         }
       });
     }

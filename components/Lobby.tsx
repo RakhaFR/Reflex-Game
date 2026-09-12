@@ -1419,12 +1419,13 @@ export default function Lobby() {
                     </div>
 
                     {!isTouchDevice && (
-                      <div className="settings-blueprint-card">
+                      <div className="settings-blueprint-card" id="mouseClickToggleCard">
                         <div className="card-blueprint-title">// GAMEPLAY INPUT</div>
                         <div className="setting-blueprint-row">
                           <span>Mouse Click</span>
                           <button
                             type="button"
+                            id="mouseClickToggleBtn"
                             className={`toggle-blueprint-btn ${profile.settings.mouseClickEnabled ? "on" : "off"}`}
                             onClick={() => handleToggleSetting("mouseClickEnabled")}
                           >
