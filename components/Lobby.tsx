@@ -15,6 +15,7 @@ import {
 import {
   profileLoad,
   profileSave,
+  profileSaveForce,
   computeLevelFromXP,
   xpNeededForLevel,
   xpToReachLevel,
@@ -738,20 +739,17 @@ export default function Lobby() {
       await signOutSupabase();
       setAuthUser(null);
 
-      // Reset avatar & username ke default saat logout
-      const resetProfile = {
-        ...profileRef.current,
-        identity: {
-          ...profileRef.current.identity,
-          avatar: "default",
-          username: "Player",
-        },
-      };
-      setProfile(resetProfile);
-      setUsernameInput("Player");
-      profileSave(resetProfile);
+      // Hapus total seluruh data profile, stats, XP & record lokal saat logout
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("rhg_profile");
+      }
+      const freshDefault: ProfileData = JSON.parse(JSON.stringify(PROFILE_DEFAULT));
+      setProfile(freshDefault);
+      profileRef.current = freshDefault;
+      profileSaveForce(freshDefault);
+      setUsernameInput(freshDefault.identity.username);
 
-      showToast("Berhasil Logout", "success");
+      showToast("Berhasil Logout & Data Dibersihkan", "success");
     } catch (err) {
       console.error(err);
     } finally {
