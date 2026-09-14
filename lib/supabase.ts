@@ -80,6 +80,42 @@ export async function signOutSupabase() {
   return await supabase.auth.signOut();
 }
 
+export async function sendPasswordResetEmail(email: string) {
+  if (!isSupabaseConfigured()) {
+    return { data: null, error: new Error("Layanan Cloud belum di-setup di .env.local") };
+  }
+  const redirectUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/lobby?openResetPassword=true`
+      : undefined;
+
+  return await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: redirectUrl,
+  });
+}
+
+export async function updateUserPassword(newPassword: string) {
+  if (!isSupabaseConfigured()) {
+    return { data: null, error: new Error("Layanan Cloud belum di-setup di .env.local") };
+  }
+  return await supabase.auth.updateUser({ password: newPassword });
+}
+
+export async function updateUserEmail(newEmail: string) {
+  if (!isSupabaseConfigured()) {
+    return { data: null, error: new Error("Layanan Cloud belum di-setup di .env.local") };
+  }
+  const redirectUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/lobby?openProfile=true`
+      : undefined;
+
+  return await supabase.auth.updateUser(
+    { email: newEmail },
+    { emailRedirectTo: redirectUrl }
+  );
+}
+
 // ── CLOUD PROFILE SYNC ─────────────────────────────────────────
 
 export async function syncLocalProfileToCloud(user: User, localProfile: ProfileData) {

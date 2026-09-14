@@ -40,6 +40,9 @@ import {
   uploadAvatarToStorage,
   fetchTrackLeaderboardFromCloud,
   TrackLeaderboardItem,
+  sendPasswordResetEmail,
+  updateUserPassword,
+  updateUserEmail,
 } from "@/lib/supabase";
 
 export default function Lobby() {
@@ -59,12 +62,22 @@ export default function Lobby() {
   // ── Supabase Auth State ────────────────────────────────────
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [isAuthSubModalOpen, setIsAuthSubModalOpen] = useState<boolean>(false);
-  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [isVerifyEmailWaiting, setIsVerifyEmailWaiting] = useState<boolean>(false);
+  const [verifyEmailTarget, setVerifyEmailTarget] = useState<string>("");
+  const [authMode, setAuthMode] = useState<"login" | "signup" | "forgot" | "reset_new_pass">("login");
   const [authUsername, setAuthUsername] = useState<string>("");
   const [authEmail, setAuthEmail] = useState<string>("");
   const [authPassword, setAuthPassword] = useState<string>("");
   const [authError, setAuthError] = useState<string>("");
   const [authLoading, setAuthLoading] = useState<boolean>(false);
+
+  // ── Change Email & Password Modal State ─────────────────────
+  const [isChangeEmailModalOpen, setIsChangeEmailModalOpen] = useState<boolean>(false);
+  const [isChangePassModalOpen, setIsChangePassModalOpen] = useState<boolean>(false);
+  const [newEmailInput, setNewEmailInput] = useState<string>("");
+  const [newPassInput, setNewPassInput] = useState<string>("");
+  const [changeAccountLoading, setChangeAccountLoading] = useState<boolean>(false);
+  const [changeAccountError, setChangeAccountError] = useState<string>("");
 
   const passStrength = (() => {
     if (!authPassword) return null;
@@ -77,6 +90,25 @@ export default function Lobby() {
     const hasSpecial = /[^A-Za-z0-9]/.test(authPassword);
 
     if (authPassword.length >= 8 && hasNumber && hasLetter && (hasUpper || hasSpecial)) {
+      return { label: "STRONG (Sangat Kuat)", color: "#00ffcc", pct: 100 };
+    }
+    if (hasNumber && hasLetter) {
+      return { label: "MID (Sedang)", color: "#ffe500", pct: 66 };
+    }
+    return { label: "LOW (Lemah)", color: "#ff4757", pct: 33 };
+  })();
+
+  const newPassStrength = (() => {
+    if (!newPassInput) return null;
+    if (newPassInput.length < 6) {
+      return { label: "LOW (Sangat Lemah)", color: "#ff4757", pct: 33 };
+    }
+    const hasNumber = /[0-9]/.test(newPassInput);
+    const hasLetter = /[a-zA-Z]/.test(newPassInput);
+    const hasUpper = /[A-Z]/.test(newPassInput);
+    const hasSpecial = /[^A-Za-z0-9]/.test(newPassInput);
+
+    if (newPassInput.length >= 8 && hasNumber && hasLetter && (hasUpper || hasSpecial)) {
       return { label: "STRONG (Sangat Kuat)", color: "#00ffcc", pct: 100 };
     }
     if (hasNumber && hasLetter) {
@@ -469,35 +501,57 @@ export default function Lobby() {
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
 
-    // Retrieve initial session (parses URL hash token if coming from Google OAuth)
+    // Retrieve initial session (parses URL hash token if coming from Google OAuth or Password Reset)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setAuthUser(session.user);
-        setIsAuthSubModalOpen(false);
-        fetchCloudProfile(session.user, profileRef.current).then((cloudData) => {
-          if (cloudData) {
-            setProfile(cloudData);
-            setUsernameInput(cloudData.identity.username);
-          }
-        });
 
-        const isAuthReturn =
+        const isRecoveryReturn =
           typeof window !== "undefined" &&
-          (window.location.hash.includes("access_token") || window.location.search.includes("openProfile=true"));
+          (window.location.search.includes("openResetPassword=true") || window.location.hash.includes("type=recovery"));
 
-        if (isAuthReturn) {
-          setIsProfileModalOpen(true);
-          setActiveModalTab("tabIdentity");
+        if (isRecoveryReturn) {
+          setIsAuthSubModalOpen(true);
+          setAuthMode("reset_new_pass");
           window.history.replaceState(null, "", window.location.pathname);
-          showToast("Connected & Synced with Account!", "success");
+          showToast("Masukkan password baru kamu!", "success");
+        } else {
+          setIsAuthSubModalOpen(false);
+          fetchCloudProfile(session.user, profileRef.current).then((cloudData) => {
+            if (cloudData) {
+              setProfile(cloudData);
+              setUsernameInput(cloudData.identity.username);
+            }
+          });
+
+          const isAuthReturn =
+            typeof window !== "undefined" &&
+            (window.location.hash.includes("access_token") || window.location.search.includes("openProfile=true"));
+
+          if (isAuthReturn) {
+            setIsProfileModalOpen(true);
+            setActiveModalTab("tabIdentity");
+            window.history.replaceState(null, "", window.location.pathname);
+            showToast("Connected & Synced with Account!", "success");
+          }
         }
       }
     });
 
     const { data: authSubscription } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        if (session?.user) setAuthUser(session.user);
+        setIsAuthSubModalOpen(true);
+        setAuthMode("reset_new_pass");
+        showToast("Masukkan password baru kamu!", "success");
+        return;
+      }
+
       if (session?.user) {
         setAuthUser(session.user);
         setIsAuthSubModalOpen(false);
+        setIsVerifyEmailWaiting(false);
+
         const cloudData = await fetchCloudProfile(session.user, profileRef.current);
         if (cloudData) {
           setProfile(cloudData);
@@ -505,7 +559,7 @@ export default function Lobby() {
           if (event === "SIGNED_IN") {
             setIsProfileModalOpen(true);
             setActiveModalTab("tabIdentity");
-            showToast("Cloud sync berhasil!", "success");
+            showToast("Akun terverifikasi & tersinkron!", "success");
           }
         }
       } else {
@@ -529,18 +583,49 @@ export default function Lobby() {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!authEmail || !authPassword) {
-      setAuthError("Email dan password wajib diisi");
-      return;
-    }
-    if (authMode === "signup" && !authUsername.trim()) {
-      setAuthError("Nama Operator / Username wajib diisi");
-      return;
-    }
     setAuthLoading(true);
     setAuthError("");
 
     try {
+      if (authMode === "forgot") {
+        if (!authEmail) {
+          setAuthError("Email wajib diisi");
+          return;
+        }
+        const { error } = await sendPasswordResetEmail(authEmail);
+        if (error) {
+          setAuthError(error.message);
+        } else {
+          setIsAuthSubModalOpen(false);
+          setVerifyEmailTarget(authEmail);
+          setIsVerifyEmailWaiting(true);
+          showToast("Link reset password dikirim ke email kamu!", "success");
+        }
+        return;
+      }
+
+      if (authMode === "reset_new_pass") {
+        if (!authPassword || authPassword.length < 6) {
+          setAuthError("Password minimal 6 karakter");
+          return;
+        }
+        const { error } = await updateUserPassword(authPassword);
+        if (error) {
+          setAuthError(error.message);
+        } else {
+          showToast("Password berhasil diperbarui!", "success");
+          setIsAuthSubModalOpen(false);
+          setIsProfileModalOpen(true);
+          setActiveModalTab("tabIdentity");
+        }
+        return;
+      }
+
+      if (!authEmail || !authPassword) {
+        setAuthError("Email dan password wajib diisi");
+        return;
+      }
+
       if (authMode === "login") {
         const { data, error } = await signInWithEmail(authEmail, authPassword);
         if (error) {
@@ -559,7 +644,11 @@ export default function Lobby() {
           setActiveModalTab("tabIdentity");
           showToast("Berhasil login & tersinkron!", "success");
         }
-      } else {
+      } else if (authMode === "signup") {
+        if (!authUsername.trim()) {
+          setAuthError("Nama Operator / Username wajib diisi");
+          return;
+        }
         const targetUsername = authUsername.trim() || authEmail.split("@")[0];
         const { data, error } = await signUpWithEmail(authEmail, authPassword, targetUsername);
         if (error) {
@@ -583,7 +672,8 @@ export default function Lobby() {
             showToast("Registrasi berhasil & tersinkron!", "success");
           } else {
             setIsAuthSubModalOpen(false);
-            showToast("Registrasi berhasil! Silakan login atau cek email verifikasi.", "success");
+            setVerifyEmailTarget(authEmail);
+            setIsVerifyEmailWaiting(true);
           }
         }
       }
@@ -594,11 +684,73 @@ export default function Lobby() {
     }
   };
 
+  const handleChangeEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEmailInput.trim()) {
+      setChangeAccountError("Email baru wajib diisi");
+      return;
+    }
+    setChangeAccountLoading(true);
+    setChangeAccountError("");
+    try {
+      const { error } = await updateUserEmail(newEmailInput.trim());
+      if (error) {
+        setChangeAccountError(error.message);
+      } else {
+        showToast("Konfirmasi dikirim ke email baru & lama kamu!", "success");
+        setIsChangeEmailModalOpen(false);
+        setNewEmailInput("");
+      }
+    } catch (err: any) {
+      setChangeAccountError(err?.message || "Gagal mengubah email");
+    } finally {
+      setChangeAccountLoading(false);
+    }
+  };
+
+  const handleChangePassSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassInput || newPassInput.length < 6) {
+      setChangeAccountError("Password minimal 6 karakter");
+      return;
+    }
+    setChangeAccountLoading(true);
+    setChangeAccountError("");
+    try {
+      const { error } = await updateUserPassword(newPassInput);
+      if (error) {
+        setChangeAccountError(error.message);
+      } else {
+        showToast("Password berhasil diubah!", "success");
+        setIsChangePassModalOpen(false);
+        setNewPassInput("");
+      }
+    } catch (err: any) {
+      setChangeAccountError(err?.message || "Gagal mengubah password");
+    } finally {
+      setChangeAccountLoading(false);
+    }
+  };
+
   const handleSignOut = async () => {
     setAuthLoading(true);
     try {
       await signOutSupabase();
       setAuthUser(null);
+
+      // Reset avatar & username ke default saat logout
+      const resetProfile = {
+        ...profileRef.current,
+        identity: {
+          ...profileRef.current.identity,
+          avatar: "default",
+          username: "Player",
+        },
+      };
+      setProfile(resetProfile);
+      setUsernameInput("Player");
+      profileSave(resetProfile);
+
       showToast("Berhasil Logout", "success");
     } catch (err) {
       console.error(err);
@@ -1178,43 +1330,74 @@ export default function Lobby() {
                         </div>
 
                         {authUser ? (
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                              <img
-                                src={authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || getAvatarDisplay(profile.identity.avatar)}
-                                alt="Google Avatar"
-                                referrerPolicy="no-referrer"
-                                crossOrigin="anonymous"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = "/assets/picture/new-logo.png";
-                                }}
-                                style={{ width: "34px", height: "34px", borderRadius: "50%", border: "1px solid #00ffcc", objectFit: "cover" }}
-                              />
-                              <div>
-                                <div style={{ fontSize: "12px", color: "#fff", fontWeight: "bold" }}>
-                                  {authUser.user_metadata?.full_name || authUser.email?.split("@")[0]}
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                <img
+                                  src={authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || getAvatarDisplay(profile.identity.avatar)}
+                                  alt="Google Avatar"
+                                  referrerPolicy="no-referrer"
+                                  crossOrigin="anonymous"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = "/assets/picture/new-logo.png";
+                                  }}
+                                  style={{ width: "34px", height: "34px", borderRadius: "50%", border: "1px solid #00ffcc", objectFit: "cover" }}
+                                />
+                                <div>
+                                  <div style={{ fontSize: "12px", color: "#fff", fontWeight: "bold" }}>
+                                    {authUser.user_metadata?.full_name || authUser.email?.split("@")[0]}
+                                  </div>
+                                  <div style={{ fontSize: "10px", color: "#888" }}>{authUser.email}</div>
                                 </div>
-                                <div style={{ fontSize: "10px", color: "#888" }}>{authUser.email}</div>
+                              </div>
+                              <div style={{ display: "flex", gap: "6px" }}>
+                                <button
+                                  type="button"
+                                  className="pact-btn-blueprint"
+                                  style={{ padding: "4px 10px", fontSize: "10px" }}
+                                  onClick={handleManualSyncCloud}
+                                  disabled={authLoading}
+                                >
+                                  <i className="fa-solid fa-rotate"></i> {authLoading ? "SAVING..." : "SAVE CLOUD"}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="pact-btn-blueprint pact-danger-blueprint"
+                                  style={{ padding: "4px 10px", fontSize: "10px" }}
+                                  onClick={handleSignOut}
+                                  disabled={authLoading}
+                                >
+                                  LOGOUT
+                                </button>
                               </div>
                             </div>
-                            <div style={{ display: "flex", gap: "6px" }}>
+
+                            <div style={{ display: "flex", gap: "8px", marginTop: "10px", paddingTop: "8px", borderTop: "1px solid rgba(255,255,255,0.06)", flexWrap: "wrap" }}>
                               <button
                                 type="button"
                                 className="pact-btn-blueprint"
-                                style={{ padding: "4px 10px", fontSize: "10px" }}
-                                onClick={handleManualSyncCloud}
-                                disabled={authLoading}
+                                style={{ padding: "4px 8px", fontSize: "10px" }}
+                                onClick={() => {
+                                  playSfx("clickSound");
+                                  setIsChangeEmailModalOpen(true);
+                                  setChangeAccountError("");
+                                  setNewEmailInput("");
+                                }}
                               >
-                                <i className="fa-solid fa-rotate"></i> {authLoading ? "SAVING..." : "SAVE CLOUD"}
+                                <i className="fa-solid fa-envelope" style={{ marginRight: "4px" }}></i> GANTI EMAIL
                               </button>
                               <button
                                 type="button"
-                                className="pact-btn-blueprint pact-danger-blueprint"
-                                style={{ padding: "4px 10px", fontSize: "10px" }}
-                                onClick={handleSignOut}
-                                disabled={authLoading}
+                                className="pact-btn-blueprint"
+                                style={{ padding: "4px 8px", fontSize: "10px" }}
+                                onClick={() => {
+                                  playSfx("clickSound");
+                                  setIsChangePassModalOpen(true);
+                                  setChangeAccountError("");
+                                  setNewPassInput("");
+                                }}
                               >
-                                LOGOUT
+                                <i className="fa-solid fa-key" style={{ marginRight: "4px" }}></i> GANTI PASSWORD
                               </button>
                             </div>
                           </div>
@@ -1567,6 +1750,77 @@ export default function Lobby() {
           </div>
         </div>
 
+        {/* EMAIL VERIFICATION WAITING POP-UP */}
+        {isVerifyEmailWaiting && (
+          <div className="profile-modal-overlay active" style={{ zIndex: 100008 }}>
+            <div className="profile-modal-box" style={{ maxWidth: "440px", margin: "auto", textAlign: "center" }}>
+              <div className="modal-corner-accent top-left"></div>
+              <div className="modal-corner-accent bottom-right"></div>
+
+              <div className="profile-modal-header" style={{ justifyContent: "center" }}>
+                <div className="modal-title-group">
+                  <span className="modal-main-icon" style={{ color: "#ffe500" }}>
+                    <i className="fa-solid fa-envelope-circle-check"></i>
+                  </span>
+                  <h3 className="modal-title-text">[V] EMAIL VERIFICATION</h3>
+                </div>
+              </div>
+
+              <div style={{ padding: "24px 20px" }}>
+                <div style={{ position: "relative", width: "60px", height: "60px", margin: "0 auto 20px" }}>
+                  <div style={{ width: "60px", height: "60px", borderRadius: "50%", border: "2px solid #ffe500", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", color: "#ffe500", animation: "pulse 1.5s ease-in-out infinite", background: "rgba(255,229,0,0.08)" }}>
+                    <i className="fa-solid fa-envelope"></i>
+                  </div>
+                </div>
+
+                <h4 style={{ color: "#fff", margin: "0 0 8px 0", fontSize: "1rem", fontFamily: "Orbitron, sans-serif" }}>
+                  VERIFICATION LINK SENT!
+                </h4>
+                <p style={{ color: "#aaa", fontSize: "0.85rem", lineHeight: "1.6", margin: "0 0 8px 0" }}>
+                  Kami telah mengirimkan link verifikasi ke:
+                </p>
+                <div style={{ background: "rgba(255,229,0,0.08)", border: "1px solid rgba(255,229,0,0.3)", borderRadius: "6px", padding: "8px 16px", fontSize: "0.9rem", color: "#ffe500", fontWeight: "bold", marginBottom: "16px", wordBreak: "break-all" }}>
+                  {verifyEmailTarget}
+                </div>
+                <p style={{ color: "#aaa", fontSize: "0.8rem", lineHeight: "1.5", margin: "0 0 6px 0" }}>
+                  Buka Gmail & klik tombol verifikasi di email tersebut. Cek juga folder <strong style={{ color: "#fff" }}>Spam / Junk</strong> jika tidak ada di Inbox.
+                </p>
+                <p style={{ color: "#555", fontSize: "0.75rem", marginBottom: "20px" }}>
+                  Halaman ini akan otomatis tersinkron begitu kamu menekan link verifikasi.
+                </p>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", marginBottom: "16px" }}>
+                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#ffe500", animation: "pulse 1s ease-in-out infinite" }}></div>
+                  <span style={{ color: "#aaa", fontSize: "0.8rem", fontFamily: "Orbitron, sans-serif" }}>WAITING FOR VERIFICATION...</span>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <a
+                    href="https://mail.google.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pact-btn-save-blueprint"
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px", fontSize: "0.9rem", textDecoration: "none" }}
+                    onClick={() => playSfx("clickSound")}
+                  >
+                    <i className="fa-solid fa-envelope-open-text"></i> BUKA GMAIL
+                  </a>
+                  <button
+                    type="button"
+                    style={{ background: "none", border: "none", color: "#555", fontSize: "0.75rem", cursor: "pointer", textDecoration: "underline" }}
+                    onClick={() => {
+                      playSfx("clickSound");
+                      setIsVerifyEmailWaiting(false);
+                    }}
+                  >
+                    Tutup & lanjut bermain
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* DEDICATED AUTH SUB-MODAL POP-UP */}
         {isAuthSubModalOpen && (
           <div className="profile-modal-overlay active" style={{ zIndex: 100005 }}>
@@ -1577,9 +1831,15 @@ export default function Lobby() {
               <div className="profile-modal-header">
                 <div className="modal-title-group">
                   <span className="modal-main-icon" style={{ color: "#00ffcc" }}>
-                    <i className="fa-solid fa-shield-halved"></i>
+                    <i className={authMode === "forgot" ? "fa-solid fa-key" : authMode === "reset_new_pass" ? "fa-solid fa-lock" : "fa-solid fa-shield-halved"}></i>
                   </span>
-                  <h3 className="modal-title-text">[A] ACCOUNT CLOUD AUTH</h3>
+                  <h3 className="modal-title-text">
+                    {authMode === "forgot"
+                      ? "[F] LUPA PASSWORD"
+                      : authMode === "reset_new_pass"
+                      ? "[R] RESET PASSWORD BARU"
+                      : "[A] ACCOUNT CLOUD AUTH"}
+                  </h3>
                 </div>
                 <button
                   className="profile-modal-close"
@@ -1587,6 +1847,8 @@ export default function Lobby() {
                   onClick={() => {
                     playSfx("clickSound");
                     setIsAuthSubModalOpen(false);
+                    setAuthMode("login");
+                    setAuthError("");
                   }}
                 >
                   ✕ CLOSE
@@ -1605,9 +1867,19 @@ export default function Lobby() {
                 ) : (
                   <div>
                     <div style={{ textAlign: "center", marginBottom: "18px" }}>
-                      <h4 style={{ color: "#fff", margin: "0 0 4px 0", fontSize: "1rem" }}>CONNECT GOOGLE / EMAIL ACCOUNT</h4>
+                      <h4 style={{ color: "#fff", margin: "0 0 4px 0", fontSize: "1rem" }}>
+                        {authMode === "forgot"
+                          ? "MASUKKAN EMAIL TERDAFTAR"
+                          : authMode === "reset_new_pass"
+                          ? "SET KATA SANDI BARU KAMU"
+                          : "CONNECT GOOGLE / EMAIL ACCOUNT"}
+                      </h4>
                       <p style={{ color: "#aaa", fontSize: "0.8rem", margin: 0 }}>
-                        Profil, XP &amp; Score kamu akan tersinkronisasi otomatis
+                        {authMode === "forgot"
+                          ? "Link instruksi reset password akan dikirim ke email kamu"
+                          : authMode === "reset_new_pass"
+                          ? "Gunakan kata sandi kuat dengan kombinasi huruf & angka"
+                          : "Profil, XP & Score kamu akan tersinkronisasi otomatis"}
                       </p>
                     </div>
 
@@ -1617,41 +1889,45 @@ export default function Lobby() {
                       </div>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={handleGoogleLogin}
-                      disabled={authLoading}
-                      style={{
-                        width: "100%",
-                        padding: "12px",
-                        background: "#fff",
-                        color: "#333",
-                        border: "none",
-                        borderRadius: "6px",
-                        fontWeight: "bold",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "10px",
-                        cursor: "pointer",
-                        marginBottom: "15px",
-                        fontSize: "0.95rem"
-                      }}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                      </svg>
-                      {authLoading ? "CONNECTING..." : "CONTINUE WITH GOOGLE"}
-                    </button>
+                    {(authMode === "login" || authMode === "signup") && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleGoogleLogin}
+                          disabled={authLoading}
+                          style={{
+                            width: "100%",
+                            padding: "12px",
+                            background: "#fff",
+                            color: "#333",
+                            border: "none",
+                            borderRadius: "6px",
+                            fontWeight: "bold",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "10px",
+                            cursor: "pointer",
+                            marginBottom: "15px",
+                            fontSize: "0.95rem"
+                          }}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                          </svg>
+                          {authLoading ? "CONNECTING..." : "CONTINUE WITH GOOGLE"}
+                        </button>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "15px 0", color: "#666", fontSize: "0.8rem" }}>
-                      <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
-                      <span>ATAU EMAIL</span>
-                      <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
-                    </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "15px 0", color: "#666", fontSize: "0.8rem" }}>
+                          <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
+                          <span>ATAU EMAIL</span>
+                          <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
+                        </div>
+                      </>
+                    )}
 
                     <form onSubmit={handleEmailAuth} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                       {authMode === "signup" && (
@@ -1665,24 +1941,30 @@ export default function Lobby() {
                           required
                         />
                       )}
-                      <input
-                        type="email"
-                        placeholder="Email Address"
-                        className="blueprint-field-input"
-                        value={authEmail}
-                        onChange={(e) => setAuthEmail(e.target.value)}
-                        required
-                      />
-                      <input
-                        type="password"
-                        placeholder="Password"
-                        className="blueprint-field-input"
-                        value={authPassword}
-                        onChange={(e) => setAuthPassword(e.target.value)}
-                        required
-                      />
 
-                      {passStrength && (
+                      {(authMode === "login" || authMode === "signup" || authMode === "forgot") && (
+                        <input
+                          type="email"
+                          placeholder="Email Address"
+                          className="blueprint-field-input"
+                          value={authEmail}
+                          onChange={(e) => setAuthEmail(e.target.value)}
+                          required
+                        />
+                      )}
+
+                      {(authMode === "login" || authMode === "signup" || authMode === "reset_new_pass") && (
+                        <input
+                          type="password"
+                          placeholder={authMode === "reset_new_pass" ? "Password Baru" : "Password"}
+                          className="blueprint-field-input"
+                          value={authPassword}
+                          onChange={(e) => setAuthPassword(e.target.value)}
+                          required
+                        />
+                      )}
+
+                      {(authMode === "signup" || authMode === "reset_new_pass") && passStrength && (
                         <div style={{ marginTop: "-2px", marginBottom: "4px" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10px", color: "#888", marginBottom: "3px" }}>
                             <span>PASSWORD STRENGTH:</span>
@@ -1706,26 +1988,203 @@ export default function Lobby() {
                           ? "PROCESSING..."
                           : authMode === "login"
                           ? "LOGIN EMAIL"
-                          : "DAFTAR EMAIL"}
+                          : authMode === "signup"
+                          ? "DAFTAR EMAIL"
+                          : authMode === "forgot"
+                          ? "KIRIM LINK RESET PASSWORD"
+                          : "UPDATE PASSWORD BARU"}
                       </button>
                     </form>
 
-                    <div style={{ textAlign: "center", marginTop: "12px" }}>
-                      <button
-                        type="button"
-                        style={{ background: "none", border: "none", color: "#00ffcc", cursor: "pointer", fontSize: "0.8rem", textDecoration: "underline" }}
-                        onClick={() => {
-                          setAuthMode(authMode === "login" ? "signup" : "login");
-                          setAuthError("");
-                        }}
-                      >
-                        {authMode === "login"
-                          ? "Belum punya akun? Daftar Email"
-                          : "Sudah punya akun? Login Email"}
-                      </button>
+                    <div style={{ textAlign: "center", marginTop: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {authMode === "login" && (
+                        <>
+                          <button
+                            type="button"
+                            style={{ background: "none", border: "none", color: "#ffe500", cursor: "pointer", fontSize: "0.8rem", textDecoration: "underline" }}
+                            onClick={() => {
+                              setAuthMode("forgot");
+                              setAuthError("");
+                            }}
+                          >
+                            Lupa Password?
+                          </button>
+                          <button
+                            type="button"
+                            style={{ background: "none", border: "none", color: "#00ffcc", cursor: "pointer", fontSize: "0.8rem", textDecoration: "underline" }}
+                            onClick={() => {
+                              setAuthMode("signup");
+                              setAuthError("");
+                            }}
+                          >
+                            Belum punya akun? Daftar Email
+                          </button>
+                        </>
+                      )}
+
+                      {authMode === "signup" && (
+                        <button
+                          type="button"
+                          style={{ background: "none", border: "none", color: "#00ffcc", cursor: "pointer", fontSize: "0.8rem", textDecoration: "underline" }}
+                          onClick={() => {
+                            setAuthMode("login");
+                            setAuthError("");
+                          }}
+                        >
+                          Sudah punya akun? Login Email
+                        </button>
+                      )}
+
+                      {(authMode === "forgot" || authMode === "reset_new_pass") && (
+                        <button
+                          type="button"
+                          style={{ background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: "0.8rem", textDecoration: "underline" }}
+                          onClick={() => {
+                            setAuthMode("login");
+                            setAuthError("");
+                          }}
+                        >
+                          Kembali ke Form Login
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL GANTI EMAIL AKUN */}
+        {isChangeEmailModalOpen && (
+          <div className="profile-modal-overlay active" style={{ zIndex: 100009 }}>
+            <div className="profile-modal-box" style={{ maxWidth: "440px", margin: "auto" }}>
+              <div className="modal-corner-accent top-left"></div>
+              <div className="modal-corner-accent bottom-right"></div>
+
+              <div className="profile-modal-header">
+                <div className="modal-title-group">
+                  <span className="modal-main-icon" style={{ color: "#00e5ff" }}>
+                    <i className="fa-solid fa-envelope"></i>
+                  </span>
+                  <h3 className="modal-title-text">[E] GANTI EMAIL AKUN</h3>
+                </div>
+                <button
+                  className="profile-modal-close"
+                  type="button"
+                  onClick={() => {
+                    playSfx("clickSound");
+                    setIsChangeEmailModalOpen(false);
+                  }}
+                >
+                  ✕ CLOSE
+                </button>
+              </div>
+
+              <div style={{ padding: "20px" }}>
+                <p style={{ color: "#aaa", fontSize: "0.85rem", lineHeight: "1.5", margin: "0 0 15px 0" }}>
+                  Masukkan alamat email baru untuk akun kamu. Link verifikasi konfirmasi akan dikirimkan ke email baru.
+                </p>
+
+                {changeAccountError && (
+                  <div style={{ padding: "10px", background: "rgba(255,0,0,0.15)", border: "1px solid #ff4757", borderRadius: "6px", color: "#ff6b81", fontSize: "0.85rem", marginBottom: "15px", textAlign: "center" }}>
+                    {changeAccountError}
+                  </div>
+                )}
+
+                <form onSubmit={handleChangeEmailSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <input
+                    type="email"
+                    placeholder="Email Baru..."
+                    className="blueprint-field-input"
+                    value={newEmailInput}
+                    onChange={(e) => setNewEmailInput(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="pact-btn-save-blueprint"
+                    disabled={changeAccountLoading}
+                    style={{ width: "100%", padding: "10px" }}
+                  >
+                    {changeAccountLoading ? "MEMPROSES..." : "KIRIM KONFIRMASI EMAIL BARU"}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL GANTI PASSWORD AKUN */}
+        {isChangePassModalOpen && (
+          <div className="profile-modal-overlay active" style={{ zIndex: 100009 }}>
+            <div className="profile-modal-box" style={{ maxWidth: "440px", margin: "auto" }}>
+              <div className="modal-corner-accent top-left"></div>
+              <div className="modal-corner-accent bottom-right"></div>
+
+              <div className="profile-modal-header">
+                <div className="modal-title-group">
+                  <span className="modal-main-icon" style={{ color: "#ffe500" }}>
+                    <i className="fa-solid fa-key"></i>
+                  </span>
+                  <h3 className="modal-title-text">[P] GANTI PASSWORD AKUN</h3>
+                </div>
+                <button
+                  className="profile-modal-close"
+                  type="button"
+                  onClick={() => {
+                    playSfx("clickSound");
+                    setIsChangePassModalOpen(false);
+                  }}
+                >
+                  ✕ CLOSE
+                </button>
+              </div>
+
+              <div style={{ padding: "20px" }}>
+                <p style={{ color: "#aaa", fontSize: "0.85rem", lineHeight: "1.5", margin: "0 0 15px 0" }}>
+                  Masukkan kata sandi baru untuk akun kamu (minimal 6 karakter).
+                </p>
+
+                {changeAccountError && (
+                  <div style={{ padding: "10px", background: "rgba(255,0,0,0.15)", border: "1px solid #ff4757", borderRadius: "6px", color: "#ff6b81", fontSize: "0.85rem", marginBottom: "15px", textAlign: "center" }}>
+                    {changeAccountError}
+                  </div>
+                )}
+
+                <form onSubmit={handleChangePassSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <input
+                    type="password"
+                    placeholder="Password Baru..."
+                    className="blueprint-field-input"
+                    value={newPassInput}
+                    onChange={(e) => setNewPassInput(e.target.value)}
+                    required
+                  />
+
+                  {newPassStrength && (
+                    <div style={{ marginTop: "-4px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10px", color: "#888", marginBottom: "3px" }}>
+                        <span>PASSWORD STRENGTH:</span>
+                        <span style={{ color: newPassStrength.color, fontWeight: "bold" }}>
+                          {newPassStrength.label}
+                        </span>
+                      </div>
+                      <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.1)", borderRadius: "2px", overflow: "hidden" }}>
+                        <div style={{ width: `${newPassStrength.pct}%`, height: "100%", background: newPassStrength.color, transition: "all 0.3s ease" }}></div>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    className="pact-btn-save-blueprint"
+                    disabled={changeAccountLoading}
+                    style={{ width: "100%", padding: "10px" }}
+                  >
+                    {changeAccountLoading ? "MEMPROSES..." : "SIMPAN PASSWORD BARU"}
+                  </button>
+                </form>
               </div>
             </div>
           </div>
