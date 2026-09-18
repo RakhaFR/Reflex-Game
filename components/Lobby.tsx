@@ -24,6 +24,7 @@ import {
   getBannerById,
   getAvatarDisplay,
   getTrackBestScore,
+  getCurrentDisplayStreak,
   playSfx,
   ProfileData,
 } from "@/lib/profile";
@@ -71,6 +72,8 @@ export default function Lobby() {
   const [authEmail, setAuthEmail] = useState<string>("");
   const [authPassword, setAuthPassword] = useState<string>("");
   const [authConfirmPassword, setAuthConfirmPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string>("");
   const [authLoading, setAuthLoading] = useState<boolean>(false);
 
@@ -456,16 +459,30 @@ export default function Lobby() {
           startPreview(track);
         }
 
-        // Scroll track item + diff panel into view smoothly
+        // Scroll track item + diff panel into view smoothly with proper container bounds
         setTimeout(() => {
-          const panelEl = document.getElementById(`diffPanel-${clampedIdx}`);
+          const container = document.getElementById("songListWrapper");
+          const groupEl = document.getElementById(`songTrackGroup-${clampedIdx}`);
           const itemEl = document.getElementById(`songItem-${clampedIdx}`);
-          if (panelEl) {
-            panelEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+          if (container && groupEl) {
+            const containerRect = container.getBoundingClientRect();
+            const groupRect = groupEl.getBoundingClientRect();
+
+            // When switching UP or element is above the visible area
+            if (groupRect.top < containerRect.top) {
+              const diff = containerRect.top - groupRect.top;
+              container.scrollBy({ top: -diff - 10, behavior: "smooth" });
+            }
+            // When switching DOWN or element is below the visible area
+            else if (groupRect.bottom > containerRect.bottom) {
+              const diff = groupRect.bottom - containerRect.bottom;
+              container.scrollBy({ top: diff + 10, behavior: "smooth" });
+            }
           } else if (itemEl) {
             itemEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
           }
-        }, 50);
+        }, 60);
       }
     },
     [activeDiff, startPreview]
@@ -520,6 +537,28 @@ export default function Lobby() {
     [stopPreview, startPreview]
   );
 
+  const scrollToTrackElement = useCallback((trackIdx: number, smooth = true) => {
+    const container = document.getElementById("songListWrapper");
+    const groupEl = document.getElementById(`songTrackGroup-${trackIdx}`);
+    const itemEl = document.getElementById(`songItem-${trackIdx}`);
+    const target = groupEl || itemEl;
+
+    if (container && target) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const offset =
+        targetRect.top -
+        containerRect.top +
+        container.scrollTop -
+        (container.clientHeight / 2 - target.clientHeight / 2);
+
+      container.scrollTo({
+        top: Math.max(0, offset),
+        behavior: smooth ? "smooth" : "auto",
+      });
+    }
+  }, []);
+
   // ── Initial Mount Setup ────────────────────────────────────
   useEffect(() => {
     setMounted(true);
@@ -558,7 +597,12 @@ export default function Lobby() {
     // Automatically trigger and scroll to the last played track in the correct mode
     setTimeout(() => {
       selectTrack(validTrack, true, validMode);
-    }, 150);
+      scrollToTrackElement(validTrack, false);
+    }, 120);
+
+    setTimeout(() => {
+      scrollToTrackElement(validTrack, true);
+    }, 350);
 
     return () => {
       document.body.className = "";
@@ -1234,11 +1278,25 @@ export default function Lobby() {
                 <span className="lvl-badge" id="widgetLevelNumber">
                   {currentLevel >= 500 ? "MAX" : `LV ${currentLevel}`}
                 </span>
-                <div className="widget-stars" id="widgetStars">
-                  <span className="widget-star" style={{ color: activeBanner.accent }}>★</span>
-                  <span className="widget-star" style={{ color: activeBanner.accent }}>★</span>
-                  <span className="widget-star" style={{ color: activeBanner.accent }}>★</span>
-                </div>
+                {(() => {
+                  const streakInfo = getCurrentDisplayStreak(profile);
+                  return (
+                    <div
+                      className={`widget-streak-badge ${streakInfo.playedToday ? "streak-active" : "streak-idle"}`}
+                      id="widgetStreak"
+                      title={
+                        streakInfo.playedToday
+                          ? `Daily Play Streak: ${streakInfo.count} Hari Aktif! 🔥 (Sudah main hari ini)`
+                          : streakInfo.count > 0
+                          ? `Daily Play Streak: ${streakInfo.count} Hari (Selesaikan 1 lagu hari ini agar streak terjaga!)`
+                          : "Daily Play Streak: Selesaikan 1 lagu hari ini untuk memulai streak! 🔥"
+                      }
+                    >
+                      <i className="fa-solid fa-fire streak-icon"></i>
+                      <span className="streak-count">{streakInfo.count}</span>
+                    </div>
+                  );
+                })()}
               </div>
               <div className="xp-bar-container">
                 <div
@@ -1661,6 +1719,13 @@ export default function Lobby() {
                       <div className="blueprint-row">
                         <span>Longest Combo</span>
                         <span className="b-val text-neon-yellow">x{profile.stats.records?.longestCombo || 0}</span>
+                      </div>
+                      <div className="blueprint-row">
+                        <span>Daily Play Streak</span>
+                        <span className="b-val" style={{ color: "#ff9f43" }}>
+                          <i className="fa-solid fa-fire" style={{ marginRight: "4px" }}></i>
+                          {getCurrentDisplayStreak(profile).count} Days (Best: {profile.stats.streak?.max || 0})
+                        </span>
                       </div>
                     </div>
 
@@ -2251,34 +2316,84 @@ export default function Lobby() {
 
                         {/* Password */}
                         {(authMode === "login" || authMode === "signup" || authMode === "reset_new_pass") && (
-                          <input
-                            type="password"
-                            placeholder={authMode === "reset_new_pass" ? "enter new password" : "enter password"}
-                            className="auth-blueprint-compact-input"
-                            value={authPassword}
-                            onChange={(e) => {
-                              setAuthPassword(e.target.value);
-                              if (authError) setAuthError("");
-                            }}
-                            autoComplete={authMode === "login" ? "current-password" : "new-password"}
-                            required
-                          />
+                          <div style={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
+                            <input
+                              type={showPassword ? "text" : "password"}
+                              placeholder={authMode === "reset_new_pass" ? "enter new password" : "enter password"}
+                              className="auth-blueprint-compact-input"
+                              style={{ paddingRight: "34px" }}
+                              value={authPassword}
+                              onChange={(e) => {
+                                setAuthPassword(e.target.value);
+                                if (authError) setAuthError("");
+                              }}
+                              autoComplete={authMode === "login" ? "current-password" : "new-password"}
+                              required
+                            />
+                            <button
+                              type="button"
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                right: "8px",
+                                background: "none",
+                                border: "none",
+                                color: showPassword ? "#00ffcc" : "#666",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                                padding: "4px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                transition: "color 0.15s ease",
+                              }}
+                              onClick={() => setShowPassword((p) => !p)}
+                              title={showPassword ? "Sembunyikan password" : "Lihat password"}
+                            >
+                              <i className={showPassword ? "fa-solid fa-eye-slash" : "fa-solid fa-eye"}></i>
+                            </button>
+                          </div>
                         )}
 
                         {/* Confirm Password (Signup or Reset New Pass) */}
                         {(authMode === "signup" || authMode === "reset_new_pass") && (
-                          <input
-                            type="password"
-                            placeholder="confirm password"
-                            className="auth-blueprint-compact-input"
-                            value={authConfirmPassword}
-                            onChange={(e) => {
-                              setAuthConfirmPassword(e.target.value);
-                              if (authError) setAuthError("");
-                            }}
-                            autoComplete="new-password"
-                            required
-                          />
+                          <div style={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
+                            <input
+                              type={showConfirmPassword ? "text" : "password"}
+                              placeholder="confirm password"
+                              className="auth-blueprint-compact-input"
+                              style={{ paddingRight: "34px" }}
+                              value={authConfirmPassword}
+                              onChange={(e) => {
+                                setAuthConfirmPassword(e.target.value);
+                                if (authError) setAuthError("");
+                              }}
+                              autoComplete="new-password"
+                              required
+                            />
+                            <button
+                              type="button"
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                right: "8px",
+                                background: "none",
+                                border: "none",
+                                color: showConfirmPassword ? "#00ffcc" : "#666",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                                padding: "4px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                transition: "color 0.15s ease",
+                              }}
+                              onClick={() => setShowConfirmPassword((p) => !p)}
+                              title={showConfirmPassword ? "Sembunyikan password" : "Lihat password"}
+                            >
+                              <i className={showConfirmPassword ? "fa-solid fa-eye-slash" : "fa-solid fa-eye"}></i>
+                            </button>
+                          </div>
                         )}
 
                         {/* Password Strength Indicator */}
@@ -2877,7 +2992,7 @@ export default function Lobby() {
                   const accent = track.color || "#00e5ff";
 
                   return (
-                    <div key={track.id} className="song-track-group">
+                    <div key={track.id} className="song-track-group" id={`songTrackGroup-${i}`}>
                       <button
                         type="button"
                         id={`songItem-${i}`}

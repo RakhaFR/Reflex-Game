@@ -133,6 +133,8 @@ function GameArenaInner() {
     xpGained: number;
     previousBest: number;
     isNewBest: boolean;
+    currentStreak?: number;
+    isNewStreakDay?: boolean;
   } | null>(null);
 
   // ── Stable Refs for Engine ─────────────────────────────────
@@ -553,7 +555,7 @@ function GameArenaInner() {
     }
 
     const calculatedXP = calcXpGained(finalScore, finalCombo, accNum, rank, diffParam);
-    const { gainedXP, previousBest, isNewBest } = recordGameEnd(
+    const { gainedXP, previousBest, isNewBest, currentStreak, isNewStreakDay } = recordGameEnd(
       finalScore,
       finalCombo,
       modeParamRef.current,
@@ -610,6 +612,8 @@ function GameArenaInner() {
       xpGained: gainedXP,
       previousBest,
       isNewBest,
+      currentStreak,
+      isNewStreakDay,
     });
     setResultAnimKey(Date.now());
     setIsRpButtonsReady(false);
@@ -1264,6 +1268,17 @@ function GameArenaInner() {
                     +{gameResult?.xpGained.toLocaleString() || "0"} XP
                   </span>
                 </div>
+                {gameResult?.currentStreak !== undefined && (
+                  <div style={{ marginTop: "6px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px", background: "rgba(255, 106, 0, 0.12)", border: "1px solid rgba(255, 159, 67, 0.4)", borderRadius: "6px", fontSize: "10.5px", color: "#ff9f43", fontFamily: "'Orbitron', sans-serif" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <i className="fa-solid fa-fire" style={{ color: "#ff6a00", fontSize: "12px" }}></i>
+                      <span>DAILY PLAY STREAK</span>
+                    </span>
+                    <strong style={{ fontSize: "11px", color: "#fff" }}>
+                      {gameResult.currentStreak} {gameResult.currentStreak === 1 ? "DAY" : "DAYS"} 🔥
+                    </strong>
+                  </div>
+                )}
               </div>
             </div>
 

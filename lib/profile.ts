@@ -212,6 +212,44 @@ export function calcXpGained(
   return Math.max(0, Math.round(rawXP));
 }
 
+export function getDaysDifference(dateStr1: string, dateStr2: string): number {
+  if (!dateStr1 || !dateStr2) return 999;
+  const d1 = new Date(dateStr1 + "T00:00:00");
+  const d2 = new Date(dateStr2 + "T00:00:00");
+  const diffTime = Math.abs(d2.getTime() - d1.getTime());
+  return Math.round(diffTime / (1000 * 60 * 60 * 24));
+}
+
+export function getTodayDateString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function getCurrentDisplayStreak(profile: ProfileData): { count: number; playedToday: boolean } {
+  const today = getTodayDateString();
+  const streakObj = profile.stats?.streak || { current: 0, max: 0, lastPlayDate: "" };
+  const lastDate = streakObj.lastPlayDate;
+
+  if (!lastDate) {
+    return { count: 0, playedToday: false };
+  }
+
+  const diff = getDaysDifference(lastDate, today);
+
+  if (diff === 0) {
+    return { count: streakObj.current || 1, playedToday: true };
+  } else if (diff === 1) {
+    // Played yesterday, streak is alive and waiting for today's play!
+    return { count: streakObj.current || 0, playedToday: false };
+  } else {
+    // Missed 1 or more days (bolos): streak reset to 0 until next game
+    return { count: 0, playedToday: false };
+  }
+}
+
 export function recordGameEnd(
   score: number,
   maxCombo: number,
@@ -221,7 +259,7 @@ export function recordGameEnd(
   difficulty?: string,
   accuracy?: string,
   rank?: string
-): { totalXP: number; gainedXP: number; oldLevel: number; newLevel: number; previousBest: number; isNewBest: boolean } {
+): { totalXP: number; gainedXP: number; oldLevel: number; newLevel: number; previousBest: number; isNewBest: boolean; currentStreak: number; isNewStreakDay: boolean } {
   const profile = profileLoad();
   const oldXP = profile.stats.lifetimeScore || 0;
   const oldLevel = computeLevelFromXP(oldXP);
@@ -252,6 +290,38 @@ export function recordGameEnd(
     profile.stats.records.longestCombo = maxCombo;
   }
 
+  // Daily Streak Recording
+  const today = getTodayDateString();
+  const streakObj = { ...(profile.stats.streak || { current: 0, max: 0, lastPlayDate: "" }) };
+  const lastDate = streakObj.lastPlayDate;
+  let newCurrentStreak = streakObj.current || 0;
+  let isNewStreakDay = false;
+
+  if (!lastDate) {
+    newCurrentStreak = 1;
+    isNewStreakDay = true;
+  } else {
+    const diff = getDaysDifference(lastDate, today);
+    if (diff === 0) {
+      newCurrentStreak = Math.max(1, streakObj.current || 1);
+      isNewStreakDay = false;
+    } else if (diff === 1) {
+      newCurrentStreak = (streakObj.current || 0) + 1;
+      isNewStreakDay = true;
+    } else {
+      // Bolos/missed day -> resets to 1 on new play today
+      newCurrentStreak = 1;
+      isNewStreakDay = true;
+    }
+  }
+
+  const newMaxStreak = Math.max(streakObj.max || 0, newCurrentStreak);
+  profile.stats.streak = {
+    current: newCurrentStreak,
+    max: newMaxStreak,
+    lastPlayDate: today,
+  };
+
   // Personal Best per Track/Mode/Difficulty
   let previousBest = 0;
   let isNewBest = false;
@@ -276,7 +346,7 @@ export function recordGameEnd(
   const newLevel = computeLevelFromXP(newXP);
   profileSaveForce(profile);
 
-  return { totalXP: newXP, gainedXP, oldLevel, newLevel, previousBest, isNewBest };
+  return { totalXP: newXP, gainedXP, oldLevel, newLevel, previousBest, isNewBest, currentStreak: newCurrentStreak, isNewStreakDay };
 }
 
 export function getTrackBestScore(

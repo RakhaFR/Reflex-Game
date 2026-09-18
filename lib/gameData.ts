@@ -734,6 +734,9 @@ export const UPDATE_LOGS: UpdateLog[] = [
     badgeClass: "magenta",
     bannerImg: "/assets/picture/bug-fix.jpg",
     changes: [
+      { type: "add", text: "Fitur Daily Play Streak 🔥: Menggantikan bintang widget profil dengan counter streak harian interaktif yang menyala saat bermain." },
+      { type: "add", text: "Toggle Lihat Password 👁️: Tombol icon mata pada form Login/Sign Up untuk menampilkan & menyembunyikan kata sandi." },
+      { type: "fix", text: "Perbaikan Navigasi & Auto-Scroll Track: Pemilihan lagu baik ke atas maupun ke bawah kini presisi menampilkan kartu lagu & panel difficulty tanpa terpotong." },
       { type: "upd", text: "Desain Baru Modal Autentikasi: Split layout dengan panel artwork bergaya anime/cyber, tombol Google modern, dan form pendaftaran interaktif." },
       { type: "fix", text: "Feedback Parameter Login & Registrasi: Pesan error kini spesifik menunjukkan ketidakcocokan email, username, password, atau akun tidak terdaftar." },
       { type: "fix", text: "Alur Google OAuth Lobby: Sesi login Google kini otomatis tetap berada di Lobby dan langsung membuka tab Profile Identity tanpa terlempar ke Main Menu." },
@@ -797,6 +800,11 @@ export const PROFILE_DEFAULT = {
       highestNotOriginalScore: 0,
       longestCombo: 0,
       fastestReactionTime: 0,
+    },
+    streak: {
+      current: 0,
+      max: 0,
+      lastPlayDate: "",
     },
   },
   settings: {
