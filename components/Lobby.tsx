@@ -2414,7 +2414,7 @@ export default function Lobby() {
                     {/* Character Illustration Artwork */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src="/assets/picture/alpha-build.jpg"
+                      src="/assets/picture/new-logo.png"
                       alt="Character Artwork"
                       style={{
                         width: "100%",
