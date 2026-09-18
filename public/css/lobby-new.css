@@ -74,6 +74,177 @@
   width: 100%;
 }
 
+.lobby-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.lobby-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Standalone Daily Streak Badge Widget (Beside Profile) */
+.standalone-streak-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 62px;
+  padding: 0 14px;
+  background: #0e0e18;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 4px 4px 0 #000;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.2s ease, background 0.2s ease;
+  box-sizing: border-box;
+}
+
+.standalone-streak-badge:hover {
+  transform: translateY(-2px);
+  border-color: #ff6a00;
+  box-shadow: 5px 5px 0 #000, 0 0 14px rgba(255, 106, 0, 0.4);
+}
+
+.standalone-streak-badge.streak-active {
+  background: linear-gradient(135deg, rgba(255, 106, 0, 0.18) 0%, rgba(14, 14, 24, 0.95) 100%);
+  border-color: #ff6a00;
+  box-shadow: 4px 4px 0 #000, 0 0 12px rgba(255, 106, 0, 0.35);
+}
+
+.standalone-streak-badge .streak-icon-wrap {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.standalone-streak-badge.streak-active .streak-fire-icon {
+  color: #ff6a00;
+  filter: drop-shadow(0 0 8px #ff6a00);
+  animation: standaloneStreakFlame 1.3s infinite ease-in-out;
+}
+
+.standalone-streak-badge.streak-idle .streak-fire-icon {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.standalone-streak-badge .streak-text-wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.1;
+}
+
+.standalone-streak-badge .streak-count-val {
+  font-family: "Orbitron", sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.standalone-streak-badge.streak-active .streak-count-val {
+  color: #ff9f43;
+  text-shadow: 0 0 8px rgba(255, 159, 67, 0.6);
+}
+
+.standalone-streak-badge .streak-label-tag {
+  font-family: "Orbitron", sans-serif;
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 1px;
+}
+
+@keyframes standaloneStreakFlame {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(1.16) translateY(-2px);
+  }
+}
+
+/* Header Action Buttons (Beside Back Button) */
+.header-action-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  box-shadow: 3px 3px 0 #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+.header-action-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 #000;
+  color: #fff;
+}
+
+.header-chat-btn {
+  border-color: rgba(0, 255, 204, 0.4);
+  color: #00ffcc;
+  background: rgba(0, 255, 204, 0.08);
+}
+
+.header-chat-btn:hover {
+  background: #00ffcc;
+  border-color: #00ffcc;
+  color: #000;
+  box-shadow: 5px 5px 0 #000, 0 0 16px rgba(0, 255, 204, 0.6);
+}
+
+.header-settings-btn:hover {
+  background: #ff9f43;
+  border-color: #ff9f43;
+  color: #000;
+  box-shadow: 5px 5px 0 #000, 0 0 16px rgba(255, 159, 67, 0.6);
+}
+
+.header-settings-btn:hover i {
+  transform: rotate(45deg);
+  transition: transform 0.3s ease;
+}
+
+.header-fullscreen-btn:hover {
+  background: #00e5ff;
+  border-color: #00e5ff;
+  color: #000;
+  box-shadow: 5px 5px 0 #000, 0 0 16px rgba(0, 229, 255, 0.6);
+}
+
+.header-action-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff0055;
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 8px;
+  border: 1px solid #fff;
+  box-shadow: 0 0 8px rgba(255, 0, 85, 0.9);
+  pointer-events: none;
+  animation: chatBadgePulse 1.6s infinite ease-in-out;
+}
+
 /* Brand title selalu center, gak dipengaruhi lebar kiri/kanan */
 .brand {
   flex: 1;
@@ -682,8 +853,8 @@
   align-items: center;
   gap: 10px;
   padding: 0 12px 0 10px;
-  width: 280px;
-  flex: 0 0 280px;
+  width: 235px;
+  flex: 0 0 235px;
   height: 62px;
   overflow: hidden;
   cursor: pointer;

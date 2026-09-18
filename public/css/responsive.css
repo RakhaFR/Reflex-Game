@@ -867,8 +867,8 @@
 
   /* Profile widget */
   .player-profile-widget {
-    width: 165px;
-    flex: 0 0 165px;
+    width: 155px;
+    flex: 0 0 155px;
     padding: 3px 8px;
     gap: 6px;
     height: 45px;
@@ -888,8 +888,24 @@
   .xp-bar-container {
     height: 3px;
   }
-  .widget-settings-btn {
-    font-size: 10px;
+  .standalone-streak-badge {
+    height: 45px;
+    padding: 0 8px;
+    gap: 5px;
+  }
+  .standalone-streak-badge .streak-icon-wrap {
+    font-size: 14px;
+  }
+  .standalone-streak-badge .streak-count-val {
+    font-size: 12px;
+  }
+  .standalone-streak-badge .streak-label-tag {
+    font-size: 6px;
+  }
+  .header-action-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 11.5px;
   }
 
   /* ── PROFILE MODAL — iPhone SE landscape, semua tab ── */

@@ -1408,119 +1408,88 @@ export default function Lobby() {
       <main className="lobby-layout">
         {/* HEADER */}
         <header className="lobby-header">
-          {/* PROFILE WIDGET (TOP-LEFT) */}
-          <div
-            className="player-profile-widget"
-            id="lobbyProfileWidget"
-            onClick={() => {
-              playSfx("clickSound");
-              setIsProfileModalOpen(true);
-            }}
-            style={{ "--widget-accent": activeBanner.accent } as React.CSSProperties}
-          >
+          {/* LEFT AREA: PROFILE WIDGET + STANDALONE STREAK (SIDE BY SIDE) */}
+          <div className="lobby-header-left">
             <div
-              className="widget-banner-bg"
-              id="widgetBannerBg"
-              dangerouslySetInnerHTML={{ __html: activeBanner.svg }}
-            ></div>
-            <div className="widget-dot-grid"></div>
-            <div className="widget-vignette"></div>
-            <div
-              className="widget-avatar-wrapper"
-              style={{ outline: `2px solid ${activeBanner.accent}` }}
-            >
-              <img
-                src={getAvatarDisplay(profile.identity.avatar)}
-                alt="Avatar"
-                id="widgetAvatar"
-                referrerPolicy="no-referrer"
-                crossOrigin="anonymous"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/assets/picture/new-logo.png";
-                }}
-              />
-            </div>
-            <div className="widget-info">
-              <div className="widget-name" id="widgetUsername">
-                {profile.identity.username.toUpperCase()}
-              </div>
-              <div className="widget-level-row">
-                <span className="lvl-badge" id="widgetLevelNumber">
-                  {currentLevel >= 500 ? "MAX" : `LV ${currentLevel}`}
-                </span>
-                {(() => {
-                  const streakInfo = getCurrentDisplayStreak(profile);
-                  return (
-                    <div
-                      className={`widget-streak-badge ${streakInfo.playedToday ? "streak-active" : "streak-idle"}`}
-                      id="widgetStreak"
-                      title={
-                        streakInfo.playedToday
-                          ? `Daily Play Streak: ${streakInfo.count} Hari Aktif! 🔥 (Sudah main hari ini)`
-                          : streakInfo.count > 0
-                          ? `Daily Play Streak: ${streakInfo.count} Hari (Selesaikan 1 lagu hari ini agar streak terjaga!)`
-                          : "Daily Play Streak: Selesaikan 1 lagu hari ini untuk memulai streak! 🔥"
-                      }
-                    >
-                      <i className="fa-solid fa-fire streak-icon"></i>
-                      <span className="streak-count">{streakInfo.count}</span>
-                    </div>
-                  );
-                })()}
-              </div>
-              <div className="xp-bar-container">
-                <div
-                  className="xp-bar-fill"
-                  id="widgetXpBarFill"
-                  style={{ width: `${expWidthPct}%` }}
-                ></div>
-              </div>
-            </div>
-            <button
-              className={`widget-settings-btn widget-chat-btn ${unreadChatCount > 0 ? "has-unread" : ""}`}
-              id="widgetChatBtn"
-              title="Global Chat Room"
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              className="player-profile-widget"
+              id="lobbyProfileWidget"
+              onClick={() => {
                 playSfx("clickSound");
-                setIsChatOpen((prev) => !prev);
-              }}
-            >
-              <i className="fa-solid fa-comments"></i>
-              {unreadChatCount > 0 && (
-                <span className="widget-chat-badge">
-                  {unreadChatCount > 99 ? "99+" : unreadChatCount}
-                </span>
-              )}
-            </button>
-            <button
-              className="widget-settings-btn"
-              id="widgetSettingsBtn"
-              title="Pengaturan"
-              type="button"
-              style={{ marginLeft: "6px" }}
-              onClick={(e) => {
-                e.stopPropagation();
-                playSfx("clickSound");
-                setActiveModalTab("tabSettings");
                 setIsProfileModalOpen(true);
               }}
+              style={{ "--widget-accent": activeBanner.accent } as React.CSSProperties}
             >
-              <i className="fas fa-cog"></i>
-            </button>
-            <button
-              className="widget-settings-btn"
-              title="Toggle Fullscreen Mode"
-              type="button"
-              style={{ marginLeft: "6px" }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEnableFullscreen();
-              }}
-            >
-              <i className="fa-solid fa-expand"></i>
-            </button>
+              <div
+                className="widget-banner-bg"
+                id="widgetBannerBg"
+                dangerouslySetInnerHTML={{ __html: activeBanner.svg }}
+              ></div>
+              <div className="widget-dot-grid"></div>
+              <div className="widget-vignette"></div>
+              <div
+                className="widget-avatar-wrapper"
+                style={{ outline: `2px solid ${activeBanner.accent}` }}
+              >
+                <img
+                  src={getAvatarDisplay(profile.identity.avatar)}
+                  alt="Avatar"
+                  id="widgetAvatar"
+                  referrerPolicy="no-referrer"
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/assets/picture/new-logo.png";
+                  }}
+                />
+              </div>
+              <div className="widget-info">
+                <div className="widget-name" id="widgetUsername">
+                  {profile.identity.username.toUpperCase()}
+                </div>
+                <div className="widget-level-row">
+                  <span className="lvl-badge" id="widgetLevelNumber">
+                    {currentLevel >= 500 ? "MAX" : `LV ${currentLevel}`}
+                  </span>
+                </div>
+                <div className="xp-bar-container">
+                  <div
+                    className="xp-bar-fill"
+                    id="widgetXpBarFill"
+                    style={{ width: `${expWidthPct}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* STANDALONE DAILY PLAY STREAK BADGE */}
+            {(() => {
+              const streakInfo = getCurrentDisplayStreak(profile);
+              return (
+                <div
+                  className={`standalone-streak-badge ${streakInfo.playedToday ? "streak-active" : "streak-idle"}`}
+                  id="lobbyStreakWidget"
+                  title={
+                    streakInfo.playedToday
+                      ? `Daily Play Streak: ${streakInfo.count} Hari Aktif! 🔥 (Sudah main hari ini)`
+                      : streakInfo.count > 0
+                      ? `Daily Play Streak: ${streakInfo.count} Hari (Selesaikan 1 lagu hari ini agar streak terjaga!)`
+                      : "Daily Play Streak: Selesaikan 1 lagu hari ini untuk memulai streak! 🔥"
+                  }
+                  onClick={() => {
+                    playSfx("clickSound");
+                    setActiveModalTab("tabStats");
+                    setIsProfileModalOpen(true);
+                  }}
+                >
+                  <div className="streak-icon-wrap">
+                    <i className="fa-solid fa-fire streak-fire-icon"></i>
+                  </div>
+                  <div className="streak-text-wrap">
+                    <span className="streak-count-val">{streakInfo.count}</span>
+                    <span className="streak-label-tag">{streakInfo.playedToday ? "STREAK" : "DAYS"}</span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* BRAND */}
@@ -1531,32 +1500,83 @@ export default function Lobby() {
             <span className="game-subtitle">CHOOSE YOUR BEAT &amp; REFLEX SESSION</span>
           </div>
 
-          {/* BACK TO MAIN MENU */}
-          <a
-            href="/"
-            className="back-snake-btn"
-            title="Kembali ke Main Menu"
-            onClick={(e) => {
-              e.preventDefault();
-              playSfx("clickSound");
-              stopPreview();
-              router.push("/");
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="snake-arrow-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {/* RIGHT AREA: ACTION BUTTONS (CHAT, SETTINGS, FULLSCREEN) + BACK BUTTON (SIDE BY SIDE) */}
+          <div className="lobby-header-right">
+            {/* GLOBAL CHAT BUTTON */}
+            <button
+              className={`header-action-btn header-chat-btn ${unreadChatCount > 0 ? "has-unread" : ""}`}
+              id="headerChatBtn"
+              title="Global Chat Room"
+              type="button"
+              onClick={() => {
+                playSfx("clickSound");
+                setIsChatOpen((prev) => !prev);
+              }}
             >
-              <path d="M9 10h6c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H9V4L3 9l6 5z"></path>
-            </svg>
-            <span className="back-text">BACK</span>
-          </a>
+              <i className="fa-solid fa-comments"></i>
+              {unreadChatCount > 0 && (
+                <span className="header-action-badge">
+                  {unreadChatCount > 99 ? "99+" : unreadChatCount}
+                </span>
+              )}
+            </button>
+
+            {/* SETTINGS BUTTON */}
+            <button
+              className="header-action-btn header-settings-btn"
+              id="headerSettingsBtn"
+              title="Pengaturan"
+              type="button"
+              onClick={() => {
+                playSfx("clickSound");
+                setActiveModalTab("tabSettings");
+                setIsProfileModalOpen(true);
+              }}
+            >
+              <i className="fas fa-cog"></i>
+            </button>
+
+            {/* FULLSCREEN BUTTON */}
+            <button
+              className="header-action-btn header-fullscreen-btn"
+              id="headerFullscreenBtn"
+              title="Toggle Fullscreen Mode"
+              type="button"
+              onClick={() => {
+                playSfx("clickSound");
+                handleEnableFullscreen();
+              }}
+            >
+              <i className="fa-solid fa-expand"></i>
+            </button>
+
+            {/* BACK TO MAIN MENU */}
+            <a
+              href="/"
+              className="back-snake-btn"
+              title="Kembali ke Main Menu"
+              onClick={(e) => {
+                e.preventDefault();
+                playSfx("clickSound");
+                stopPreview();
+                router.push("/");
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="snake-arrow-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 10h6c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H9V4L3 9l6 5z"></path>
+              </svg>
+              <span className="back-text">BACK</span>
+            </a>
+          </div>
         </header>
 
         {/* PROFILE & CONFIG MODAL */}

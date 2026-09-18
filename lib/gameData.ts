@@ -735,7 +735,8 @@ export const UPDATE_LOGS: UpdateLog[] = [
     bannerImg: "/assets/picture/alpha-build.jpg",
     changes: [
       { type: "add", text: "Global Chat Room 💬: Komunikasi publik secara real-time antar pemain langsung dari Lobby." },
-      { type: "add", text: "Shortcut Chat di Topbar: Akses instan di samping tombol Pengaturan dengan notifikasi unread badge." },
+      { type: "upd", text: "Tata Letak Topbar Baru: Tombol Chat, Settings, & Fullscreen kini rapi di sisi kanan bersebelahan dengan tombol BACK." },
+      { type: "upd", text: "Widget Daily Play Streak 🔥: Kini berdiri mandiri di samping kanan kartu Profil untuk visualisasi hari bermain yang lebih luas & bersih." },
       { type: "add", text: "Sistem Auto-Prune (Maks. 100 Pesan): Chat history selalu optimal dan terawat otomatis di Supabase Database." },
       { type: "add", text: "Identity & Level Badges: Setiap pesan menampilkan avatar, level, dan rank tier (Legend/Master/Elite/Operator)." },
       { type: "upd", text: "Cooldown Anti-Spam: Proteksi 2 detik antar pesan untuk menjaga percakapan tetap nyaman dan teratur." },
