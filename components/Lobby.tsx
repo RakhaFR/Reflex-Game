@@ -466,27 +466,30 @@ export default function Lobby() {
           const panelEl = document.getElementById(`diffPanel-${clampedIdx}`);
 
           if (container && itemEl) {
-            const itemTop = itemEl.offsetTop;
-            const panelBottom = panelEl
-              ? panelEl.offsetTop + panelEl.offsetHeight
-              : itemTop + itemEl.offsetHeight;
+            const containerRect = container.getBoundingClientRect();
+            const itemRect = itemEl.getBoundingClientRect();
+            const panelRect = panelEl ? panelEl.getBoundingClientRect() : null;
 
-            // When switching UP or item is above the scroll view
-            if (itemTop < container.scrollTop) {
-              container.scrollTo({
-                top: Math.max(0, itemTop - 8),
+            const relativeTop = itemRect.top - containerRect.top;
+            const relativeBottom = (panelRect ? panelRect.bottom : itemRect.bottom) - containerRect.top;
+
+            // When switching UP or item is above the visible container area
+            if (relativeTop < 0) {
+              container.scrollBy({
+                top: relativeTop - 8,
                 behavior: "smooth",
               });
             }
-            // When switching DOWN or panel is below the scroll view
-            else if (panelBottom > container.scrollTop + container.clientHeight) {
-              container.scrollTo({
-                top: panelBottom - container.clientHeight + 8,
+            // When switching DOWN or panel is below the visible container area
+            else if (relativeBottom > container.clientHeight) {
+              const diff = relativeBottom - container.clientHeight;
+              container.scrollBy({
+                top: diff + 8,
                 behavior: "smooth",
               });
             }
           }
-        }, 60);
+        }, 50);
       }
     },
     [activeDiff, startPreview]
@@ -546,12 +549,17 @@ export default function Lobby() {
     const itemEl = document.getElementById(`songItem-${trackIdx}`);
 
     if (container && itemEl) {
+      const containerRect = container.getBoundingClientRect();
+      const itemRect = itemEl.getBoundingClientRect();
       const panelEl = document.getElementById(`diffPanel-${trackIdx}`);
-      const totalHeight = itemEl.offsetHeight + (panelEl ? panelEl.offsetHeight : 0);
-      const targetTop = itemEl.offsetTop - (container.clientHeight / 2 - totalHeight / 2);
+      const panelRect = panelEl ? panelEl.getBoundingClientRect() : null;
+
+      const relativeTop = itemRect.top - containerRect.top;
+      const totalHeight = panelRect ? panelRect.bottom - itemRect.top : itemRect.height;
+      const targetScroll = container.scrollTop + relativeTop - (container.clientHeight / 2 - totalHeight / 2);
 
       container.scrollTo({
-        top: Math.max(0, targetTop),
+        top: Math.max(0, targetScroll),
         behavior: smooth ? "smooth" : "auto",
       });
     }
