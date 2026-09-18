@@ -386,7 +386,7 @@ export default function MainMenu() {
       <audio
         ref={bgMusicRef}
         id="bgMusic"
-        src="/assets/music/Pixel_Panic.mp3"
+        src="https://yznaoalbsrgaithstpxv.supabase.co/storage/v1/object/public/game-music/Pixel_Panic.mp3"
         loop
         preload="auto"
       ></audio>

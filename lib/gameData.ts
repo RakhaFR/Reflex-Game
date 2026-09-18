@@ -729,6 +729,18 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
+    version: "v0.2.1 — Hotfix & CDN Migration",
+    date: "18 SEP 2026",
+    badgeClass: "yellow",
+    bannerImg: "/assets/picture/new-logo.png",
+    changes: [
+      { type: "fix", text: "Perbaikan alur Login: Data Cloud kini menjadi prioritas utama agar level & XP akun tidak tertimpa data Guest." },
+      { type: "fix", text: "Perbaikan Audio Preview: Menambahkan konfigurasi CORS anonymous agar lagu preview di Lobby terdengar kembali dan visualizer aktif." },
+      { type: "fix", text: "Sinkronisasi Profil Leaderboard: Level, username, avatar, dan banner skin di leaderboard kini otomatis ter-update saat profil diubah atau naik level." },
+      { type: "upd", text: "Migrasi aset media (musik & video) ke Supabase CDN Storage untuk performa & efisiensi deployment." },
+    ],
+  },
+  {
     version: "v0.2.0 — Alpha Build",
     date: "07 SEP 2026",
     badgeClass: "cyan",

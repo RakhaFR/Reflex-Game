@@ -1323,7 +1323,7 @@ function GameArenaInner() {
       <audio ref={trackAudioRef} id="bmTrackAudio" src={currentTrack.src} preload="auto"></audio>
       <audio id="clickSound" src="/assets/audio/click.mp3" preload="auto"></audio>
       <audio ref={countdownAudioRef} id="countdownSound" src="/assets/audio/countdown.mp3" preload="auto"></audio>
-      <audio ref={resultAudioRef} id="resultMusic" src="/assets/music/PixelCoinDash(hasil).mp3" preload="auto"></audio>
+      <audio ref={resultAudioRef} id="resultMusic" src="https://yznaoalbsrgaithstpxv.supabase.co/storage/v1/object/public/game-music/PixelCoinDash(hasil).mp3" preload="auto"></audio>
     </>
   );
 }

@@ -298,51 +298,67 @@ export default function Lobby() {
 
       try {
         const audio = new Audio();
+        audio.crossOrigin = "anonymous";
         audio.src = track.src;
+        audio.preload = "auto";
         const vol = ((profileRef.current?.settings?.masterVolume ?? 100) / 100) * 0.6;
         audio.volume = Math.max(0, Math.min(1, vol));
         previewAudioRef.current = audio;
 
-        try {
-          if (!audioCtxRef.current) {
-            const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-            if (AudioCtx) {
-              audioCtxRef.current = new AudioCtx();
+        const doPlay = () => {
+          if (previewAudioRef.current !== audio) return;
+          audio.play().then(() => {
+            if (previewAudioRef.current !== audio) { audio.pause(); return; }
+            setIsPreviewing(true);
+            if (canvasRef.current) {
+              canvasRef.current.classList.add("active");
+              canvasRef.current.width = canvasRef.current.parentElement?.offsetWidth || 400;
+              canvasRef.current.height = canvasRef.current.parentElement?.offsetHeight || 150;
             }
-          }
-          if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
-            audioCtxRef.current.resume();
-          }
+            try {
+              if (!audioCtxRef.current) {
+                const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+                if (AudioCtx) audioCtxRef.current = new AudioCtx();
+              }
+              if (audioCtxRef.current?.state === "suspended") audioCtxRef.current.resume();
+              if (audioCtxRef.current && !sourceNodeRef.current) {
+                const analyser = audioCtxRef.current.createAnalyser();
+                analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.8;
+                analyserRef.current = analyser;
+                const source = audioCtxRef.current.createMediaElementSource(audio);
+                source.connect(analyser);
+                analyser.connect(audioCtxRef.current.destination);
+                sourceNodeRef.current = source;
+              }
+            } catch { /* visualizer unavailable */ }
+            drawVisualizer();
+          }).catch(() => {
+            // Autoplay blocked — wait for user gesture
+            const unlock = () => {
+              if (previewAudioRef.current !== audio) return;
+              audio.play().then(() => {
+                if (previewAudioRef.current !== audio) { audio.pause(); return; }
+                setIsPreviewing(true);
+                drawVisualizer();
+              }).catch(() => {});
+              window.removeEventListener("click", unlock);
+              window.removeEventListener("keydown", unlock);
+              window.removeEventListener("touchstart", unlock);
+            };
+            window.addEventListener("click", unlock);
+            window.addEventListener("keydown", unlock);
+            window.addEventListener("touchstart", unlock);
+          });
+        };
 
-          if (audioCtxRef.current) {
-            const analyser = audioCtxRef.current.createAnalyser();
-            analyser.fftSize = 256;
-            analyser.smoothingTimeConstant = 0.8;
-            analyserRef.current = analyser;
-
-            const source = audioCtxRef.current.createMediaElementSource(audio);
-            source.connect(analyser);
-            analyser.connect(audioCtxRef.current.destination);
-            sourceNodeRef.current = source;
-          }
-        } catch {
-          // Visualizer fallback if Web Audio is restricted
+        if (audio.readyState >= 3) {
+          doPlay();
+        } else {
+          audio.addEventListener("canplay", doPlay, { once: true });
         }
 
-        audio.play().then(() => {
-          setIsPreviewing(true);
-          if (canvasRef.current) {
-            canvasRef.current.classList.add("active");
-            canvasRef.current.width = canvasRef.current.parentElement?.offsetWidth || 400;
-            canvasRef.current.height = canvasRef.current.parentElement?.offsetHeight || 150;
-          }
-          drawVisualizer();
-        }).catch(() => {});
-
-        // Stop preview after 30 seconds
-        previewTimerRef.current = setTimeout(() => {
-          stopPreview();
-        }, 30000);
+        previewTimerRef.current = setTimeout(() => { stopPreview(); }, 30000);
       } catch (err) {
         console.error("Preview error:", err);
       }
