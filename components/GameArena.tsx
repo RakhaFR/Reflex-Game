@@ -414,14 +414,11 @@ function GameArenaInner() {
       );
 
       if (noteIdx < 0) {
-        if (!isDirectClick) {
-          // Wrong key press without matching note
-          currentComboRef.current = 0;
-          setCombo(0);
-          totalWrongClicksRef.current += 1;
-          recordNoteMissOrWrong(mode);
-          showJudge("WRONG!", "bm-j-wrong bm-j-pop");
-        }
+        currentComboRef.current = 0;
+        setCombo(0);
+        totalWrongClicksRef.current += 1;
+        recordNoteMissOrWrong(mode);
+        showJudge("WRONG!", "bm-j-wrong bm-j-pop");
         return;
       }
 
@@ -437,27 +434,26 @@ function GameArenaInner() {
         recordNoteMissOrWrong(mode);
         showJudge("WRONG!", "bm-j-wrong bm-j-pop");
         triggerParticles(note.x, note.y, "#ff4444");
+      } else if (remaining <= 0) {
+        // Note hit late (expired) -> MISS & reset combo
+        currentComboRef.current = 0;
+        setCombo(0);
+        totalWrongClicksRef.current += 1;
+        recordNoteMissOrWrong(mode);
+        showJudge("MISS", "bm-j-miss bm-j-pop");
+        triggerParticles(note.x, note.y, "#ff4444");
       } else {
         const isBonus = note.type.id === "bonus";
         let multiplier = 1.0;
         let judgeStr = "GOOD";
         let judgeCls = "bm-j-good";
 
-        // Tekan lebih cepat (elapsed kecil) = PERFECT!
-        if (remaining <= 0) {
-          judgeStr = "MISS";
-          judgeCls = "bm-j-miss";
-          multiplier = 0;
-        } else if (elapsed <= diff.perfectMs) {
+        if (elapsed <= diff.perfectMs) {
           multiplier = 2.0;
           judgeStr = "PERFECT!";
           judgeCls = "bm-j-perfect";
-        } else if (elapsed <= diff.goodMs) {
-          multiplier = 1.2;
-          judgeStr = "GOOD";
-          judgeCls = "bm-j-good";
         } else {
-          multiplier = 1.0;
+          multiplier = 1.2;
           judgeStr = "GOOD";
           judgeCls = "bm-j-good";
         }

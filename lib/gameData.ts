@@ -734,6 +734,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     badgeClass: "magenta",
     bannerImg: "/assets/picture/bug-fix.jpg",
     changes: [
+      { type: "fix", text: "Perbaikan Gameplay Combo: Combo kini otomatis ter-reset ke 0 saat note mengalami MISS atau penekanan tombol yang salah." },
       { type: "fix", text: "Perbaikan alur Login: Data Cloud kini menjadi prioritas utama agar level & XP akun tidak tertimpa data Guest." },
       { type: "fix", text: "Perbaikan Audio Preview: Menambahkan konfigurasi CORS anonymous agar lagu preview di Lobby terdengar kembali dan visualizer aktif." },
       { type: "fix", text: "Sinkronisasi Profil Leaderboard: Level, username, avatar, dan banner skin di leaderboard kini otomatis ter-update saat profil diubah atau naik level." },
