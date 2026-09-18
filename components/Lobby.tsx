@@ -818,6 +818,7 @@ export default function Lobby() {
               };
               setProfile(updated);
               profileSave(updated);
+              if (authUser) syncLocalProfileToCloud(authUser, updated);
               setKeybindListeningIdx(-1);
               showToast(`Key ${keybindListeningIdx + 1} diatur ke "${k.toUpperCase()}"`, "success");
             }
@@ -977,6 +978,7 @@ export default function Lobby() {
     };
     setProfile(updated);
     profileSave(updated);
+    if (authUser) syncLocalProfileToCloud(authUser, updated);
   };
 
   const handleVolumeChange = (vol: number) => {
@@ -986,6 +988,7 @@ export default function Lobby() {
     };
     setProfile(updated);
     profileSave(updated);
+    if (authUser) syncLocalProfileToCloud(authUser, updated);
     if (previewAudioRef.current) {
       previewAudioRef.current.volume = (vol / 100) * 0.6;
     }
@@ -1733,6 +1736,7 @@ export default function Lobby() {
                             };
                             setProfile(updated);
                             profileSave(updated);
+                            if (authUser) syncLocalProfileToCloud(authUser, updated);
                             setKeybindListeningIdx(-1);
                             showToast("Keybinds reset ke Q W E R", "success");
                           }}
