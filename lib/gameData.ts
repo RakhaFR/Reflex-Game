@@ -729,10 +729,10 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
-    version: "v0.2.1 — Hotfix & CDN Migration",
+    version: "v0.2.1 — Bugfix & CDN Migration",
     date: "18 SEP 2026",
-    badgeClass: "yellow",
-    bannerImg: "/assets/picture/new-logo.png",
+    badgeClass: "magenta",
+    bannerImg: "/assets/picture/bug-fix.jpg",
     changes: [
       { type: "fix", text: "Perbaikan alur Login: Data Cloud kini menjadi prioritas utama agar level & XP akun tidak tertimpa data Guest." },
       { type: "fix", text: "Perbaikan Audio Preview: Menambahkan konfigurasi CORS anonymous agar lagu preview di Lobby terdengar kembali dan visualizer aktif." },
@@ -744,7 +744,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.2.0 — Alpha Build",
     date: "07 SEP 2026",
     badgeClass: "cyan",
-    bannerImg: "/assets/picture/new-logo.png",
+    bannerImg: "/assets/picture/alpha-build.jpg",
     changes: [
       { type: "add", text: "Integrasi Cloud Server: Login Google OAuth & Email untuk sinkronisasi progres otomatis." },
       { type: "add", text: "Sistem Leaderboard Global (Top 10 Pemain) per lagu, mode, dan tingkat kesulitan." },
