@@ -78,7 +78,7 @@ export default function MainMenu() {
       {/* BACKGROUND LIVE2D VIDEO FOR MAIN MENU */}
       <div className="menu-video-bg">
         <video autoPlay loop muted playsInline>
-          <source src="/assets/video/lobby.mp4" type="video/mp4" />
+          <source src="https://yznaoalbsrgaithstpxv.supabase.co/storage/v1/object/public/game-lobby/lobby.mp4" type="video/mp4" />
         </video>
         <div className="video-overlay"></div>
       </div>

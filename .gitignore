@@ -40,5 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# archives
-*.zip
+# large media assets (hosted on Supabase Storage CDN)
+/public/assets/video/
+/public/assets/music/
