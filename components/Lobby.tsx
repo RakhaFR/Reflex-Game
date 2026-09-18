@@ -1991,95 +1991,93 @@ export default function Lobby() {
           </div>
         )}
 
-        {/* DEDICATED AUTH SUB-MODAL POP-UP (IMAGE 1 STYLE) */}
+        {/* DEDICATED AUTH SUB-MODAL POP-UP (ORIGINAL GAME AESTHETIC + SPLIT LAYOUT) */}
         {isAuthSubModalOpen && (
-          <div className="profile-modal-overlay active" style={{ zIndex: 100005, padding: "16px" }}>
-            <div className="auth-split-modal-box">
+          <div className="profile-modal-overlay active" style={{ zIndex: 100005, padding: "12px" }}>
+            <div className={`auth-split-modal-box ${authMode === "signup" ? "mode-signup" : ""}`}>
               <div className="modal-corner-accent top-left"></div>
               <div className="modal-corner-accent bottom-right"></div>
 
-              {/* Close Button */}
-              <button
-                type="button"
-                className="profile-modal-close"
-                style={{
-                  position: "absolute",
-                  top: "16px",
-                  right: "18px",
-                  zIndex: 25,
-                  background: "rgba(255, 255, 255, 0.08)",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  color: "#fff",
-                  borderRadius: "50%",
-                  width: "34px",
-                  height: "34px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  backdropFilter: "blur(4px)",
-                }}
-                onClick={() => {
-                  playSfx("clickSound");
-                  setIsAuthSubModalOpen(false);
-                  setAuthMode("login");
-                  setAuthError("");
-                  setAuthConfirmPassword("");
-                }}
-              >
-                ✕
-              </button>
-
-              {/* LEFT COLUMN: FORM */}
-              <div
-                style={{
-                  padding: "36px 32px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  position: "relative",
-                  zIndex: 2,
-                }}
-              >
-                {/* Brand & Switch Link */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: "24px",
-                    gap: "12px",
-                    flexWrap: "wrap",
-                    paddingRight: "40px",
+              {/* Modal Header */}
+              <div className="profile-modal-header" style={{ padding: "10px 16px" }}>
+                <div className="modal-title-group">
+                  <span className="modal-main-icon" style={{ color: "#00ffcc" }}>
+                    <i className={authMode === "forgot" ? "fa-solid fa-key" : authMode === "reset_new_pass" ? "fa-solid fa-lock" : "fa-solid fa-shield-halved"}></i>
+                  </span>
+                  <h3 className="modal-title-text" style={{ fontSize: "12px" }}>
+                    {authMode === "forgot"
+                      ? "[F] LUPA PASSWORD"
+                      : authMode === "reset_new_pass"
+                      ? "[R] RESET PASSWORD BARU"
+                      : authMode === "signup"
+                      ? "[S] REGISTRASI OPERATOR"
+                      : "[A] ACCOUNT CLOUD AUTH"}
+                  </h3>
+                </div>
+                <button
+                  className="profile-modal-close"
+                  type="button"
+                  style={{ fontSize: "11px", padding: "4px 8px" }}
+                  onClick={() => {
+                    playSfx("clickSound");
+                    setIsAuthSubModalOpen(false);
+                    setAuthMode("login");
+                    setAuthError("");
+                    setAuthConfirmPassword("");
                   }}
                 >
-                  <span
+                  ✕ CLOSE
+                </button>
+              </div>
+
+              {/* Split Content Body */}
+              <div className={`auth-split-content-grid ${authMode === "signup" ? "mode-signup" : ""}`}>
+                {/* LEFT COLUMN: FORM */}
+                <div
+                  style={{
+                    padding: "16px 20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  {/* Switch Mode Prompt on Top */}
+                  <div
                     style={{
-                      fontFamily: "'Brush Script MT', 'Pacifico', 'Dancing Script', 'Segoe Script', cursive",
-                      fontSize: "1.75rem",
-                      color: "#fff",
-                      letterSpacing: "1px",
-                      textShadow: "0 0 14px rgba(244, 114, 182, 0.6)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: "10px",
+                      gap: "8px",
+                      flexWrap: "wrap",
                     }}
                   >
-                    ReflexRhythm
-                  </span>
+                    <span
+                      style={{
+                        fontFamily: "'Orbitron', sans-serif",
+                        fontSize: "13px",
+                        fontWeight: 900,
+                        color: "#fff",
+                        letterSpacing: "1px",
+                      }}
+                    >
+                      {authMode === "signup" ? "// LET'S GET STARTED" : authMode === "login" ? "// WELCOME BACK" : "// CLOUD RECOVERY"}
+                    </span>
 
-                  <div style={{ fontSize: "0.82rem", color: "#a5a0b8" }}>
-                    {authMode === "signup" ? (
-                      <>
-                        Already have an account?{" "}
+                    <div style={{ fontSize: "10px", fontFamily: "'Orbitron', sans-serif" }}>
+                      {authMode === "signup" ? (
                         <button
                           type="button"
                           style={{
                             background: "none",
                             border: "none",
-                            color: "#fff",
-                            fontWeight: "bold",
+                            color: "#00ffcc",
+                            fontWeight: 700,
                             cursor: "pointer",
                             textDecoration: "underline",
                             padding: 0,
+                            fontSize: "10.5px",
                           }}
                           onClick={() => {
                             playSfx("clickSound");
@@ -2088,22 +2086,20 @@ export default function Lobby() {
                             setAuthConfirmPassword("");
                           }}
                         >
-                          Sign in
+                          Have account? SIGN IN
                         </button>
-                      </>
-                    ) : (
-                      <>
-                        Don&apos;t have an account?{" "}
+                      ) : (
                         <button
                           type="button"
                           style={{
                             background: "none",
                             border: "none",
-                            color: "#f472b6",
-                            fontWeight: "bold",
+                            color: "#ffe500",
+                            fontWeight: 700,
                             cursor: "pointer",
                             textDecoration: "underline",
                             padding: 0,
+                            fontSize: "10.5px",
                           }}
                           onClick={() => {
                             playSfx("clickSound");
@@ -2112,409 +2108,373 @@ export default function Lobby() {
                             setAuthConfirmPassword("");
                           }}
                         >
-                          Sign Up
+                          No account? SIGN UP
                         </button>
-                      </>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Heading & Subtitle */}
-                <div style={{ textAlign: "center", marginBottom: "20px" }}>
-                  <h2
-                    style={{
-                      color: "#fff",
-                      fontSize: "1.65rem",
-                      fontWeight: 700,
-                      margin: "0 0 6px 0",
-                      letterSpacing: "-0.02em",
-                      fontFamily: "var(--font-heading, inherit)",
-                    }}
-                  >
-                    {authMode === "signup"
-                      ? "Let's get started"
-                      : authMode === "login"
-                      ? "Welcome back"
-                      : authMode === "forgot"
-                      ? "Reset your password"
-                      : "Set new password"}
-                  </h2>
-                  <p
-                    style={{
-                      color: "#b4a9cc",
-                      fontSize: "0.78rem",
-                      margin: 0,
-                      lineHeight: "1.4",
-                    }}
-                  >
-                    {authMode === "signup" ? (
-                      <>
-                        by signing up, I agree to ReflexRhythm&apos;s{" "}
-                        <span style={{ textDecoration: "underline", color: "#fff" }}>
-                          Terms &amp; Privacy policy
-                        </span>
-                      </>
-                    ) : authMode === "login" ? (
-                      "Sign in to synchronize your score, XP level, and cloud rank"
-                    ) : authMode === "forgot" ? (
-                      "Kami akan mengirimkan link reset password ke email kamu"
-                    ) : (
-                      "Buat password baru minimal 6 karakter"
-                    )}
-                  </p>
-                </div>
+                  {!isSupabaseConfigured() ? (
+                    <div
+                      style={{
+                        padding: "12px",
+                        textAlign: "center",
+                        background: "rgba(255,100,100,0.08)",
+                        border: "1px dashed rgba(255,100,100,0.3)",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <i
+                        className="fa-solid fa-triangle-exclamation"
+                        style={{ fontSize: "1.3rem", color: "#ff4757", marginBottom: "4px" }}
+                      ></i>
+                      <h4 style={{ color: "#fff", margin: "0 0 2px 0", fontSize: "11px", fontFamily: "'Orbitron', sans-serif" }}>
+                        CLOUD CONFIG NEEDED
+                      </h4>
+                      <p style={{ color: "#aaa", fontSize: "10px", margin: 0 }}>
+                        Kredensial Cloud belum dikonfigurasi di .env.local
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Google OAuth Button on Top */}
+                      {(authMode === "login" || authMode === "signup") && (
+                        <>
+                          <button
+                            type="button"
+                            className="auth-google-arcade-btn"
+                            onClick={handleGoogleLogin}
+                            disabled={authLoading}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+                              <path
+                                fill="#4285F4"
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                              />
+                              <path
+                                fill="#34A853"
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                              />
+                              <path
+                                fill="#FBBC05"
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                              />
+                              <path
+                                fill="#EA4335"
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                              />
+                            </svg>
+                            <span>
+                              {authLoading
+                                ? "CONNECTING..."
+                                : authMode === "signup"
+                                ? "SIGN UP WITH GOOGLE"
+                                : "CONTINUE WITH GOOGLE"}
+                            </span>
+                          </button>
 
-                {!isSupabaseConfigured() ? (
-                  <div
-                    style={{
-                      padding: "16px",
-                      textAlign: "center",
-                      background: "rgba(255,100,100,0.08)",
-                      border: "1px dashed rgba(255,100,100,0.3)",
-                      borderRadius: "12px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <i
-                      className="fa-solid fa-triangle-exclamation"
-                      style={{ fontSize: "1.5rem", color: "#ff4757", marginBottom: "8px" }}
-                    ></i>
-                    <h4 style={{ color: "#fff", margin: "0 0 4px 0", fontSize: "0.9rem" }}>CLOUD CONFIG NEEDED</h4>
-                    <p style={{ color: "#aaa", fontSize: "0.75rem", margin: 0 }}>
-                      Kredensial Cloud belum dikonfigurasi di .env.local
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    {/* Google OAuth Button */}
-                    {(authMode === "login" || authMode === "signup") && (
-                      <>
-                        <button
-                          type="button"
-                          className="auth-google-btn"
-                          onClick={handleGoogleLogin}
-                          disabled={authLoading}
-                        >
-                          <svg width="18" height="18" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
-                            <path
-                              fill="#4285F4"
-                              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                            />
-                            <path
-                              fill="#34A853"
-                              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                            />
-                            <path
-                              fill="#FBBC05"
-                              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                            />
-                            <path
-                              fill="#EA4335"
-                              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                            />
-                          </svg>
-                          <span>
-                            {authLoading
-                              ? "Connecting..."
-                              : authMode === "signup"
-                              ? "Sign up with Google"
-                              : "Sign in with Google"}
-                          </span>
-                        </button>
-
-                        {/* or divider */}
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "12px",
-                            margin: "16px 0",
-                            color: "#8c829e",
-                            fontSize: "0.82rem",
-                          }}
-                        >
-                          <div style={{ flex: 1, height: "1px", background: "rgba(255, 255, 255, 0.15)" }}></div>
-                          <span>or</span>
-                          <div style={{ flex: 1, height: "1px", background: "rgba(255, 255, 255, 0.15)" }}></div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Parameter Error Banner */}
-                    {authError && (
-                      <div
-                        style={{
-                          padding: "10px 14px",
-                          background: "rgba(239, 68, 68, 0.12)",
-                          border: "1px solid rgba(239, 68, 68, 0.5)",
-                          borderRadius: "10px",
-                          color: "#fca5a5",
-                          fontSize: "0.82rem",
-                          marginBottom: "14px",
-                          lineHeight: "1.4",
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: "8px",
-                          boxShadow: "0 0 15px rgba(239, 68, 68, 0.15)",
-                        }}
-                      >
-                        <i className="fa-solid fa-circle-exclamation" style={{ marginTop: "2px", color: "#f87171" }}></i>
-                        <span>{authError}</span>
-                      </div>
-                    )}
-
-                    {/* Form Fields */}
-                    <form onSubmit={handleEmailAuth} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                      {/* Email Field */}
-                      {(authMode === "login" || authMode === "signup" || authMode === "forgot") && (
-                        <input
-                          type="email"
-                          placeholder="enter email address"
-                          className="auth-split-input"
-                          value={authEmail}
-                          onChange={(e) => {
-                            setAuthEmail(e.target.value);
-                            if (authError) setAuthError("");
-                          }}
-                          autoComplete="email"
-                          required
-                        />
-                      )}
-
-                      {/* Username Field (Signup only) */}
-                      {authMode === "signup" && (
-                        <input
-                          type="text"
-                          placeholder="enter username"
-                          className="auth-split-input"
-                          maxLength={16}
-                          value={authUsername}
-                          onChange={(e) => {
-                            setAuthUsername(e.target.value);
-                            if (authError) setAuthError("");
-                          }}
-                          autoComplete="username"
-                          required
-                        />
-                      )}
-
-                      {/* Password Field */}
-                      {(authMode === "login" || authMode === "signup" || authMode === "reset_new_pass") && (
-                        <input
-                          type="password"
-                          placeholder={authMode === "reset_new_pass" ? "enter new password" : "enter password"}
-                          className="auth-split-input"
-                          value={authPassword}
-                          onChange={(e) => {
-                            setAuthPassword(e.target.value);
-                            if (authError) setAuthError("");
-                          }}
-                          autoComplete={authMode === "login" ? "current-password" : "new-password"}
-                          required
-                        />
-                      )}
-
-                      {/* Confirm Password Field (Signup or Reset New Pass) */}
-                      {(authMode === "signup" || authMode === "reset_new_pass") && (
-                        <input
-                          type="password"
-                          placeholder="confirm password"
-                          className="auth-split-input"
-                          value={authConfirmPassword}
-                          onChange={(e) => {
-                            setAuthConfirmPassword(e.target.value);
-                            if (authError) setAuthError("");
-                          }}
-                          autoComplete="new-password"
-                          required
-                        />
-                      )}
-
-                      {/* Password Strength Indicator */}
-                      {(authMode === "signup" || authMode === "reset_new_pass") && passStrength && (
-                        <div style={{ marginTop: "-2px", marginBottom: "4px" }}>
+                          {/* Or Divider */}
                           <div
                             style={{
                               display: "flex",
-                              justifyContent: "space-between",
                               alignItems: "center",
-                              fontSize: "10px",
-                              color: "#a5a0b8",
-                              marginBottom: "3px",
+                              gap: "8px",
+                              margin: "8px 0",
+                              color: "#666",
+                              fontSize: "9px",
+                              fontFamily: "'Orbitron', sans-serif",
+                              letterSpacing: "1px",
                             }}
                           >
-                            <span>PASSWORD STRENGTH:</span>
-                            <span style={{ color: passStrength.color, fontWeight: "bold" }}>
-                              {passStrength.label}
-                            </span>
+                            <div style={{ flex: 1, height: "1px", background: "#222d4a" }}></div>
+                            <span>OR EMAIL</span>
+                            <div style={{ flex: 1, height: "1px", background: "#222d4a" }}></div>
                           </div>
-                          <div
-                            style={{
-                              width: "100%",
-                              height: "4px",
-                              background: "rgba(255, 255, 255, 0.1)",
-                              borderRadius: "2px",
-                              overflow: "hidden",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: `${passStrength.pct}%`,
-                                height: "100%",
-                                background: passStrength.color,
-                                transition: "all 0.3s ease",
-                              }}
-                            ></div>
-                          </div>
+                        </>
+                      )}
+
+                      {/* Error Banner */}
+                      {authError && (
+                        <div
+                          style={{
+                            padding: "6px 10px",
+                            background: "rgba(255, 71, 87, 0.12)",
+                            border: "1px solid #ff4757",
+                            color: "#ff6b81",
+                            fontSize: "10.5px",
+                            marginBottom: "8px",
+                            lineHeight: "1.3",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          <i className="fa-solid fa-triangle-exclamation" style={{ color: "#ff4757", flexShrink: 0 }}></i>
+                          <span>{authError}</span>
                         </div>
                       )}
 
-                      {/* Forgot password in login mode */}
-                      {authMode === "login" && (
-                        <div style={{ textAlign: "right", marginTop: "-2px" }}>
+                      {/* Form Inputs */}
+                      <form onSubmit={handleEmailAuth} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        {/* Email */}
+                        {(authMode === "login" || authMode === "signup" || authMode === "forgot") && (
+                          <input
+                            type="email"
+                            placeholder="enter email address"
+                            className="auth-blueprint-compact-input"
+                            value={authEmail}
+                            onChange={(e) => {
+                              setAuthEmail(e.target.value);
+                              if (authError) setAuthError("");
+                            }}
+                            autoComplete="email"
+                            required
+                          />
+                        )}
+
+                        {/* Username (Signup only) */}
+                        {authMode === "signup" && (
+                          <input
+                            type="text"
+                            placeholder="enter username"
+                            className="auth-blueprint-compact-input"
+                            maxLength={16}
+                            value={authUsername}
+                            onChange={(e) => {
+                              setAuthUsername(e.target.value);
+                              if (authError) setAuthError("");
+                            }}
+                            autoComplete="username"
+                            required
+                          />
+                        )}
+
+                        {/* Password */}
+                        {(authMode === "login" || authMode === "signup" || authMode === "reset_new_pass") && (
+                          <input
+                            type="password"
+                            placeholder={authMode === "reset_new_pass" ? "enter new password" : "enter password"}
+                            className="auth-blueprint-compact-input"
+                            value={authPassword}
+                            onChange={(e) => {
+                              setAuthPassword(e.target.value);
+                              if (authError) setAuthError("");
+                            }}
+                            autoComplete={authMode === "login" ? "current-password" : "new-password"}
+                            required
+                          />
+                        )}
+
+                        {/* Confirm Password (Signup or Reset New Pass) */}
+                        {(authMode === "signup" || authMode === "reset_new_pass") && (
+                          <input
+                            type="password"
+                            placeholder="confirm password"
+                            className="auth-blueprint-compact-input"
+                            value={authConfirmPassword}
+                            onChange={(e) => {
+                              setAuthConfirmPassword(e.target.value);
+                              if (authError) setAuthError("");
+                            }}
+                            autoComplete="new-password"
+                            required
+                          />
+                        )}
+
+                        {/* Password Strength Indicator */}
+                        {(authMode === "signup" || authMode === "reset_new_pass") && passStrength && (
+                          <div style={{ marginTop: "-2px", marginBottom: "2px" }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                fontSize: "9px",
+                                color: "#888",
+                                marginBottom: "2px",
+                                fontFamily: "'Orbitron', sans-serif",
+                              }}
+                            >
+                              <span>STRENGTH:</span>
+                              <span style={{ color: passStrength.color, fontWeight: 700 }}>
+                                {passStrength.label}
+                              </span>
+                            </div>
+                            <div
+                              style={{
+                                width: "100%",
+                                height: "3px",
+                                background: "rgba(255, 255, 255, 0.1)",
+                                overflow: "hidden",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: `${passStrength.pct}%`,
+                                  height: "100%",
+                                  background: passStrength.color,
+                                  transition: "all 0.3s ease",
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Forgot password link */}
+                        {authMode === "login" && (
+                          <div style={{ textAlign: "right" }}>
+                            <button
+                              type="button"
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: "#ffe500",
+                                fontSize: "10px",
+                                cursor: "pointer",
+                                padding: 0,
+                                textDecoration: "underline",
+                                fontFamily: "'Orbitron', sans-serif",
+                              }}
+                              onClick={() => {
+                                playSfx("clickSound");
+                                setAuthMode("forgot");
+                                setAuthError("");
+                              }}
+                            >
+                              Lupa password?
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Submit Button */}
+                        <button
+                          type="submit"
+                          className="pact-btn-save-blueprint"
+                          disabled={authLoading}
+                          style={{
+                            width: "100%",
+                            marginTop: "2px",
+                            padding: "8px 12px",
+                            fontSize: "11px",
+                          }}
+                        >
+                          {authLoading
+                            ? "PROCESSING..."
+                            : authMode === "signup"
+                            ? "SIGN UP NOW"
+                            : authMode === "login"
+                            ? "LOGIN EMAIL"
+                            : authMode === "forgot"
+                            ? "KIRIM LINK RESET"
+                            : "UPDATE PASSWORD"}
+                        </button>
+                      </form>
+
+                      {/* Back link when in forgot or reset mode */}
+                      {(authMode === "forgot" || authMode === "reset_new_pass") && (
+                        <div style={{ textAlign: "center", marginTop: "8px" }}>
                           <button
                             type="button"
                             style={{
                               background: "none",
                               border: "none",
-                              color: "#fbcfe8",
-                              fontSize: "0.78rem",
+                              color: "#888",
+                              fontSize: "10.5px",
                               cursor: "pointer",
-                              padding: 0,
                               textDecoration: "underline",
+                              fontFamily: "'Orbitron', sans-serif",
                             }}
                             onClick={() => {
                               playSfx("clickSound");
-                              setAuthMode("forgot");
+                              setAuthMode("login");
                               setAuthError("");
                             }}
                           >
-                            Lupa password?
+                            Kembali ke Sign In
                           </button>
                         </div>
                       )}
-
-                      {/* Submit Button */}
-                      <button
-                        type="submit"
-                        className="auth-split-btn"
-                        disabled={authLoading}
-                        style={{ marginTop: "6px" }}
-                      >
-                        {authLoading
-                          ? "Processing..."
-                          : authMode === "signup"
-                          ? "Sign Up"
-                          : authMode === "login"
-                          ? "Sign In"
-                          : authMode === "forgot"
-                          ? "Send Reset Link"
-                          : "Save New Password"}
-                      </button>
-                    </form>
-
-                    {/* Back link when in forgot or reset mode */}
-                    {(authMode === "forgot" || authMode === "reset_new_pass") && (
-                      <div style={{ textAlign: "center", marginTop: "14px" }}>
-                        <button
-                          type="button"
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "#a5a0b8",
-                            fontSize: "0.8rem",
-                            cursor: "pointer",
-                            textDecoration: "underline",
-                          }}
-                          onClick={() => {
-                            playSfx("clickSound");
-                            setAuthMode("login");
-                            setAuthError("");
-                          }}
-                        >
-                          Kembali ke Sign In
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* RIGHT COLUMN: ARTWORK CARD (IMAGE 1 STYLE) */}
-              <div
-                className="auth-modal-art-panel"
-                style={{
-                  position: "relative",
-                  overflow: "hidden",
-                  display: "flex",
-                  alignItems: "stretch",
-                  minHeight: "440px",
-                  background: "#160e26",
-                }}
-              >
-                {/* Character Illustration Artwork */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/assets/picture/alpha-build.jpg"
-                  alt="Character Artwork"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    objectPosition: "center 20%",
-                    position: "absolute",
-                    inset: 0,
-                  }}
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    if (!target.src.includes("pre-test")) {
-                      target.src = "/assets/picture/pre-test.png";
-                    }
-                  }}
-                />
-
-                {/* Left gradient fade blending into form */}
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background:
-                      "linear-gradient(to right, #140e22 0%, rgba(20, 14, 34, 0.45) 25%, transparent 60%), linear-gradient(to top, rgba(20, 14, 34, 0.8) 0%, transparent 40%)",
-                    pointerEvents: "none",
-                  }}
-                ></div>
-
-                {/* Subtle cyber badge */}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "20px",
-                    right: "20px",
-                    background: "rgba(20, 14, 34, 0.75)",
-                    backdropFilter: "blur(8px)",
-                    border: "1px solid rgba(244, 114, 182, 0.3)",
-                    borderRadius: "10px",
-                    padding: "6px 12px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    zIndex: 3,
-                  }}
-                >
-                  <span
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      background: "#f472b6",
-                      boxShadow: "0 0 8px #f472b6",
-                      display: "inline-block",
-                    }}
-                  ></span>
-                  <span style={{ fontSize: "10px", color: "#fbcfe8", fontWeight: 700, letterSpacing: "1px" }}>
-                    REFLEX CLOUD NETWORK
-                  </span>
+                    </>
+                  )}
                 </div>
+
+                {/* RIGHT COLUMN: ARTWORK CARD (SIGNUP ONLY) */}
+                {authMode === "signup" && (
+                  <div
+                    className="auth-modal-art-panel"
+                    style={{
+                      position: "relative",
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "stretch",
+                      background: "#080618",
+                      borderLeft: "2px solid #1f2842",
+                    }}
+                  >
+                    {/* Character Illustration Artwork */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/assets/picture/alpha-build.jpg"
+                      alt="Character Artwork"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "center 20%",
+                        position: "absolute",
+                        inset: 0,
+                      }}
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.src.includes("pre-test")) {
+                          target.src = "/assets/picture/pre-test.png";
+                        }
+                      }}
+                    />
+
+                    {/* Cyber gradient fade blending into form */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background:
+                          "linear-gradient(to right, #0d0f1a 0%, rgba(13, 15, 26, 0.4) 20%, transparent 60%), linear-gradient(to top, rgba(8, 6, 24, 0.85) 0%, transparent 40%)",
+                        pointerEvents: "none",
+                      }}
+                    ></div>
+
+                    {/* Cyber HUD Badge */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "12px",
+                        right: "12px",
+                        background: "rgba(8, 6, 24, 0.85)",
+                        border: "1px solid #00ffcc",
+                        boxShadow: "2px 2px 0 #000",
+                        padding: "4px 8px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        zIndex: 3,
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          background: "#00ffcc",
+                          boxShadow: "0 0 6px #00ffcc",
+                          display: "inline-block",
+                        }}
+                      ></span>
+                      <span style={{ fontSize: "9px", color: "#00ffcc", fontWeight: 800, fontFamily: "'Orbitron', sans-serif", letterSpacing: "1px" }}>
+                        REFLEX CLOUD
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

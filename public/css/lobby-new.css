@@ -986,96 +986,100 @@
 }
 
 /* ============================================================
-   SPLIT AUTH MODAL (IMAGE 1 STYLE)
+   SPLIT AUTH MODAL (ORIGINAL GAME BLUEPRINT AESTHETIC)
    ============================================================ */
 .auth-split-modal-box {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  max-width: 860px;
-  width: 100%;
-  margin: auto;
-  background: linear-gradient(145deg, #140e22 0%, #1a122e 60%, #160e26 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 24px;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 40px rgba(244, 114, 182, 0.15);
-  overflow: hidden;
   position: relative;
-  min-height: 520px;
+  width: 92vw;
+  max-width: 440px;
+  background: #0d0f1a;
+  border: 2.5px solid #1f2842;
+  box-shadow: 0 0 50px rgba(0,0,0,0.85), 8px 8px 0 #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: auto;
+  transition: max-width 0.2s ease;
 }
 
-@media (max-width: 768px) {
-  .auth-split-modal-box {
+.auth-split-modal-box.mode-signup {
+  max-width: 760px;
+}
+
+.auth-split-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 0;
+  width: 100%;
+}
+
+.auth-split-content-grid.mode-signup {
+  grid-template-columns: 1.15fr 0.85fr;
+}
+
+@media (max-width: 768px), (max-height: 620px) {
+  .auth-split-modal-box.mode-signup {
+    max-width: 440px !important;
+  }
+  .auth-split-content-grid.mode-signup {
     grid-template-columns: 1fr !important;
-    max-height: 90vh !important;
-    overflow-y: auto !important;
   }
   .auth-modal-art-panel {
     display: none !important;
   }
 }
 
-.auth-split-input {
+.auth-google-arcade-btn {
   width: 100%;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 12px;
-  color: #fff;
-  font-size: 0.88rem;
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.auth-split-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.auth-split-input:focus {
-  border-color: #f472b6 !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 0 14px rgba(244, 114, 182, 0.35) !important;
-}
-
-.auth-split-btn {
-  width: 100%;
-  padding: 12px 18px;
-  background: linear-gradient(135deg, #f48fb1 0%, #f06292 100%);
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  box-shadow: 0 6px 20px rgba(240, 98, 146, 0.35);
-  transition: all 0.2s ease;
-}
-
-.auth-split-btn:hover {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(240, 98, 146, 0.45);
-}
-
-.auth-google-btn {
-  width: 100%;
-  padding: 11px 16px;
-  background: linear-gradient(135deg, #f48fb1 0%, #f06292 100%);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 12px;
-  font-weight: 600;
+  padding: 8px 14px;
+  background: #ffffff;
+  color: #1a1a1a;
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   cursor: pointer;
-  font-size: 0.92rem;
-  box-shadow: 0 6px 20px rgba(240, 98, 146, 0.35);
-  transition: all 0.2s ease;
+  transition: transform 0.1s, filter 0.1s;
+  border-radius: 0;
 }
 
-.auth-google-btn:hover {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
+.auth-google-arcade-btn:hover {
+  transform: scale(1.02);
+  filter: brightness(1.05);
+  box-shadow: 4px 4px 0 #00ffcc;
+}
+
+.auth-google-arcade-btn:active {
+  transform: scale(0.98);
+}
+
+.auth-blueprint-compact-input {
+  width: 100%;
+  background: #080618;
+  border: 2px solid #1f2842;
+  padding: 8px 12px;
+  color: #fff;
+  font-family: "Orbitron", monospace;
+  font-size: 11.5px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+.auth-blueprint-compact-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+  font-family: "Orbitron", monospace;
+  font-size: 11px;
+}
+
+.auth-blueprint-compact-input:focus {
+  border-color: #00ffcc;
+  box-shadow: 0 0 0 1px #00ffcc, 2px 2px 0 #000;
 }
