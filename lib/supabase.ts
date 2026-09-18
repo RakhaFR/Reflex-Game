@@ -247,6 +247,9 @@ export async function fetchCloudProfile(user: User, localProfile: ProfileData): 
       ? localAvatar
       : (googleAvatar || "default");
 
+    const cloudStats = data.stats || {};
+    const { lifetimeScore: _stripLocal, ...localStatsRest } = localProfile.stats as any;
+    const { lifetimeScore: _stripCloud, ...cloudStatsRest } = cloudStats as any;
     const merged: ProfileData = {
       ...localProfile,
       identity: {
@@ -256,8 +259,8 @@ export async function fetchCloudProfile(user: User, localProfile: ProfileData): 
         bannerSkin: data.banner_skin || localProfile.identity.bannerSkin,
       },
       stats: {
-        ...localProfile.stats,
-        ...(data.stats || {}),
+        ...localStatsRest,
+        ...cloudStatsRest,
         lifetimeScore: typeof data.xp === "number" && data.xp > 0
           ? data.xp
           : localProfile.stats.lifetimeScore,
@@ -401,6 +404,29 @@ export async function uploadAvatarToStorage(user: User, file: File): Promise<str
   } catch (err) {
     console.error("Avatar upload exception:", err);
     return null;
+  }
+}
+
+// ── SYNC PROFILE META TO ALL BEST SCORES ─────────────────────
+
+export async function syncProfileMetaToBestScores(
+  user: User | null,
+  profile: ProfileData
+): Promise<void> {
+  if (!isSupabaseConfigured() || !user) return;
+  try {
+    const userLevel = computeLevelFromXP(profile.stats.lifetimeScore || 0);
+    await supabase
+      .from("best_scores")
+      .update({
+        username: profile.identity.username || "Operator",
+        avatar_url: profile.identity.avatar || "default",
+        banner_skin: profile.identity.bannerSkin || "arcade-spark",
+        level: userLevel,
+      })
+      .eq("user_id", user.id);
+  } catch (err) {
+    console.error("Failed to sync profile meta to best_scores:", err);
   }
 }
 

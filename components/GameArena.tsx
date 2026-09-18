@@ -31,6 +31,7 @@ import {
   syncLocalProfileToCloud,
   recordScoreToCloud,
   recordBestScoreToCloud,
+  syncProfileMetaToBestScores,
 } from "@/lib/supabase";
 
 interface ActiveNote {
@@ -574,6 +575,7 @@ function GameArenaInner() {
       supabase.auth.getUser().then(({ data }) => {
         if (data?.user) {
           syncLocalProfileToCloud(data.user, updatedProf);
+          syncProfileMetaToBestScores(data.user, updatedProf);
           recordScoreToCloud(
             data.user,
             updatedProf,

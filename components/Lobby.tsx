@@ -44,6 +44,7 @@ import {
   sendPasswordResetEmail,
   updateUserPassword,
   updateUserEmail,
+  syncProfileMetaToBestScores,
 } from "@/lib/supabase";
 
 export default function Lobby() {
@@ -638,6 +639,7 @@ export default function Lobby() {
             setProfile(cloudData);
             profileRef.current = cloudData;
             setUsernameInput(cloudData.identity.username);
+            await syncProfileMetaToBestScores(data.user, cloudData);
           }
           setIsAuthSubModalOpen(false);
           setIsProfileModalOpen(true);
@@ -877,6 +879,7 @@ export default function Lobby() {
     setProfile(updated);
     profileSave(updated);
     if (authUser) syncLocalProfileToCloud(authUser, updated);
+    if (authUser) syncProfileMetaToBestScores(authUser, updated);
     showToast("Username Updated!", "success");
   };
 
@@ -889,6 +892,7 @@ export default function Lobby() {
     setProfile(updated);
     profileSave(updated);
     if (authUser) syncLocalProfileToCloud(authUser, updated);
+    if (authUser) syncProfileMetaToBestScores(authUser, updated);
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -917,6 +921,7 @@ export default function Lobby() {
       setProfile(updated);
       profileSave(updated);
       if (authUser) await syncLocalProfileToCloud(authUser, updated);
+      if (authUser) await syncProfileMetaToBestScores(authUser, updated);
       showToast("Avatar Updated & Saved to Cloud!", "success");
     } else {
       const reader = new FileReader();
