@@ -469,3 +469,114 @@ export async function fetchTrackLeaderboardFromCloud(
     return [];
   }
 }
+
+// ── GLOBAL CHAT ROOM ──────────────────────────────────────────
+
+export interface GlobalChatMessage {
+  id: number;
+  user_id: string;
+  username: string;
+  avatar_url?: string;
+  level?: number;
+  badge?: string;
+  message: string;
+  created_at: string;
+}
+
+export async function fetchGlobalMessages(limitCount = 100): Promise<GlobalChatMessage[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data, error } = await supabase
+      .from("global_messages")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(limitCount);
+
+    if (error || !data) {
+      console.warn("fetchGlobalMessages error:", error?.message);
+      return [];
+    }
+    // Reverse to chronological order (oldest first, newest last) for chat stream
+    return (data as GlobalChatMessage[]).reverse();
+  } catch (err) {
+    console.error("Failed to fetch global messages:", err);
+    return [];
+  }
+}
+
+export async function sendGlobalMessage(
+  user: User,
+  localProfile: ProfileData,
+  messageText: string
+): Promise<{ success: boolean; data?: GlobalChatMessage; error?: string }> {
+  if (!isSupabaseConfigured() || !user) {
+    return { success: false, error: "Harap login untuk mengirim pesan di Global Chat." };
+  }
+
+  const cleanMessage = messageText.trim();
+  if (!cleanMessage) {
+    return { success: false, error: "Pesan tidak boleh kosong." };
+  }
+  if (cleanMessage.length > 200) {
+    return { success: false, error: "Pesan melebihi batas 200 karakter." };
+  }
+
+  try {
+    const currentLevel = computeLevelFromXP(localProfile?.stats?.lifetimeScore || 0);
+    const displayName =
+      localProfile?.identity?.username && localProfile.identity.username !== "Player"
+        ? localProfile.identity.username
+        : user.user_metadata?.username || user.user_metadata?.full_name || user.email?.split("@")[0] || "Operator";
+
+    const payload = {
+      user_id: user.id,
+      username: displayName,
+      avatar_url: localProfile?.identity?.avatar || user.user_metadata?.avatar_url || "default",
+      level: currentLevel,
+      badge: currentLevel >= 50 ? "LEGEND" : currentLevel >= 25 ? "MASTER" : currentLevel >= 10 ? "ELITE" : "OPERATOR",
+      message: cleanMessage,
+      created_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from("global_messages")
+      .insert([payload])
+      .select()
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true, data: data as GlobalChatMessage };
+  } catch (err: any) {
+    console.error("Failed to send global message:", err);
+    return { success: false, error: err?.message || "Gagal mengirim pesan." };
+  }
+}
+
+export function subscribeToGlobalMessages(
+  onNewMessage: (msg: GlobalChatMessage) => void
+) {
+  if (!isSupabaseConfigured()) return () => {};
+
+  const channel = supabase
+    .channel("global_messages_feed")
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "global_messages",
+      },
+      (payload) => {
+        if (payload.new) {
+          onNewMessage(payload.new as GlobalChatMessage);
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}

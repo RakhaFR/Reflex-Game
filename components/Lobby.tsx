@@ -46,6 +46,10 @@ import {
   updateUserPassword,
   updateUserEmail,
   syncProfileMetaToBestScores,
+  fetchGlobalMessages,
+  sendGlobalMessage,
+  subscribeToGlobalMessages,
+  GlobalChatMessage,
 } from "@/lib/supabase";
 
 export default function Lobby() {
@@ -179,6 +183,17 @@ export default function Lobby() {
   const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<TrackLeaderboardItem[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+
+  // ── Global Chat Room State ────────────────────────────────
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [chatMessages, setChatMessages] = useState<GlobalChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState<string>("");
+  const [chatSending, setChatSending] = useState<boolean>(false);
+  const [chatCooldownSec, setChatCooldownSec] = useState<number>(0);
+  const [unreadChatCount, setUnreadChatCount] = useState<number>(0);
+  const [chatLoading, setChatLoading] = useState<boolean>(true);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const lastChatSendTimeRef = useRef<number>(0);
 
   // ── Periodic Fullscreen Prompt State ─────────────────────
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(false);
@@ -996,6 +1011,116 @@ export default function Lobby() {
     setLeaderboardLoading(false);
   };
 
+  // ── Global Chat Room Logic ───────────────────────────────
+  const scrollToBottomChat = useCallback((smooth = true) => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTo({
+        top: chatScrollRef.current.scrollHeight,
+        behavior: smooth ? "smooth" : "auto",
+      });
+    }
+  }, []);
+
+  // Fetch initial chat messages & Realtime subscription
+  useEffect(() => {
+    if (!isSupabaseConfigured()) {
+      setChatLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    fetchGlobalMessages(100).then((msgs) => {
+      if (isMounted) {
+        setChatMessages(msgs);
+        setChatLoading(false);
+        setTimeout(() => scrollToBottomChat(false), 120);
+      }
+    });
+
+    const unsubscribe = subscribeToGlobalMessages((newMsg) => {
+      setChatMessages((prev) => {
+        if (prev.some((m) => m.id === newMsg.id)) return prev;
+        const updated = [...prev, newMsg];
+        if (updated.length > 100) return updated.slice(updated.length - 100);
+        return updated;
+      });
+
+      setIsChatOpen((open) => {
+        if (!open) {
+          setUnreadChatCount((cnt) => cnt + 1);
+        }
+        return open;
+      });
+
+      setTimeout(() => scrollToBottomChat(true), 60);
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [scrollToBottomChat]);
+
+  // Reset unread count when chat opens & scroll to bottom
+  useEffect(() => {
+    if (isChatOpen) {
+      setUnreadChatCount(0);
+      setTimeout(() => scrollToBottomChat(false), 80);
+    }
+  }, [isChatOpen, scrollToBottomChat]);
+
+  const handleSendChat = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!authUser) {
+      showToast("Harap login untuk mengirim pesan!", "error");
+      setAuthMode("login");
+      setIsAuthSubModalOpen(true);
+      return;
+    }
+
+    const text = chatInput.trim();
+    if (!text) return;
+
+    const now = Date.now();
+    const elapsed = now - lastChatSendTimeRef.current;
+    if (elapsed < 2000) {
+      const waitSec = Math.ceil((2000 - elapsed) / 1000);
+      showToast(`Tunggu ${waitSec} detik sebelum mengirim lagi!`, "error");
+      return;
+    }
+
+    setChatSending(true);
+    const res = await sendGlobalMessage(authUser, profile, text);
+    setChatSending(false);
+
+    if (res.success && res.data) {
+      setChatInput("");
+      lastChatSendTimeRef.current = Date.now();
+      setChatCooldownSec(2);
+
+      const interval = setInterval(() => {
+        setChatCooldownSec((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      const newMsg = res.data;
+      setChatMessages((prev) => {
+        if (prev.some((m) => m.id === newMsg.id)) return prev;
+        const nextList = [...prev, newMsg];
+        if (nextList.length > 100) return nextList.slice(nextList.length - 100);
+        return nextList;
+      });
+      setTimeout(() => scrollToBottomChat(true), 50);
+    } else {
+      showToast(res.error || "Gagal mengirim pesan.", "error");
+    }
+  };
+
   // ── Handle Play Button (Start Game) ────────────────────────
   const handleStartPlay = () => {
     playSfx("clickSound");
@@ -1016,6 +1141,31 @@ export default function Lobby() {
   // ── Keyboard Navigation ────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (targetTag === "input" || targetTag === "textarea") {
+        if (e.key === "Escape") {
+          (e.target as HTMLElement).blur();
+        }
+        return;
+      }
+
+      if (isChatOpen) {
+        if (e.key === "Escape") {
+          setIsChatOpen(false);
+        }
+        return;
+      }
+
+      if (isLeaderboardModalOpen || isAuthSubModalOpen || isChangeEmailModalOpen || isChangePassModalOpen) {
+        if (e.key === "Escape") {
+          setIsLeaderboardModalOpen(false);
+          setIsAuthSubModalOpen(false);
+          setIsChangeEmailModalOpen(false);
+          setIsChangePassModalOpen(false);
+        }
+        return;
+      }
+
       if (isProfileModalOpen) {
         if (keybindListeningIdx >= 0) {
           const k = e.key.toLowerCase();
@@ -1071,7 +1221,21 @@ export default function Lobby() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isProfileModalOpen, keybindListeningIdx, activeTrackIdx, activeTracks.length, selectTrack, switchMode, profile]);
+  }, [
+    isProfileModalOpen,
+    isChatOpen,
+    isLeaderboardModalOpen,
+    isAuthSubModalOpen,
+    isChangeEmailModalOpen,
+    isChangePassModalOpen,
+    keybindListeningIdx,
+    activeTrackIdx,
+    activeTracks.length,
+    selectTrack,
+    switchMode,
+    profile,
+    authUser,
+  ]);
 
   // ── Profile Operations ─────────────────────────────────────
   const totalXP = profile.stats.lifetimeScore || 0;
@@ -1313,10 +1477,29 @@ export default function Lobby() {
               </div>
             </div>
             <button
+              className={`widget-settings-btn widget-chat-btn ${unreadChatCount > 0 ? "has-unread" : ""}`}
+              id="widgetChatBtn"
+              title="Global Chat Room"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                playSfx("clickSound");
+                setIsChatOpen((prev) => !prev);
+              }}
+            >
+              <i className="fa-solid fa-comments"></i>
+              {unreadChatCount > 0 && (
+                <span className="widget-chat-badge">
+                  {unreadChatCount > 99 ? "99+" : unreadChatCount}
+                </span>
+              )}
+            </button>
+            <button
               className="widget-settings-btn"
               id="widgetSettingsBtn"
               title="Pengaturan"
               type="button"
+              style={{ marginLeft: "6px" }}
               onClick={(e) => {
                 e.stopPropagation();
                 playSfx("clickSound");
@@ -3191,6 +3374,170 @@ export default function Lobby() {
           </section>
         </div>
       </main>
+
+      {/* GLOBAL CHAT MODAL / DRAWER */}
+      <div
+        className={`global-chat-backdrop ${isChatOpen ? "active" : ""}`}
+        onClick={() => {
+          playSfx("clickSound");
+          setIsChatOpen(false);
+        }}
+      >
+        <div
+          className={`global-chat-panel ${isChatOpen ? "open" : ""}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Cyber Accents */}
+          <div className="chat-corner-accent top-left"></div>
+          <div className="chat-corner-accent bottom-right"></div>
+
+          {/* Header */}
+          <div className="global-chat-header">
+            <div className="chat-header-info">
+              <div className="chat-header-icon-wrap">
+                <i className="fa-solid fa-satellite-dish chat-header-icon"></i>
+              </div>
+              <div>
+                <h3 className="chat-header-title">GLOBAL COMM-LINK</h3>
+                <span className="chat-header-subtitle">LIVE BROADCAST · 100 MSG BUFFER</span>
+              </div>
+            </div>
+
+            <div className="chat-header-right">
+              <div className={`chat-conn-status ${authUser ? "connected" : "guest"}`}>
+                <span className="conn-dot"></span>
+                <span>{authUser ? "ONLINE" : "GUEST"}</span>
+              </div>
+              <button
+                type="button"
+                className="chat-close-btn"
+                onClick={() => {
+                  playSfx("clickSound");
+                  setIsChatOpen(false);
+                }}
+                title="Tutup Chat"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Messages Body */}
+          <div className="global-chat-body" ref={chatScrollRef}>
+            {chatLoading && chatMessages.length === 0 ? (
+              <div className="chat-empty-box">
+                <i className="fas fa-circle-notch fa-spin chat-loading-spinner"></i>
+                <span>MENGHUBUNGKAN FREKUENSI COMM-LINK...</span>
+              </div>
+            ) : chatMessages.length === 0 ? (
+              <div className="chat-empty-box">
+                <i className="fa-solid fa-comments chat-empty-icon"></i>
+                <span className="chat-empty-title">FREKUENSI KOSONG</span>
+                <span className="chat-empty-desc">
+                  Belum ada sinyal transmisi. Kirim pesan pertama untuk menyapa seluruh operator!
+                </span>
+              </div>
+            ) : (
+              chatMessages.map((msg) => {
+                const isMe = authUser && authUser.id === msg.user_id;
+                const tierClass = (msg.badge || "OPERATOR").toLowerCase();
+
+                return (
+                  <div
+                    key={msg.id || `${msg.created_at}-${msg.username}-${Math.random()}`}
+                    className={`chat-msg-row ${isMe ? "is-mine" : "is-other"}`}
+                  >
+                      <div className="chat-msg-avatar">
+                        <img
+                          src={getAvatarDisplay(msg.avatar_url || "default")}
+                          alt={msg.username}
+                          referrerPolicy="no-referrer"
+                        crossOrigin="anonymous"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/assets/picture/new-logo.png";
+                        }}
+                      />
+                    </div>
+                    <div className="chat-msg-content">
+                      <div className="chat-msg-meta">
+                        <span className="chat-msg-name">{msg.username}</span>
+                        <span className={`chat-badge-pill badge-${tierClass}`}>
+                          LV.{msg.level || 1} {msg.badge || "OPERATOR"}
+                        </span>
+                        <span className="chat-msg-time">
+                          {new Date(msg.created_at).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                      <div className="chat-bubble">
+                        {msg.message}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Footer / Input */}
+          <div className="global-chat-footer">
+            {authUser ? (
+              <form onSubmit={handleSendChat} className="global-chat-form">
+                <div className="chat-input-wrapper">
+                  <input
+                    type="text"
+                    className="chat-input-field"
+                    placeholder={
+                      chatCooldownSec > 0
+                        ? `Tunggu cooldown (${chatCooldownSec}s)...`
+                        : "Ketik pesan transmisi... (Maks 200)"
+                    }
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    maxLength={200}
+                    disabled={chatSending || chatCooldownSec > 0}
+                  />
+                  <span className="chat-input-counter">{chatInput.length}/200</span>
+                </div>
+                <button
+                  type="submit"
+                  className="chat-send-btn"
+                  disabled={!chatInput.trim() || chatSending || chatCooldownSec > 0}
+                  title="Kirim Pesan"
+                >
+                  {chatSending ? (
+                    <i className="fas fa-spinner fa-spin"></i>
+                  ) : (
+                    <i className="fa-solid fa-paper-plane"></i>
+                  )}
+                </button>
+              </form>
+            ) : (
+              <div className="chat-guest-bar">
+                <div className="chat-guest-info">
+                  <i className="fa-solid fa-lock"></i>
+                  <span>Masuk untuk broadcast pesan ke seluruh operator</span>
+                </div>
+                <button
+                  type="button"
+                  className="chat-guest-login-btn"
+                  onClick={() => {
+                    playSfx("clickSound");
+                    setIsChatOpen(false);
+                    setAuthMode("login");
+                    setAuthError("");
+                    setIsAuthSubModalOpen(true);
+                  }}
+                >
+                  SIGN IN
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* TOAST NOTIFICATION */}
       {toastMsg && (

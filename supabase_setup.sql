@@ -168,3 +168,54 @@ BEGIN
     CREATE POLICY "Users Update Own Avatars" ON storage.objects FOR UPDATE USING (bucket_id = 'avatars' AND auth.role() = 'authenticated');
   END IF;
 END $$;
+
+-- ── 6. TABEL GLOBAL MESSAGES (GLOBAL CHAT ROOM - MAX 100 PESAN) ──
+CREATE TABLE IF NOT EXISTS public.global_messages (
+  id BIGSERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  username TEXT NOT NULL,
+  avatar_url TEXT DEFAULT 'default',
+  level INTEGER DEFAULT 1,
+  badge TEXT DEFAULT 'OPERATOR',
+  message TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+ALTER TABLE public.global_messages ENABLE ROW LEVEL SECURITY;
+
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Global messages are viewable by everyone') THEN
+    CREATE POLICY "Global messages are viewable by everyone" ON public.global_messages FOR SELECT USING (true);
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated users can insert global messages') THEN
+    CREATE POLICY "Authenticated users can insert global messages" ON public.global_messages FOR INSERT WITH CHECK (auth.uid() = user_id);
+  END IF;
+END $$;
+
+-- Index untuk performa sorting pesan
+CREATE INDEX IF NOT EXISTS idx_global_messages_created_at ON public.global_messages (created_at DESC);
+
+-- Trigger Function: Otomatis menghapus pesan lama jika total melebihi 100 pesan
+CREATE OR REPLACE FUNCTION public.prune_old_global_messages()
+RETURNS TRIGGER AS $$
+BEGIN
+  DELETE FROM public.global_messages
+  WHERE id NOT IN (
+    SELECT id FROM public.global_messages
+    ORDER BY created_at DESC
+    LIMIT 100
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trigger_prune_global_messages ON public.global_messages;
+CREATE TRIGGER trigger_prune_global_messages
+  AFTER INSERT ON public.global_messages
+  FOR EACH STATEMENT
+  EXECUTE FUNCTION public.prune_old_global_messages();
+
+-- Enable Supabase Realtime untuk tabel global_messages
+ALTER PUBLICATION supabase_realtime ADD TABLE public.global_messages;

@@ -729,6 +729,19 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
+    version: "v0.3.0 — Global Chat Room",
+    date: "18 SEP 2026",
+    badgeClass: "cyan",
+    bannerImg: "/assets/picture/alpha-build.jpg",
+    changes: [
+      { type: "add", text: "Global Chat Room 💬: Komunikasi publik secara real-time antar pemain langsung dari Lobby." },
+      { type: "add", text: "Shortcut Chat di Topbar: Akses instan di samping tombol Pengaturan dengan notifikasi unread badge." },
+      { type: "add", text: "Sistem Auto-Prune (Maks. 100 Pesan): Chat history selalu optimal dan terawat otomatis di Supabase Database." },
+      { type: "add", text: "Identity & Level Badges: Setiap pesan menampilkan avatar, level, dan rank tier (Legend/Master/Elite/Operator)." },
+      { type: "upd", text: "Cooldown Anti-Spam: Proteksi 2 detik antar pesan untuk menjaga percakapan tetap nyaman dan teratur." },
+    ],
+  },
+  {
     version: "v0.2.1 — Bugfix & CDN Migration",
     date: "18 SEP 2026",
     badgeClass: "magenta",
