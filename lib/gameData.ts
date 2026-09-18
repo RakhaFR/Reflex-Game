@@ -734,6 +734,9 @@ export const UPDATE_LOGS: UpdateLog[] = [
     badgeClass: "magenta",
     bannerImg: "/assets/picture/bug-fix.jpg",
     changes: [
+      { type: "upd", text: "Desain Baru Modal Autentikasi: Split layout dengan panel artwork bergaya anime/cyber, tombol Google modern, dan form pendaftaran interaktif." },
+      { type: "fix", text: "Feedback Parameter Login & Registrasi: Pesan error kini spesifik menunjukkan ketidakcocokan email, username, password, atau akun tidak terdaftar." },
+      { type: "fix", text: "Alur Google OAuth Lobby: Sesi login Google kini otomatis tetap berada di Lobby dan langsung membuka tab Profile Identity tanpa terlempar ke Main Menu." },
       { type: "fix", text: "Perbaikan Gameplay Combo: Combo kini otomatis ter-reset ke 0 saat note mengalami MISS atau penekanan tombol yang salah." },
       { type: "fix", text: "Perbaikan alur Login: Data Cloud kini menjadi prioritas utama agar level & XP akun tidak tertimpa data Guest." },
       { type: "fix", text: "Perbaikan Audio Preview: Menambahkan konfigurasi CORS anonymous agar lagu preview di Lobby terdengar kembali dan visualizer aktif." },

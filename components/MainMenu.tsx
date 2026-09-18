@@ -12,6 +12,27 @@ export default function MainMenu() {
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    // If returning from Google OAuth or password reset link, immediately redirect to lobby with profile identity open
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash || "";
+      const search = window.location.search || "";
+      const isPendingOAuth = sessionStorage.getItem("reflex_pending_oauth") === "true";
+      const isAuthRedirect =
+        hash.includes("access_token") ||
+        hash.includes("type=recovery") ||
+        search.includes("code=") ||
+        search.includes("openProfile=true") ||
+        search.includes("openResetPassword=true") ||
+        isPendingOAuth;
+
+      if (isAuthRedirect) {
+        if (isPendingOAuth) sessionStorage.removeItem("reflex_pending_oauth");
+        const query = search ? (search.includes("openProfile") ? search : `${search}&openProfile=true`) : "?openProfile=true";
+        router.replace(`/lobby${query}${hash}`);
+        return;
+      }
+    }
+
     document.body.className = "main-menu-page";
 
     // Setup background music autoplay with user interaction unlock

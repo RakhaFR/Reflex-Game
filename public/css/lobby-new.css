@@ -984,3 +984,98 @@
   flex-shrink: 0;
   box-shadow: 0 0 6px currentColor;
 }
+
+/* ============================================================
+   SPLIT AUTH MODAL (IMAGE 1 STYLE)
+   ============================================================ */
+.auth-split-modal-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 860px;
+  width: 100%;
+  margin: auto;
+  background: linear-gradient(145deg, #140e22 0%, #1a122e 60%, #160e26 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 40px rgba(244, 114, 182, 0.15);
+  overflow: hidden;
+  position: relative;
+  min-height: 520px;
+}
+
+@media (max-width: 768px) {
+  .auth-split-modal-box {
+    grid-template-columns: 1fr !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+  .auth-modal-art-panel {
+    display: none !important;
+  }
+}
+
+.auth-split-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.88rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.auth-split-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.auth-split-input:focus {
+  border-color: #f472b6 !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 0 14px rgba(244, 114, 182, 0.35) !important;
+}
+
+.auth-split-btn {
+  width: 100%;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #f48fb1 0%, #f06292 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(240, 98, 146, 0.35);
+  transition: all 0.2s ease;
+}
+
+.auth-split-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(240, 98, 146, 0.45);
+}
+
+.auth-google-btn {
+  width: 100%;
+  padding: 11px 16px;
+  background: linear-gradient(135deg, #f48fb1 0%, #f06292 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.92rem;
+  box-shadow: 0 6px 20px rgba(240, 98, 146, 0.35);
+  transition: all 0.2s ease;
+}
+
+.auth-google-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
