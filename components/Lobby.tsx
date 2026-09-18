@@ -633,11 +633,10 @@ export default function Lobby() {
           setAuthError(error.message);
         } else if (data.user) {
           setAuthUser(data.user);
-          await syncLocalProfileToCloud(data.user, profileRef.current);
-          await syncAllLocalBestScoresToCloud(data.user, profileRef.current);
           const cloudData = await fetchCloudProfile(data.user, profileRef.current);
           if (cloudData) {
             setProfile(cloudData);
+            profileRef.current = cloudData;
             setUsernameInput(cloudData.identity.username);
           }
           setIsAuthSubModalOpen(false);

@@ -258,7 +258,9 @@ export async function fetchCloudProfile(user: User, localProfile: ProfileData): 
       stats: {
         ...localProfile.stats,
         ...(data.stats || {}),
-        lifetimeScore: typeof data.xp === "number" ? data.xp : localProfile.stats.lifetimeScore,
+        lifetimeScore: typeof data.xp === "number" && data.xp > 0
+          ? data.xp
+          : localProfile.stats.lifetimeScore,
         trackBest: mergedTrackBest,
       } as any,
       settings: {
