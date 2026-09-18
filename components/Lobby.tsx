@@ -462,25 +462,29 @@ export default function Lobby() {
         // Scroll track item + diff panel into view smoothly with proper container bounds
         setTimeout(() => {
           const container = document.getElementById("songListWrapper");
-          const groupEl = document.getElementById(`songTrackGroup-${clampedIdx}`);
           const itemEl = document.getElementById(`songItem-${clampedIdx}`);
+          const panelEl = document.getElementById(`diffPanel-${clampedIdx}`);
 
-          if (container && groupEl) {
-            const containerRect = container.getBoundingClientRect();
-            const groupRect = groupEl.getBoundingClientRect();
+          if (container && itemEl) {
+            const itemTop = itemEl.offsetTop;
+            const panelBottom = panelEl
+              ? panelEl.offsetTop + panelEl.offsetHeight
+              : itemTop + itemEl.offsetHeight;
 
-            // When switching UP or element is above the visible area
-            if (groupRect.top < containerRect.top) {
-              const diff = containerRect.top - groupRect.top;
-              container.scrollBy({ top: -diff - 10, behavior: "smooth" });
+            // When switching UP or item is above the scroll view
+            if (itemTop < container.scrollTop) {
+              container.scrollTo({
+                top: Math.max(0, itemTop - 8),
+                behavior: "smooth",
+              });
             }
-            // When switching DOWN or element is below the visible area
-            else if (groupRect.bottom > containerRect.bottom) {
-              const diff = groupRect.bottom - containerRect.bottom;
-              container.scrollBy({ top: diff + 10, behavior: "smooth" });
+            // When switching DOWN or panel is below the scroll view
+            else if (panelBottom > container.scrollTop + container.clientHeight) {
+              container.scrollTo({
+                top: panelBottom - container.clientHeight + 8,
+                behavior: "smooth",
+              });
             }
-          } else if (itemEl) {
-            itemEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
           }
         }, 60);
       }
@@ -528,9 +532,9 @@ export default function Lobby() {
       startPreview(firstTrack);
 
       setTimeout(() => {
-        const itemEl = document.getElementById("songItem-0");
-        if (itemEl) {
-          itemEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        const container = document.getElementById("songListWrapper");
+        if (container) {
+          container.scrollTo({ top: 0, behavior: "smooth" });
         }
       }, 50);
     },
@@ -539,21 +543,15 @@ export default function Lobby() {
 
   const scrollToTrackElement = useCallback((trackIdx: number, smooth = true) => {
     const container = document.getElementById("songListWrapper");
-    const groupEl = document.getElementById(`songTrackGroup-${trackIdx}`);
     const itemEl = document.getElementById(`songItem-${trackIdx}`);
-    const target = groupEl || itemEl;
 
-    if (container && target) {
-      const containerRect = container.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
-      const offset =
-        targetRect.top -
-        containerRect.top +
-        container.scrollTop -
-        (container.clientHeight / 2 - target.clientHeight / 2);
+    if (container && itemEl) {
+      const panelEl = document.getElementById(`diffPanel-${trackIdx}`);
+      const totalHeight = itemEl.offsetHeight + (panelEl ? panelEl.offsetHeight : 0);
+      const targetTop = itemEl.offsetTop - (container.clientHeight / 2 - totalHeight / 2);
 
       container.scrollTo({
-        top: Math.max(0, offset),
+        top: Math.max(0, targetTop),
         behavior: smooth ? "smooth" : "auto",
       });
     }
@@ -598,11 +596,11 @@ export default function Lobby() {
     setTimeout(() => {
       selectTrack(validTrack, true, validMode);
       scrollToTrackElement(validTrack, false);
-    }, 120);
+    }, 150);
 
     setTimeout(() => {
       scrollToTrackElement(validTrack, true);
-    }, 350);
+    }, 450);
 
     return () => {
       document.body.className = "";
