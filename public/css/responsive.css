@@ -1695,10 +1695,10 @@
     margin-bottom: 0;
     justify-content: center;
   }
-  .streak-mascot-frame {
-    width: 110px;
-    height: 110px;
-    margin-bottom: 6px;
+  .streak-mascot-frameless {
+    width: 140px;
+    height: 105px;
+    margin-bottom: 4px;
   }
   .streak-speech-bubble {
     padding: 6px 8px;

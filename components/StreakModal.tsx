@@ -221,9 +221,9 @@ export default function StreakModal({
           <i className="fa-solid fa-xmark"></i>
         </button>
 
-        {/* Mascot Frame Section with Live2D Video */}
+        {/* Mascot Section with Live2D Video */}
         <div className="streak-mascot-section">
-          {/* Status / Tier indicator tag */}
+          {/* Status indicator tag */}
           <div
             className={`streak-mascot-badge ${streakInfo.playedToday ? "active" : "idle"}`}
             style={{
@@ -233,19 +233,17 @@ export default function StreakModal({
           >
             {streakInfo.playedToday ? (
               <>
-                <i className="fa-solid fa-fire"></i> {currentTier.badge}
+                <i className="fa-solid fa-fire"></i> STREAK NYALA
               </>
             ) : (
               <>
-                <i className="fa-solid fa-snowflake"></i> STREAK IDLE (BELUM AKTIF)
+                <i className="fa-solid fa-snowflake"></i> STREAK PADAM
               </>
             )}
           </div>
 
-          <div
-            className={`streak-mascot-frame ${streakInfo.playedToday ? "tier-active" : "tier-idle"}`}
-            style={{ borderColor: currentTier.color }}
-          >
+          {/* Borderless Mascot Container with Seamless Edge Masking */}
+          <div className="streak-mascot-frameless">
             <video
               ref={videoRef}
               key={activeVideoSrc}
