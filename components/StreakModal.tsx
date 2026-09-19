@@ -223,6 +223,25 @@ export default function StreakModal({
 
         {/* Mascot Frame Section with Live2D Video */}
         <div className="streak-mascot-section">
+          {/* Status / Tier indicator tag */}
+          <div
+            className={`streak-mascot-badge ${streakInfo.playedToday ? "active" : "idle"}`}
+            style={{
+              backgroundColor: streakInfo.playedToday ? currentTier.color : "rgba(100, 116, 139, 0.8)",
+              borderColor: streakInfo.playedToday ? currentTier.color : "rgba(148, 163, 184, 0.4)",
+            }}
+          >
+            {streakInfo.playedToday ? (
+              <>
+                <i className="fa-solid fa-fire"></i> {currentTier.badge}
+              </>
+            ) : (
+              <>
+                <i className="fa-solid fa-snowflake"></i> STREAK IDLE (BELUM AKTIF)
+              </>
+            )}
+          </div>
+
           <div
             className={`streak-mascot-frame ${streakInfo.playedToday ? "tier-active" : "tier-idle"}`}
             style={{ borderColor: currentTier.color }}
@@ -239,24 +258,6 @@ export default function StreakModal({
             />
             {/* Fade-to-black overlay */}
             <div className={`streak-video-fade-overlay ${isFading ? "active" : ""}`} />
-
-            {/* Status indicator tag */}
-            <div
-              className={`streak-mascot-badge ${streakInfo.playedToday ? "active" : "idle"}`}
-              style={{
-                backgroundColor: streakInfo.playedToday ? currentTier.color : "#64748b",
-              }}
-            >
-              {streakInfo.playedToday ? (
-                <>
-                  <i className="fa-solid fa-fire"></i> {currentTier.badge}
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-snowflake"></i> STREAK IDLE
-                </>
-              )}
-            </div>
           </div>
 
           {/* Speech Bubble */}
