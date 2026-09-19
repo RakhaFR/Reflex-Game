@@ -729,18 +729,30 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
-    version: "v0.3.0 — Global Chat & Duolingo Streak",
+    version: "v0.3.1 — Streak Live2D Mascot & Blend Fix",
+    date: "19 SEP 2026",
+    badgeClass: "yellow",
+    bannerImg: "/assets/picture/bug-fix.jpg",
+    changes: [
+      { type: "add", text: "Pop-up Daily Play Streak (Duolingo Style) 🔥: Modal interaktif menampilkan kalender 7-hari mingguan, rekor terbaik, dan quotes motivasi karakter." },
+      { type: "add", text: "Live2D Mascot Video Player: Video animasi karakter OG (Kamia, Ocean, Silia, & Trio) looping dinamis dengan jeda 2 detik & fade-to-black." },
+      { type: "upd", text: "Seamless 4-Sided Screen Blend: Video Live2D berbaur mulus tanpa frame kotak/bulat dengan mix-blend mode & radial vignette overlay." },
+      { type: "upd", text: "Status Streak To-The-Point: Indikator status langsung menampilkan '🔥 STREAK NYALA' atau '❄️ STREAK PADAM'." },
+      { type: "fix", text: "Aturan Validasi Streak: Streak harian hanya tercatat jika lagu dimainkan penuh sampai habis (keluar/menyerah di tengah jalan tidak menambah streak)." },
+      { type: "fix", text: "Perbaikan Resiliensi Chat (Error 401 JWT): Auto-recovery dari clock skew dengan session refresh dan fallback public REST query." },
+    ],
+  },
+  {
+    version: "v0.3.0 — Global Chat Room",
     date: "18 SEP 2026",
     badgeClass: "cyan",
     bannerImg: "/assets/picture/alpha-build.jpg",
     changes: [
-      { type: "add", text: "Pop-up Daily Play Streak (Duolingo Style) 🔥: Klik badge streak untuk melihat kalender 7-hari mingguan, rekor terbaik, dan motivasi harian." },
-      { type: "add", text: "Live2D Mascot Video Player: Animasi karakter OG (Kamia, Ocean, Silia, & Trio) sesuai tier streak dengan efek loop jeda 2 detik & fade-to-black halus." },
       { type: "add", text: "Global Chat Room 💬: Komunikasi publik secara real-time antar pemain langsung dari Lobby." },
       { type: "upd", text: "Tata Letak Topbar Baru: Tombol Chat, Settings, & Fullscreen kini rapi di sisi kanan bersebelahan dengan tombol BACK." },
       { type: "upd", text: "Widget Daily Play Streak 🔥: Kini berdiri mandiri di samping kanan kartu Profil untuk akses instan ke kalender streak." },
-      { type: "fix", text: "Perbaikan Resiliensi Chat: Auto-recovery dari error 401/JWT token clock skew dengan fallback public anon access." },
       { type: "add", text: "Sistem Auto-Prune (Maks. 100 Pesan): Chat history selalu optimal dan terawat otomatis di Supabase Database." },
+      { type: "add", text: "Identity & Level Badges: Setiap pesan menampilkan avatar, level, dan rank tier (Legend/Master/Elite/Operator)." },
       { type: "upd", text: "Cooldown Anti-Spam: Proteksi 2 detik antar pesan untuk menjaga percakapan tetap nyaman dan teratur." },
     ],
   },
