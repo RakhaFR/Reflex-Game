@@ -729,16 +729,18 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
-    version: "v0.3.0 — Global Chat Room",
+    version: "v0.3.0 — Global Chat & Duolingo Streak",
     date: "18 SEP 2026",
     badgeClass: "cyan",
     bannerImg: "/assets/picture/alpha-build.jpg",
     changes: [
+      { type: "add", text: "Pop-up Daily Play Streak (Duolingo Style) 🔥: Klik badge streak untuk melihat kalender 7-hari mingguan, rekor terbaik, dan motivasi harian." },
+      { type: "add", text: "Live2D Mascot Video Player: Animasi karakter OG (Kamia, Ocean, Silia, & Trio) sesuai tier streak dengan efek loop jeda 2 detik & fade-to-black halus." },
       { type: "add", text: "Global Chat Room 💬: Komunikasi publik secara real-time antar pemain langsung dari Lobby." },
       { type: "upd", text: "Tata Letak Topbar Baru: Tombol Chat, Settings, & Fullscreen kini rapi di sisi kanan bersebelahan dengan tombol BACK." },
-      { type: "upd", text: "Widget Daily Play Streak 🔥: Kini berdiri mandiri di samping kanan kartu Profil untuk visualisasi hari bermain yang lebih luas & bersih." },
+      { type: "upd", text: "Widget Daily Play Streak 🔥: Kini berdiri mandiri di samping kanan kartu Profil untuk akses instan ke kalender streak." },
+      { type: "fix", text: "Perbaikan Resiliensi Chat: Auto-recovery dari error 401/JWT token clock skew dengan fallback public anon access." },
       { type: "add", text: "Sistem Auto-Prune (Maks. 100 Pesan): Chat history selalu optimal dan terawat otomatis di Supabase Database." },
-      { type: "add", text: "Identity & Level Badges: Setiap pesan menampilkan avatar, level, dan rank tier (Legend/Master/Elite/Operator)." },
       { type: "upd", text: "Cooldown Anti-Spam: Proteksi 2 detik antar pesan untuk menjaga percakapan tetap nyaman dan teratur." },
     ],
   },

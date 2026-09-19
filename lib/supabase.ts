@@ -492,12 +492,43 @@ export async function fetchGlobalMessages(limitCount = 100): Promise<GlobalChatM
       .order("created_at", { ascending: false })
       .limit(limitCount);
 
-    if (error || !data) {
-      console.warn("fetchGlobalMessages error:", error?.message);
-      return [];
+    if (!error && data) {
+      return (data as GlobalChatMessage[]).reverse();
     }
-    // Reverse to chronological order (oldest first, newest last) for chat stream
-    return (data as GlobalChatMessage[]).reverse();
+
+    // If there is an auth/JWT error (e.g. "JWT issued at future" / clock skew or stale token),
+    // attempt session refresh or fallback to unauthenticated public REST fetch
+    if (error) {
+      console.warn("fetchGlobalMessages initial query notice:", error.message);
+      if (error.message?.includes("JWT") || (error as any).code === "PGRST301" || (error as any).status === 401) {
+        try {
+          await supabase.auth.refreshSession();
+        } catch {
+          // ignore refresh error
+        }
+      }
+
+      // Public read fallback via raw fetch with anon key
+      try {
+        const restUrl = `${supabaseUrl}/rest/v1/global_messages?select=*&order=created_at.desc&limit=${limitCount}`;
+        const resp = await fetch(restUrl, {
+          headers: {
+            apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
+            "Content-Type": "application/json",
+          },
+        });
+        if (resp.ok) {
+          const rawData = await resp.json();
+          if (Array.isArray(rawData)) {
+            return (rawData as GlobalChatMessage[]).reverse();
+          }
+        }
+      } catch (fallbackErr) {
+        console.error("Public fallback chat fetch error:", fallbackErr);
+      }
+    }
+    return [];
   } catch (err) {
     console.error("Failed to fetch global messages:", err);
     return [];
@@ -538,11 +569,29 @@ export async function sendGlobalMessage(
       created_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("global_messages")
       .insert([payload])
       .select()
       .single();
+
+    if (error && (error.message?.includes("JWT") || (error as any).status === 401)) {
+      // Attempt refresh and retry once
+      try {
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        if (refreshData?.session) {
+          const retry = await supabase
+            .from("global_messages")
+            .insert([payload])
+            .select()
+            .single();
+          data = retry.data;
+          error = retry.error;
+        }
+      } catch {
+        // ignore
+      }
+    }
 
     if (error) {
       return { success: false, error: error.message };

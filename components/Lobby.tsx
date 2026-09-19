@@ -29,6 +29,7 @@ import {
   ProfileData,
 } from "@/lib/profile";
 import { User } from "@supabase/supabase-js";
+import StreakModal from "./StreakModal";
 import {
   supabase,
   isSupabaseConfigured,
@@ -61,6 +62,7 @@ export default function Lobby() {
   // ── Profile State ──────────────────────────────────────────
   const [profile, setProfile] = useState<ProfileData>(PROFILE_DEFAULT);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
   const [activeModalTab, setActiveModalTab] = useState<"tabIdentity" | "tabStats" | "tabSettings">("tabIdentity");
   const [usernameInput, setUsernameInput] = useState(PROFILE_DEFAULT.identity.username);
   const [keybindListeningIdx, setKeybindListeningIdx] = useState<number>(-1);
@@ -1156,6 +1158,13 @@ export default function Lobby() {
         return;
       }
 
+      if (isStreakModalOpen) {
+        if (e.key === "Escape") {
+          setIsStreakModalOpen(false);
+        }
+        return;
+      }
+
       if (isLeaderboardModalOpen || isAuthSubModalOpen || isChangeEmailModalOpen || isChangePassModalOpen) {
         if (e.key === "Escape") {
           setIsLeaderboardModalOpen(false);
@@ -1223,6 +1232,7 @@ export default function Lobby() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     isProfileModalOpen,
+    isStreakModalOpen,
     isChatOpen,
     isLeaderboardModalOpen,
     isAuthSubModalOpen,
@@ -1476,8 +1486,7 @@ export default function Lobby() {
                   }
                   onClick={() => {
                     playSfx("clickSound");
-                    setActiveModalTab("tabStats");
-                    setIsProfileModalOpen(true);
+                    setIsStreakModalOpen(true);
                   }}
                 >
                   <div className="streak-icon-wrap">
@@ -3558,6 +3567,17 @@ export default function Lobby() {
           </div>
         </div>
       </div>
+
+      {/* DUOLINGO-STYLE DAILY PLAY STREAK MODAL */}
+      <StreakModal
+        isOpen={isStreakModalOpen}
+        onClose={() => setIsStreakModalOpen(false)}
+        profile={profile}
+        onPlayNow={() => {
+          setIsStreakModalOpen(false);
+          playSfx("clickSound");
+        }}
+      />
 
       {/* TOAST NOTIFICATION */}
       {toastMsg && (
