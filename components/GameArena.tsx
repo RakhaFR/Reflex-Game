@@ -534,6 +534,7 @@ function GameArenaInner() {
     const totalDur = currentTrackRef.current.duration || 60;
     const elapsedSec = Math.max(0, totalDur - timeLeftRef.current);
     const completionRatio = Math.min(1, Math.max(0, elapsedSec / totalDur));
+    const isTrackCompleted = timeLeftRef.current <= 0 || completionRatio >= 0.95;
 
     // Calculating realistic Rank based on completion % and accuracy %
     let rank = "D";
@@ -563,7 +564,8 @@ function GameArenaInner() {
       currentTrack.id,
       diffParam,
       accStr,
-      rank
+      rank,
+      isTrackCompleted
     );
     const updatedProf = profileLoad();
     setProfile(updatedProf);

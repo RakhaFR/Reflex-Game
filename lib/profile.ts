@@ -258,7 +258,8 @@ export function recordGameEnd(
   trackId?: string,
   difficulty?: string,
   accuracy?: string,
-  rank?: string
+  rank?: string,
+  isTrackCompleted: boolean = true
 ): { totalXP: number; gainedXP: number; oldLevel: number; newLevel: number; previousBest: number; isNewBest: boolean; currentStreak: number; isNewStreakDay: boolean } {
   const profile = profileLoad();
   const oldXP = profile.stats.lifetimeScore || 0;
@@ -290,37 +291,43 @@ export function recordGameEnd(
     profile.stats.records.longestCombo = maxCombo;
   }
 
-  // Daily Streak Recording
+  // Daily Streak Recording (HANYA AKTIF JIKA LAGU DIMAINKAN SAMPAI SELESAI / HABIS)
   const today = getTodayDateString();
   const streakObj = { ...(profile.stats.streak || { current: 0, max: 0, lastPlayDate: "" }) };
   const lastDate = streakObj.lastPlayDate;
   let newCurrentStreak = streakObj.current || 0;
   let isNewStreakDay = false;
 
-  if (!lastDate) {
-    newCurrentStreak = 1;
-    isNewStreakDay = true;
-  } else {
-    const diff = getDaysDifference(lastDate, today);
-    if (diff === 0) {
-      newCurrentStreak = Math.max(1, streakObj.current || 1);
-      isNewStreakDay = false;
-    } else if (diff === 1) {
-      newCurrentStreak = (streakObj.current || 0) + 1;
-      isNewStreakDay = true;
-    } else {
-      // Bolos/missed day -> resets to 1 on new play today
+  if (isTrackCompleted) {
+    if (!lastDate) {
       newCurrentStreak = 1;
       isNewStreakDay = true;
+    } else {
+      const diff = getDaysDifference(lastDate, today);
+      if (diff === 0) {
+        newCurrentStreak = Math.max(1, streakObj.current || 1);
+        isNewStreakDay = false;
+      } else if (diff === 1) {
+        newCurrentStreak = (streakObj.current || 0) + 1;
+        isNewStreakDay = true;
+      } else {
+        // Bolos/missed day -> resets to 1 on new play today
+        newCurrentStreak = 1;
+        isNewStreakDay = true;
+      }
     }
-  }
 
-  const newMaxStreak = Math.max(streakObj.max || 0, newCurrentStreak);
-  profile.stats.streak = {
-    current: newCurrentStreak,
-    max: newMaxStreak,
-    lastPlayDate: today,
-  };
+    const newMaxStreak = Math.max(streakObj.max || 0, newCurrentStreak);
+    profile.stats.streak = {
+      current: newCurrentStreak,
+      max: newMaxStreak,
+      lastPlayDate: today,
+    };
+  } else {
+    // Lagu di-quit / keluar di tengah jalan -> streak TIDAK bertambah / tidak di-record
+    newCurrentStreak = streakObj.current || 0;
+    isNewStreakDay = false;
+  }
 
   // Personal Best per Track/Mode/Difficulty
   let previousBest = 0;
