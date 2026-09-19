@@ -3483,10 +3483,10 @@ export default function Lobby() {
             </div>
 
             <div className="chat-header-right">
-              {/* <div className={`chat-conn-status ${authUser ? "connected" : "guest"}`}> */}
-                {/* <span className="conn-dot"></span> */}
-                {/* <span>{authUser ? "ONLINE" : "GUEST"}</span> */}
-              </div>
+              {/* <div className={`chat-conn-status ${authUser ? "connected" : "guest"}`}>
+                <span className="conn-dot"></span>
+                <span>{authUser ? "ONLINE" : "GUEST"}</span>
+              </div> */}
               <button
                 type="button"
                 className="chat-close-btn"
