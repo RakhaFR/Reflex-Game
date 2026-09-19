@@ -729,6 +729,17 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
+    version: "v0.3.2 — Keybind Font Customizer",
+    date: "19 SEP 2026",
+    badgeClass: "cyan",
+    bannerImg: "/assets/picture/new-logo.png",
+    changes: [
+      { type: "add", text: "Keybind Font Style Customizer 🔤: Pilihan 10 jenis font typography di Settings (Orbitron, Slackey, Press Start 2P, Righteous, Russo One, Bungee, VT323, Audiowide, Rajdhani, Bebas Neue)." },
+      { type: "upd", text: "Visualisasi Note Gameplay: Huruf note di arena kini langsung mengikuti font pilihan player agar lebih nyaman dan mudah terbaca saat reflex session." },
+      { type: "upd", text: "Live Preview Font Grid: Kartu pilihan font interaktif di modal Settings menampilkan preview QWER, nama font, dan kategori style." },
+    ],
+  },
+  {
     version: "v0.3.1 — Streak Live2D Mascot & Blend Fix",
     date: "19 SEP 2026",
     badgeClass: "yellow",
@@ -808,6 +819,27 @@ export const UPDATE_LOGS: UpdateLog[] = [
 // ============================================================
 // I. PROFILE DEFAULT DATA
 // ============================================================
+export interface KeybindFontOption {
+  id: string;
+  name: string;
+  fontFamily: string;
+  category: string;
+  preview: string;
+}
+
+export const KEYBIND_FONTS: KeybindFontOption[] = [
+  { id: "orbitron", name: "Orbitron (Default)", fontFamily: "'Orbitron', sans-serif", category: "Sci-Fi Cyber", preview: "QWER" },
+  { id: "slackey", name: "Slackey", fontFamily: "'Slackey', cursive", category: "Arcade Chunky", preview: "QWER" },
+  { id: "press_start", name: "Press Start 2P", fontFamily: "'Press Start 2P', monospace", category: "8-Bit Retro", preview: "QWER" },
+  { id: "righteous", name: "Righteous", fontFamily: "'Righteous', cursive", category: "Neo Groovy", preview: "QWER" },
+  { id: "russo_one", name: "Russo One", fontFamily: "'Russo One', sans-serif", category: "Bold Impact", preview: "QWER" },
+  { id: "bungee", name: "Bungee", fontFamily: "'Bungee', cursive", category: "Arcade Block", preview: "QWER" },
+  { id: "vt323", name: "VT323", fontFamily: "'VT323', monospace", category: "Terminal CRT", preview: "QWER" },
+  { id: "audiowide", name: "Audiowide", fontFamily: "'Audiowide', cursive", category: "Techno Stream", preview: "QWER" },
+  { id: "rajdhani", name: "Rajdhani", fontFamily: "'Rajdhani', sans-serif", category: "Clean Mecha", preview: "QWER" },
+  { id: "bebas_neue", name: "Bebas Neue", fontFamily: "'Bebas Neue', sans-serif", category: "Tall Condensed", preview: "QWER" },
+];
+
 export const PROFILE_DEFAULT = {
   identity: {
     username: "Player",
@@ -843,5 +875,6 @@ export const PROFILE_DEFAULT = {
     comboAnimationEnabled: true,
     mouseClickEnabled: true,
     keybinds: ["q", "w", "e", "r"],
+    keybindFont: "orbitron",
   },
 };

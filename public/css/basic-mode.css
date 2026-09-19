@@ -3,6 +3,8 @@
    css/basic-mode-osu.css
    ========================================================================== */
 
+@import url("https://fonts.googleapis.com/css2?family=Audiowide&family=Bebas+Neue&family=Bungee&family=Orbitron:wght@600;700;900&family=Press+Start+2P&family=Rajdhani:wght@600;700;900&family=Righteous&family=Russo+One&family=Slackey&family=VT323&display=swap");
+
 /* ── Game Screen ── */
 #basicMode {
   position: fixed;
@@ -187,15 +189,16 @@
 
 /* Key label di dalam note */
 .bm-key-label {
-  font-family: "Orbitron", sans-serif;
+  font-family: var(--key-font, "Orbitron", sans-serif);
   font-weight: 900;
   font-size: 17px;
-  color: rgba(0, 0, 0, 0.72);
+  color: rgba(0, 0, 0, 0.85);
   position: relative;
   z-index: 2;
   pointer-events: none;
   user-select: none;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.5px;
 }
 
 /* ── SHRINK RING ── */

@@ -10,6 +10,8 @@ import {
   NOM_DIFF,
   BANNER_SKINS,
   PROFILE_DEFAULT,
+  KEYBIND_FONTS,
+  KeybindFontOption,
   Track,
 } from "@/lib/gameData";
 import {
@@ -2154,6 +2156,9 @@ export default function Lobby() {
                           const currentKey = keys[idx] || "q";
                           const isListening = keybindListeningIdx === idx;
                           const isDup = keys.filter((k) => k === currentKey).length > 1;
+                          const selectedFontObj = KEYBIND_FONTS.find(
+                            (f) => f.id === ((profile.settings as any)?.keybindFont || "orbitron")
+                          ) || KEYBIND_FONTS[0];
 
                           return (
                             <div className="keybind-slot" key={idx}>
@@ -2161,6 +2166,7 @@ export default function Lobby() {
                               <button
                                 type="button"
                                 className={`keybind-key-btn ${isListening ? "listening" : ""} ${isDup ? "duplicate" : ""}`}
+                                style={{ fontFamily: selectedFontObj.fontFamily }}
                                 onClick={() => {
                                   playSfx("clickSound");
                                   setKeybindListeningIdx(idx);
@@ -2194,6 +2200,50 @@ export default function Lobby() {
                         >
                           RESET DEFAULT
                         </button>
+                      </div>
+
+                      {/* KEYBIND FONT SELECTOR (10 FONTS) */}
+                      <div className="keybind-font-selector-section">
+                        <div className="card-blueprint-title" style={{ marginTop: "14px", marginBottom: "8px" }}>
+                          // KEYBIND FONT STYLE <span style={{ fontSize: "10px", color: "#00ffcc", fontWeight: 700 }}>(10 PILIHAN)</span>
+                        </div>
+                        <div className="keybind-font-grid">
+                          {KEYBIND_FONTS.map((fontItem) => {
+                            const currentFontId = (profile.settings as any)?.keybindFont || "orbitron";
+                            const isSelected = currentFontId === fontItem.id;
+
+                            return (
+                              <div
+                                key={fontItem.id}
+                                className={`keybind-font-card ${isSelected ? "active" : ""}`}
+                                onClick={() => {
+                                  playSfx("clickSound");
+                                  const updated = {
+                                    ...profile,
+                                    settings: { ...profile.settings, keybindFont: fontItem.id },
+                                  };
+                                  setProfile(updated);
+                                  profileSave(updated);
+                                  if (authUser) syncLocalProfileToCloud(authUser, updated);
+                                  showToast(`Font keybind diubah ke "${fontItem.name}"`, "success");
+                                }}
+                              >
+                                <div className="font-card-preview" style={{ fontFamily: fontItem.fontFamily }}>
+                                  {fontItem.preview}
+                                </div>
+                                <div className="font-card-info">
+                                  <span className="font-card-name">{fontItem.name}</span>
+                                  <span className="font-card-category">{fontItem.category}</span>
+                                </div>
+                                {isSelected && (
+                                  <div className="font-card-check">
+                                    <i className="fa-solid fa-check"></i>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -3433,9 +3483,9 @@ export default function Lobby() {
             </div>
 
             <div className="chat-header-right">
-              <div className={`chat-conn-status ${authUser ? "connected" : "guest"}`}>
-                <span className="conn-dot"></span>
-                <span>{authUser ? "ONLINE" : "GUEST"}</span>
+              {/* <div className={`chat-conn-status ${authUser ? "connected" : "guest"}`}> */}
+                {/* <span className="conn-dot"></span> */}
+                {/* <span>{authUser ? "ONLINE" : "GUEST"}</span> */}
               </div>
               <button
                 type="button"

@@ -14,6 +14,7 @@ import {
   Track,
   DifficultyConfig,
   NoteType,
+  KEYBIND_FONTS,
 } from "@/lib/gameData";
 import {
   profileLoad,
@@ -876,6 +877,11 @@ function GameArenaInner() {
       ? profile.settings.keybinds.slice(0, 4).map((k) => k.toLowerCase())
       : ["q", "w", "e", "r"];
 
+  const selectedFontObj = KEYBIND_FONTS.find(
+    (f) => f.id === (profile.settings as any)?.keybindFont
+  ) || KEYBIND_FONTS[0];
+  const activeKeyFont = selectedFontObj.fontFamily;
+
   return (
     <>
       <canvas
@@ -909,6 +915,7 @@ function GameArenaInner() {
         id="basicMode"
         className="active"
         suppressHydrationWarning
+        style={{ "--key-font": activeKeyFont } as React.CSSProperties}
         onClick={(e) => {
           if (isTouchDevice || !profile.settings.mouseClickEnabled) return;
           // Trigger first active note if clicking background on desktop with mouseClick enabled
