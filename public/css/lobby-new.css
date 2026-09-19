@@ -1921,18 +1921,19 @@
   z-index: 2;
 }
 
-/* Borderless Live2D Mascot Container with Feathered Edge Blend */
+/* Borderless Live2D Mascot Container with Seamless Screen Blend */
 .streak-mascot-frameless {
   position: relative;
-  width: 230px;
-  height: 150px;
+  width: 240px;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 6px;
   flex-shrink: 0;
-  -webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, black 60%, transparent 98%);
-  mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, black 60%, transparent 98%);
+  background: transparent;
+  -webkit-mask-image: radial-gradient(ellipse 80% 75% at 50% 50%, rgba(0, 0, 0, 1) 45%, rgba(0, 0, 0, 0.8) 70%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 75% at 50% 50%, rgba(0, 0, 0, 1) 45%, rgba(0, 0, 0, 0.8) 70%, transparent 100%);
 }
 
 .streak-live2d-video {
@@ -1940,6 +1941,8 @@
   height: 100%;
   object-fit: contain;
   display: block;
+  mix-blend-mode: screen;
+  filter: contrast(1.05) brightness(1.02);
   transition: opacity 0.4s ease;
 }
 
