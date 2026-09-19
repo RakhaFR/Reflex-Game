@@ -242,7 +242,7 @@ export default function StreakModal({
             )}
           </div>
 
-          {/* Borderless Mascot Container with Seamless Edge Masking */}
+          {/* Borderless Mascot Container with Seamless 4-Sided Edge Blend */}
           <div className="streak-mascot-frameless">
             <video
               ref={videoRef}
@@ -254,6 +254,8 @@ export default function StreakModal({
               onEnded={handleVideoEnded}
               className={`streak-live2d-video ${isFading ? "fade-black" : ""}`}
             />
+            {/* 4-Sided Soft Vignette Overlay */}
+            <div className="streak-mascot-vignette-overlay" />
             {/* Fade-to-black overlay */}
             <div className={`streak-video-fade-overlay ${isFading ? "active" : ""}`} />
           </div>
