@@ -729,6 +729,17 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
+    version: "v0.3.4 — Clean Early Quit & Instant Lobby Return",
+    date: "19 SEP 2026",
+    badgeClass: "magenta",
+    bannerImg: "/assets/picture/bug-fix.jpg",
+    changes: [
+      { type: "upd", text: "Direct Return on Quit 🚪: Menekan konfirmasi keluar ('Ya, Akhiri') kini langsung mengembalikan pemain ke Lobby tanpa menampilkan Result Popup." },
+      { type: "fix", text: "No Partial Stats Saved: Skor parsial, XP, dan data game yang dibatalkan di tengah jalan tidak akan tersimpan ke statistik akun." },
+      { type: "upd", text: "Active Track Preservation: Posisi track dan mode game terakhir tetap tersimpan otomatis di Lobby saat pemain kembali." },
+    ],
+  },
+  {
     version: "v0.3.3 — Mobile Multi-Touch Support",
     date: "19 SEP 2026",
     badgeClass: "yellow",

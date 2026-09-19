@@ -628,6 +628,56 @@ function GameArenaInner() {
     }, 3100);
   }, []);
 
+  // ── Handle Immediate Early Quit to Lobby (No Result / No Stats Recorded) ──
+  const handleEarlyQuitToLobby = useCallback(() => {
+    runningRef.current = false;
+    pausedRef.current = true;
+
+    // Clear all active game loops and timers
+    if (countdownTimeoutRef.current) {
+      clearTimeout(countdownTimeoutRef.current);
+      countdownTimeoutRef.current = null;
+    }
+    if (spawnTimerRef.current) {
+      clearInterval(spawnTimerRef.current);
+      spawnTimerRef.current = null;
+    }
+    if (musicTimerRef.current) {
+      clearInterval(musicTimerRef.current);
+      musicTimerRef.current = null;
+    }
+    if (checkExpireTimerRef.current) {
+      clearInterval(checkExpireTimerRef.current);
+      checkExpireTimerRef.current = null;
+    }
+
+    // Stop audio and media
+    if (trackAudioRef.current) {
+      trackAudioRef.current.pause();
+      trackAudioRef.current.currentTime = 0;
+    }
+    if (bgVideoRef.current) {
+      bgVideoRef.current.pause();
+    }
+    if (resultAudioRef.current) {
+      resultAudioRef.current.pause();
+      resultAudioRef.current.currentTime = 0;
+    }
+
+    // Persist current track index and mode so Lobby selects it automatically
+    try {
+      localStorage.setItem("rhg_active_track", String(trackParam));
+      const modeIdx = modeParam === "notoriginal" ? 1 : 0;
+      localStorage.setItem("rhg_active_mode", String(modeIdx));
+    } catch {
+      // ignore
+    }
+
+    setIsQuitConfirmOpen(false);
+    setIsResultOpen(false);
+    router.push("/lobby");
+  }, [trackParam, modeParam, router]);
+
   // ── Cleanup all timers helper ──────────────────────────────
   const cleanupAllTimers = useCallback(() => {
     runningRef.current = false;
@@ -1159,8 +1209,7 @@ function GameArenaInner() {
                 type="button"
                 onClick={() => {
                   playSfx("clickSound");
-                  setIsQuitConfirmOpen(false);
-                  finishGame();
+                  handleEarlyQuitToLobby();
                 }}
               >
                 <svg
