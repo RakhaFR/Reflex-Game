@@ -729,6 +729,16 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
+    version: "v0.3.3 — Mobile Multi-Touch Support",
+    date: "19 SEP 2026",
+    badgeClass: "yellow",
+    bannerImg: "/assets/picture/bug-fix.jpg",
+    changes: [
+      { type: "add", text: "Multi-Touch Gameplay Support 📱: Pemain mobile kini dapat menekan 2 atau lebih node lagu secara bersamaan (simultaneous tap) dengan respons instan tanpa delay." },
+      { type: "upd", text: "Zero Gesture Delay: Menerapkan 'touch-action: none' & touchstart direct handler pada arena untuk meniadakan ghost clicks dan latensi browser default." },
+    ],
+  },
+  {
     version: "v0.3.2 — Keybind Font Customizer",
     date: "19 SEP 2026",
     badgeClass: "cyan",

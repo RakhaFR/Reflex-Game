@@ -1029,6 +1029,7 @@ function GameArenaInner() {
             inset: "72px 0 80px 0",
             zIndex: 10,
             pointerEvents: "auto",
+            touchAction: "none",
           }}
         >
           {activeNotes.map((note) => (
@@ -1046,7 +1047,13 @@ function GameArenaInner() {
                   "--dur": `${note.windowMs}ms`,
                 } as React.CSSProperties
               }
-              onClick={(e) => {
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleNoteClickOrKey(note.id, true);
+              }}
+              onPointerDown={(e) => {
+                if (e.pointerType === "touch") return; // Avoid double triggering since onTouchStart handled it
                 e.stopPropagation();
                 handleNoteClickOrKey(note.id, true);
               }}
