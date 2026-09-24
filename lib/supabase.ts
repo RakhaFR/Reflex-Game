@@ -557,7 +557,7 @@ export async function fetchGlobalLeaderboardFromCloud(
               banner_skin: bannerSkin,
               level: userLevel,
               value: currentStreak,
-              formattedValue: `${currentStreak} HARI 🔥`,
+              formattedValue: `${currentStreak} HARI`,
               subText: diff === 0 ? "Aktif Hari Ini" : "Streak Bertahan",
             });
           }

@@ -1513,10 +1513,10 @@ export default function Lobby() {
                   id="lobbyStreakWidget"
                   title={
                     streakInfo.playedToday
-                      ? `Daily Play Streak: ${streakInfo.count} Hari Aktif! 🔥 (Sudah main hari ini)`
+                      ? `Daily Play Streak: ${streakInfo.count} Hari Aktif (Sudah main hari ini)`
                       : streakInfo.count > 0
                       ? `Daily Play Streak: ${streakInfo.count} Hari (Selesaikan 1 lagu hari ini agar streak terjaga!)`
-                      : "Daily Play Streak: Selesaikan 1 lagu hari ini untuk memulai streak! 🔥"
+                      : "Daily Play Streak: Selesaikan 1 lagu hari ini untuk memulai streak!"
                   }
                   onClick={() => {
                     playSfx("clickSound");
@@ -3083,16 +3083,40 @@ export default function Lobby() {
           const currentUserPersonalVal = (() => {
             if (globalLeaderboardTab === "totalScore") {
               const sc = getTotalCumulativeScore(profile);
-              return { val: `${sc.toLocaleString()} PTS`, desc: "Total Skor Kumulatif Kamu" };
+              return {
+                valNode: null,
+                val: `${sc.toLocaleString()} PTS`,
+                desc: "Total Skor Kumulatif Kamu",
+              };
             } else if (globalLeaderboardTab === "activeStreak") {
               const st = getCurrentDisplayStreak(profile);
-              return { val: `${st.count} HARI ${st.playedToday ? "🔥" : "❄️"}`, desc: st.playedToday ? "Streak Nyala Hari Ini" : "Streak Bertahan / Butuh 1 Play" };
+              return {
+                valNode: (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    {st.count} HARI
+                    <i
+                      className={st.playedToday ? "fa-solid fa-fire" : "fa-solid fa-snowflake"}
+                      style={{ color: st.playedToday ? "#ff9f43" : "#00e5ff", fontSize: "12px" }}
+                    ></i>
+                  </span>
+                ),
+                val: `${st.count} HARI`,
+                desc: st.playedToday ? "Streak Nyala Hari Ini" : "Streak Bertahan / Butuh 1 Play",
+              };
             } else if (globalLeaderboardTab === "totalGames") {
               const gm = profile.stats.totalGamesPlayed || ((profile.stats.basic?.gamesPlayed || 0) + (profile.stats.notoriginal?.gamesPlayed || 0));
-              return { val: `${gm.toLocaleString()} MATCHES`, desc: "Total Pertandingan Kamu" };
+              return {
+                valNode: null,
+                val: `${gm.toLocaleString()} MATCHES`,
+                desc: "Total Pertandingan Kamu",
+              };
             } else {
               const cb = profile.stats.records?.longestCombo || 0;
-              return { val: `x${cb} COMBO`, desc: "Rekor Combo Tertinggi Kamu" };
+              return {
+                valNode: null,
+                val: `x${cb} COMBO`,
+                desc: "Rekor Combo Tertinggi Kamu",
+              };
             }
           })();
 
@@ -3166,7 +3190,7 @@ export default function Lobby() {
                     <div style={{ textAlign: "center", padding: "45px 20px", color: "#aaa", fontSize: "0.85rem", background: "rgba(0,0,0,0.2)", borderRadius: "6px" }}>
                       <i className="fa-solid fa-trophy" style={{ fontSize: "28px", color: "#555", marginBottom: "10px", display: "block" }}></i>
                       {globalLeaderboardTab === "activeStreak"
-                        ? "Belum ada pemain dengan streak aktif hari ini. Mainkan 1 lagu untuk menjadi yang pertama! 🔥"
+                        ? "Belum ada pemain dengan streak aktif hari ini. Mainkan 1 lagu untuk menjadi yang pertama!"
                         : "Belum ada catatan peringkat global pada kategori ini."}
                     </div>
                   ) : (
@@ -3284,8 +3308,11 @@ export default function Lobby() {
 
                             {/* VALUE */}
                             <div style={{ textAlign: "right", zIndex: 1 }}>
-                              <div style={{ color: isTop1 ? "#ffe500" : "#00ffcc", fontWeight: "900", fontSize: "1.05rem", textShadow: isTop1 ? "0 0 8px rgba(255,229,0,0.5)" : "none" }}>
-                                {item.formattedValue}
+                              <div style={{ color: isTop1 ? "#ffe500" : "#00ffcc", fontWeight: "900", fontSize: "1.05rem", textShadow: isTop1 ? "0 0 8px rgba(255,229,0,0.5)" : "none", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                                <span>{item.formattedValue}</span>
+                                {globalLeaderboardTab === "activeStreak" && (
+                                  <i className="fa-solid fa-fire" style={{ color: "#ff9f43", fontSize: "12px" }}></i>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -3313,7 +3340,7 @@ export default function Lobby() {
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ color: "#ffe500", fontWeight: "bold", fontSize: "0.95rem" }}>
-                        {currentUserPersonalVal.val}
+                        {currentUserPersonalVal.valNode || currentUserPersonalVal.val}
                       </div>
                       <div style={{ color: "#00ffcc", fontSize: "0.7rem", fontWeight: "bold" }}>
                         {currentUserLeaderboardRank ? `PERINGKAT #${currentUserLeaderboardRank}` : "UNRANKED"}

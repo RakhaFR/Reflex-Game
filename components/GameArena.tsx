@@ -1339,8 +1339,9 @@ function GameArenaInner() {
                       <i className="fa-solid fa-fire" style={{ color: "#ff6a00", fontSize: "12px" }}></i>
                       <span>DAILY PLAY STREAK</span>
                     </span>
-                    <strong style={{ fontSize: "11px", color: "#fff" }}>
-                      {gameResult.currentStreak} {gameResult.currentStreak === 1 ? "DAY" : "DAYS"} 🔥
+                    <strong style={{ fontSize: "11px", color: "#fff", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                      {gameResult.currentStreak} {gameResult.currentStreak === 1 ? "DAY" : "DAYS"}
+                      <i className="fa-solid fa-fire" style={{ color: "#ff9f43", fontSize: "11px" }}></i>
                     </strong>
                   </div>
                 )}
