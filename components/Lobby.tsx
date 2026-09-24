@@ -27,6 +27,7 @@ import {
   getAvatarDisplay,
   getTrackBestScore,
   getCurrentDisplayStreak,
+  getTotalCumulativeScore,
   playSfx,
   ProfileData,
 } from "@/lib/profile";
@@ -45,6 +46,9 @@ import {
   uploadAvatarToStorage,
   fetchTrackLeaderboardFromCloud,
   TrackLeaderboardItem,
+  fetchGlobalLeaderboardFromCloud,
+  GlobalLeaderboardItem,
+  GlobalLeaderboardTab,
   sendPasswordResetEmail,
   updateUserPassword,
   updateUserEmail,
@@ -187,6 +191,32 @@ export default function Lobby() {
   const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<TrackLeaderboardItem[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+
+  // ── Global Leaderboard State (4 Tabs) ──────────────────────
+  const [isGlobalLeaderboardOpen, setIsGlobalLeaderboardOpen] = useState(false);
+  const [globalLeaderboardTab, setGlobalLeaderboardTab] = useState<GlobalLeaderboardTab>("totalScore");
+  const [globalLeaderboardData, setGlobalLeaderboardData] = useState<GlobalLeaderboardItem[]>([]);
+  const [globalLeaderboardLoading, setGlobalLeaderboardLoading] = useState(false);
+
+  const handleOpenGlobalLeaderboard = async (tab?: GlobalLeaderboardTab) => {
+    playSfx("clickSound");
+    const targetTab = tab || globalLeaderboardTab;
+    if (tab) setGlobalLeaderboardTab(tab);
+    setIsGlobalLeaderboardOpen(true);
+    setGlobalLeaderboardLoading(true);
+    const data = await fetchGlobalLeaderboardFromCloud(targetTab);
+    setGlobalLeaderboardData(data);
+    setGlobalLeaderboardLoading(false);
+  };
+
+  const handleSwitchGlobalTab = async (tab: GlobalLeaderboardTab) => {
+    playSfx("clickSound");
+    setGlobalLeaderboardTab(tab);
+    setGlobalLeaderboardLoading(true);
+    const data = await fetchGlobalLeaderboardFromCloud(tab);
+    setGlobalLeaderboardData(data);
+    setGlobalLeaderboardLoading(false);
+  };
 
   // ── Global Chat Room State ────────────────────────────────
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
@@ -1167,9 +1197,10 @@ export default function Lobby() {
         return;
       }
 
-      if (isLeaderboardModalOpen || isAuthSubModalOpen || isChangeEmailModalOpen || isChangePassModalOpen) {
+      if (isLeaderboardModalOpen || isGlobalLeaderboardOpen || isAuthSubModalOpen || isChangeEmailModalOpen || isChangePassModalOpen) {
         if (e.key === "Escape") {
           setIsLeaderboardModalOpen(false);
+          setIsGlobalLeaderboardOpen(false);
           setIsAuthSubModalOpen(false);
           setIsChangeEmailModalOpen(false);
           setIsChangePassModalOpen(false);
@@ -1237,6 +1268,7 @@ export default function Lobby() {
     isStreakModalOpen,
     isChatOpen,
     isLeaderboardModalOpen,
+    isGlobalLeaderboardOpen,
     isAuthSubModalOpen,
     isChangeEmailModalOpen,
     isChangePassModalOpen,
@@ -1511,8 +1543,21 @@ export default function Lobby() {
             <span className="game-subtitle">CHOOSE YOUR BEAT &amp; REFLEX SESSION</span>
           </div>
 
-          {/* RIGHT AREA: ACTION BUTTONS (CHAT, SETTINGS, FULLSCREEN) + BACK BUTTON (SIDE BY SIDE) */}
+          {/* RIGHT AREA: ACTION BUTTONS (LEADERBOARD, CHAT, SETTINGS, FULLSCREEN) + BACK BUTTON (SIDE BY SIDE) */}
           <div className="lobby-header-right">
+            {/* GLOBAL LEADERBOARD BUTTON */}
+            <button
+              className="header-action-btn header-leaderboard-btn"
+              id="headerLeaderboardBtn"
+              title="Papan Peringkat Global (Leaderboard)"
+              type="button"
+              onClick={() => {
+                handleOpenGlobalLeaderboard();
+              }}
+            >
+              <i className="fa-solid fa-trophy"></i>
+            </button>
+
             {/* GLOBAL CHAT BUTTON */}
             <button
               className={`header-action-btn header-chat-btn ${unreadChatCount > 0 ? "has-unread" : ""}`}
@@ -1951,6 +1996,12 @@ export default function Lobby() {
 
                     <div className="stats-blueprint-card">
                       <div className="card-blueprint-title">// RECORDS &amp; PEAK</div>
+                      <div className="blueprint-row">
+                        <span>Total Cumulative Score</span>
+                        <span className="b-val text-neon-yellow" style={{ fontWeight: "bold" }}>
+                          {getTotalCumulativeScore(profile).toLocaleString()} PTS
+                        </span>
+                      </div>
                       <div className="blueprint-row">
                         <span>Basic Peak Score</span>
                         <span className="b-val val-basic">{(profile.stats.records?.highestBasicScore || 0).toLocaleString()}</span>
@@ -2998,6 +3049,283 @@ export default function Lobby() {
           </div>
         )}
 
+        {/* GLOBAL LEADERBOARD POP-UP MODAL (4 TABS) */}
+        {isGlobalLeaderboardOpen && (() => {
+          const GLOBAL_LEADERBOARD_TABS: { id: GlobalLeaderboardTab; label: string; icon: string; desc: string }[] = [
+            {
+              id: "totalScore",
+              label: "TOTAL SKOR",
+              icon: "fa-solid fa-star",
+              desc: "Akumulasi skor tertinggi semua lagu di Basic Mode & N.O.M (Normal, Medium, Hard, Extreme).",
+            },
+            {
+              id: "activeStreak",
+              label: "ACTIVE STREAK",
+              icon: "fa-solid fa-fire",
+              desc: "Peringkat streak yang sedang aktif membara hari ini/kemarin. Streak padam otomatis gugur dari peringkat.",
+            },
+            {
+              id: "totalGames",
+              label: "GAMES PLAYED",
+              icon: "fa-solid fa-gamepad",
+              desc: "Total akumulasi seluruh pertandingan (matches) yang telah diselesaikan oleh pemain.",
+            },
+            {
+              id: "longestCombo",
+              label: "LONGEST COMBO",
+              icon: "fa-solid fa-bolt",
+              desc: "Rekor combo note tertinggi yang pernah diraih tanpa terputus.",
+            },
+          ];
+
+          const currentTabInfo = GLOBAL_LEADERBOARD_TABS.find((t) => t.id === globalLeaderboardTab) || GLOBAL_LEADERBOARD_TABS[0];
+
+          const currentUserPersonalVal = (() => {
+            if (globalLeaderboardTab === "totalScore") {
+              const sc = getTotalCumulativeScore(profile);
+              return { val: `${sc.toLocaleString()} PTS`, desc: "Total Skor Kumulatif Kamu" };
+            } else if (globalLeaderboardTab === "activeStreak") {
+              const st = getCurrentDisplayStreak(profile);
+              return { val: `${st.count} HARI ${st.playedToday ? "🔥" : "❄️"}`, desc: st.playedToday ? "Streak Nyala Hari Ini" : "Streak Bertahan / Butuh 1 Play" };
+            } else if (globalLeaderboardTab === "totalGames") {
+              const gm = profile.stats.totalGamesPlayed || ((profile.stats.basic?.gamesPlayed || 0) + (profile.stats.notoriginal?.gamesPlayed || 0));
+              return { val: `${gm.toLocaleString()} MATCHES`, desc: "Total Pertandingan Kamu" };
+            } else {
+              const cb = profile.stats.records?.longestCombo || 0;
+              return { val: `x${cb} COMBO`, desc: "Rekor Combo Tertinggi Kamu" };
+            }
+          })();
+
+          const currentUserLeaderboardRank = (() => {
+            if (!globalLeaderboardData || globalLeaderboardData.length === 0) return null;
+            const idx = globalLeaderboardData.findIndex(
+              (item) =>
+                (authUser && item.user_id === authUser.id) ||
+                (item.username.toLowerCase() === profile.identity.username.toLowerCase() && profile.identity.username !== "Player")
+            );
+            return idx >= 0 ? idx + 1 : null;
+          })();
+
+          return (
+            <div className="profile-modal-overlay active" style={{ zIndex: 100006 }}>
+              <div className="profile-modal-box" style={{ maxWidth: "700px", margin: "auto" }}>
+                <div className="modal-corner-accent top-left"></div>
+                <div className="modal-corner-accent bottom-right"></div>
+
+                <div className="profile-modal-header">
+                  <div className="modal-title-group">
+                    <span className="modal-main-icon" style={{ color: "#ffe500" }}>
+                      <i className="fa-solid fa-trophy"></i>
+                    </span>
+                    <h3 className="modal-title-text">[🏆] GLOBAL LEADERBOARD</h3>
+                  </div>
+                  <button
+                    className="profile-modal-close"
+                    type="button"
+                    onClick={() => {
+                      playSfx("clickSound");
+                      setIsGlobalLeaderboardOpen(false);
+                    }}
+                  >
+                    ✕ CLOSE
+                  </button>
+                </div>
+
+                <div style={{ padding: "18px 22px" }}>
+                  {/* 4 TAB SWITCHER BUTTONS */}
+                  <div className="global-leaderboard-tabs">
+                    {GLOBAL_LEADERBOARD_TABS.map((tab) => {
+                      const isTabActive = globalLeaderboardTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          className={`gl-tab-btn ${isTabActive ? "active" : ""}`}
+                          onClick={() => handleSwitchGlobalTab(tab.id)}
+                        >
+                          <i className={tab.icon}></i>
+                          <span>{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* ACTIVE TAB DESCRIPTION */}
+                  <div className="gl-desc-bar">
+                    <i className="fa-solid fa-circle-info" style={{ color: "#ffe500", fontSize: "12px" }}></i>
+                    <span>{currentTabInfo.desc}</span>
+                  </div>
+
+                  {/* LEADERBOARD DATA LIST */}
+                  {globalLeaderboardLoading ? (
+                    <div style={{ textAlign: "center", padding: "50px 20px", color: "#00ffcc", fontSize: "0.95rem" }}>
+                      <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: "8px" }}></i>
+                      MEMUAT PAPAN PERINGKAT...
+                    </div>
+                  ) : globalLeaderboardData.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "45px 20px", color: "#aaa", fontSize: "0.85rem", background: "rgba(0,0,0,0.2)", borderRadius: "6px" }}>
+                      <i className="fa-solid fa-trophy" style={{ fontSize: "28px", color: "#555", marginBottom: "10px", display: "block" }}></i>
+                      {globalLeaderboardTab === "activeStreak"
+                        ? "Belum ada pemain dengan streak aktif hari ini. Mainkan 1 lagu untuk menjadi yang pertama! 🔥"
+                        : "Belum ada catatan peringkat global pada kategori ini."}
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "330px", overflowY: "auto", paddingRight: "4px" }}>
+                      {globalLeaderboardData.map((item, index) => {
+                        const banner = getBannerById(item.banner_skin || "arcade-spark");
+                        const userLevel = item.level || 1;
+                        const isTop1 = index === 0;
+                        const isTop2 = index === 1;
+                        const isTop3 = index === 2;
+                        const rankBadgeColor = isTop1 ? "#ffe500" : isTop2 ? "#e0e0e0" : isTop3 ? "#cd7f32" : "#1a233a";
+
+                        const isMe =
+                          (authUser && item.user_id === authUser.id) ||
+                          (item.username.toLowerCase() === profile.identity.username.toLowerCase() && profile.identity.username !== "Player");
+
+                        return (
+                          <div
+                            key={item.user_id || index}
+                            style={{
+                              position: "relative",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              padding: "10px 16px",
+                              minHeight: "60px",
+                              border: isTop1
+                                ? "1.5px solid #ffe500"
+                                : isTop2
+                                ? "1.5px solid #c0c0c0"
+                                : isTop3
+                                ? "1.5px solid #cd7f32"
+                                : isMe
+                                ? "1px solid #00ffcc"
+                                : "1px solid rgba(255, 255, 255, 0.1)",
+                              borderRadius: "6px",
+                              overflow: "hidden",
+                              background: isMe ? "rgba(0, 255, 204, 0.05)" : "rgba(8, 12, 24, 0.6)",
+                              boxShadow: isTop1
+                                ? "0 0 14px rgba(255,229,0,0.2)"
+                                : isMe
+                                ? "0 0 10px rgba(0,255,204,0.15)"
+                                : "none",
+                            }}
+                          >
+                            {/* BANNER SKIN BACKGROUND */}
+                            <div
+                              style={{ position: "absolute", inset: 0, opacity: 0.45, zIndex: 0, pointerEvents: "none" }}
+                              dangerouslySetInnerHTML={{ __html: banner.svg }}
+                            />
+                            <div
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                background: "linear-gradient(90deg, rgba(6,6,14,0.88) 0%, rgba(10,10,24,0.7) 50%, rgba(6,6,14,0.92) 100%)",
+                                zIndex: 0,
+                                pointerEvents: "none",
+                              }}
+                            />
+
+                            <div style={{ display: "flex", alignItems: "center", gap: "12px", zIndex: 1 }}>
+                              {/* RANK NUMBER / MEDAL */}
+                              <div style={{ position: "relative" }}>
+                                <span
+                                  style={{
+                                    width: "26px",
+                                    height: "26px",
+                                    borderRadius: "50%",
+                                    background: rankBadgeColor,
+                                    color: index < 3 ? "#000" : "#fff",
+                                    fontWeight: "900",
+                                    fontSize: "11px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    boxShadow: isTop1 ? "0 0 10px rgba(255,229,0,0.8)" : "none",
+                                  }}
+                                >
+                                  {isTop1 ? <i className="fa-solid fa-crown"></i> : index + 1}
+                                </span>
+                              </div>
+
+                              {/* AVATAR + LEVEL */}
+                              <div style={{ position: "relative", width: "36px", height: "36px" }}>
+                                <img
+                                  src={getAvatarDisplay(item.avatar_url)}
+                                  alt="Avatar"
+                                  referrerPolicy="no-referrer"
+                                  crossOrigin="anonymous"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = "/assets/picture/new-logo.png";
+                                  }}
+                                  style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${banner.accent || "#00ffcc"}` }}
+                                />
+                                <span style={{ position: "absolute", bottom: "-3px", right: "-4px", background: "#0a0a0a", color: "#00ffcc", border: "1px solid #00ffcc", borderRadius: "6px", fontSize: "7.5px", padding: "1px 4px", fontWeight: "bold" }}>
+                                  LV {userLevel}
+                                </span>
+                              </div>
+
+                              {/* USERNAME & DETAILS */}
+                              <div>
+                                <div style={{ color: "#fff", fontWeight: "bold", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                                  <span>{item.username}</span>
+                                  {isMe && (
+                                    <span style={{ fontSize: "8.5px", background: "#00ffcc", color: "#000", padding: "1px 5px", borderRadius: "3px", fontWeight: "800" }}>
+                                      YOU
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ color: "#94a3b8", fontSize: "0.72rem", marginTop: "2px" }}>
+                                  {item.subText}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* VALUE */}
+                            <div style={{ textAlign: "right", zIndex: 1 }}>
+                              <div style={{ color: isTop1 ? "#ffe500" : "#00ffcc", fontWeight: "900", fontSize: "1.05rem", textShadow: isTop1 ? "0 0 8px rgba(255,229,0,0.5)" : "none" }}>
+                                {item.formattedValue}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* PERSONAL STANDING SUMMARY BANNER */}
+                  <div className="gl-user-personal-strip">
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <img
+                        src={getAvatarDisplay(profile.identity.avatar)}
+                        alt="My Avatar"
+                        style={{ width: "30px", height: "30px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${activeBanner.accent || "#00ffcc"}` }}
+                      />
+                      <div>
+                        <div style={{ color: "#fff", fontWeight: "bold", fontSize: "0.82rem" }}>
+                          {profile.identity.username} (Kamu)
+                        </div>
+                        <div style={{ color: "#94a3b8", fontSize: "0.7rem" }}>
+                          {currentUserPersonalVal.desc}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ color: "#ffe500", fontWeight: "bold", fontSize: "0.95rem" }}>
+                        {currentUserPersonalVal.val}
+                      </div>
+                      <div style={{ color: "#00ffcc", fontSize: "0.7rem", fontWeight: "bold" }}>
+                        {currentUserLeaderboardRank ? `PERINGKAT #${currentUserLeaderboardRank}` : "UNRANKED"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* DEDICATED TRACK LEADERBOARD POP-UP MODAL */}
         {isLeaderboardModalOpen && (
           <div className="profile-modal-overlay active" style={{ zIndex: 100006 }}>
@@ -3306,13 +3634,15 @@ export default function Lobby() {
                               <span>// DIFFICULTY</span>
                               <button
                                 type="button"
-                                style={{ background: "none", border: "none", color: "#00ffcc", cursor: "pointer", fontSize: "10px", fontWeight: "bold" }}
+                                className="track-history-pill-btn"
+                                title="Lihat Papan Peringkat & Rekor Lagu Ini"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleOpenTrackLeaderboard();
                                 }}
                               >
-                                <i className="fa-solid fa-trophy" style={{ marginRight: "4px" }}></i>RANKING &amp; HISTORY
+                                <i className="fa-solid fa-trophy" style={{ color: "#ffe500" }}></i>
+                                <span>RANKING &amp; HISTORY</span>
                               </button>
                             </div>
                             <div className="diff-btn-row">

@@ -729,6 +729,18 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
+    version: "v0.3.5 — Global 4-Tab Leaderboard & Cumulative Score Stats",
+    date: "19 SEP 2026",
+    badgeClass: "yellow",
+    bannerImg: "/assets/picture/new-logo.png",
+    changes: [
+      { type: "add", text: "Global Leaderboard System 🏆: Tombol papan peringkat baru di header Lobby dengan 4 kategori tab: Total Skor Kumulatif (BM + NOM semua difficulty), Active Streak Nyala, Total Games Played, dan Longest Combo." },
+      { type: "add", text: "Total Cumulative Score Metric 📊: Statistik profil kini menampilkan akumulasi penuh seluruh skor terbaik di Basic Mode & Night Owl Mode (Normal, Medium, Hard, Extreme)." },
+      { type: "upd", text: "Active Streak Exclusivity 🔥: Leaderboard Active Streak hanya menampilkan pemain dengan streak yang masih membara (aktif hari ini / kemarin). Streak yang padam otomatis tereliminasi." },
+      { type: "upd", text: "Tactile Ranking & History Button 🕹️: Tombol shortcut rekor di selector lagu kini memiliki desain tombol arcade dengan border neon cyan dan efek hover glow nyata." },
+    ],
+  },
+  {
     version: "v0.3.4 — Clean Early Quit & Instant Lobby Return",
     date: "19 SEP 2026",
     badgeClass: "magenta",

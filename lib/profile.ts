@@ -366,3 +366,16 @@ export function getTrackBestScore(
   const trackBestObj = (profile.stats as any).trackBest || {};
   return trackBestObj[key] || null;
 }
+
+export function getTotalCumulativeScore(profile: ProfileData): number {
+  const trackBestObj = (profile?.stats as any)?.trackBest || {};
+  let total = 0;
+  for (const key of Object.keys(trackBestObj)) {
+    const item = trackBestObj[key];
+    if (item && typeof item.score === "number" && !isNaN(item.score)) {
+      total += item.score;
+    }
+  }
+  return total;
+}
+

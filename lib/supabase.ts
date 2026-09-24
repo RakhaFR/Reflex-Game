@@ -1,5 +1,5 @@
 import { createClient, User } from "@supabase/supabase-js";
-import { ProfileData, profileSave, computeLevelFromXP } from "./profile";
+import { ProfileData, profileSave, computeLevelFromXP, getDaysDifference, getTodayDateString, getTotalCumulativeScore } from "./profile";
 
 const rawUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim().replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
 const supabaseUrl = rawUrl;
@@ -466,6 +466,144 @@ export async function fetchTrackLeaderboardFromCloud(
     return data as TrackLeaderboardItem[];
   } catch (err) {
     console.error("Failed to fetch track leaderboard:", err);
+    return [];
+  }
+}
+
+// ── GLOBAL LEADERBOARD FETCH (4 TABS) ─────────────────────────
+
+export type GlobalLeaderboardTab = "totalScore" | "activeStreak" | "totalGames" | "longestCombo";
+
+export interface GlobalLeaderboardItem {
+  user_id: string;
+  username: string;
+  avatar_url: string;
+  banner_skin?: string;
+  level: number;
+  value: number;
+  formattedValue: string;
+  subText: string;
+}
+
+export async function fetchGlobalLeaderboardFromCloud(
+  tab: GlobalLeaderboardTab,
+  limitCount = 50
+): Promise<GlobalLeaderboardItem[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, username, avatar_url, banner_skin, xp, stats, updated_at")
+      .limit(100);
+
+    if (error || !data) {
+      console.warn("fetchGlobalLeaderboardFromCloud query notice:", error?.message);
+      return [];
+    }
+
+    const today = getTodayDateString();
+    const parsedList: GlobalLeaderboardItem[] = [];
+
+    for (const item of data) {
+      const stats = item.stats || {};
+      const userLevel = computeLevelFromXP(item.xp || stats.lifetimeScore || 0);
+      const username = item.username && item.username !== "Player" ? item.username : "Operator";
+      const avatarUrl = item.avatar_url || "default";
+      const bannerSkin = item.banner_skin || "arcade-spark";
+
+      if (tab === "totalScore") {
+        // Tab 1: Total Cumulative Score (Sum of all track best scores in BM + NOM)
+        let totalScore = 0;
+        const trackBest = stats.trackBest || {};
+        const keys = Object.keys(trackBest);
+        if (keys.length > 0) {
+          for (const k of keys) {
+            const sc = trackBest[k]?.score;
+            if (typeof sc === "number" && !isNaN(sc)) {
+              totalScore += sc;
+            }
+          }
+        }
+        if (totalScore === 0) {
+          totalScore = item.xp || stats.lifetimeScore || 0;
+        }
+
+        if (totalScore > 0) {
+          parsedList.push({
+            user_id: item.id,
+            username,
+            avatar_url: avatarUrl,
+            banner_skin: bannerSkin,
+            level: userLevel,
+            value: totalScore,
+            formattedValue: `${totalScore.toLocaleString()} PTS`,
+            subText: `BM + NOM All Diff · LV ${userLevel}`,
+          });
+        }
+      } else if (tab === "activeStreak") {
+        // Tab 2: Active Streak (Streak nyala / bertahan. If dead, exclude.)
+        const streakObj = stats.streak || {};
+        const lastPlay = streakObj.lastPlayDate;
+        const currentStreak = streakObj.current || 0;
+
+        if (lastPlay && currentStreak > 0) {
+          const diff = getDaysDifference(lastPlay, today);
+          // diff === 0 (played today) or diff === 1 (played yesterday, still active today)
+          if (diff <= 1) {
+            parsedList.push({
+              user_id: item.id,
+              username,
+              avatar_url: avatarUrl,
+              banner_skin: bannerSkin,
+              level: userLevel,
+              value: currentStreak,
+              formattedValue: `${currentStreak} HARI 🔥`,
+              subText: diff === 0 ? "Aktif Hari Ini" : "Streak Bertahan",
+            });
+          }
+        }
+      } else if (tab === "totalGames") {
+        // Tab 3: Total Games Played
+        const gamesPlayed =
+          stats.totalGamesPlayed ||
+          (stats.basic?.gamesPlayed || 0) + (stats.notoriginal?.gamesPlayed || 0);
+
+        if (gamesPlayed > 0) {
+          parsedList.push({
+            user_id: item.id,
+            username,
+            avatar_url: avatarUrl,
+            banner_skin: bannerSkin,
+            level: userLevel,
+            value: gamesPlayed,
+            formattedValue: `${gamesPlayed.toLocaleString()} MATCHES`,
+            subText: `BM: ${stats.basic?.gamesPlayed || 0} · NOM: ${stats.notoriginal?.gamesPlayed || 0}`,
+          });
+        }
+      } else if (tab === "longestCombo") {
+        // Tab 4: Longest Combo
+        const combo = stats.records?.longestCombo || 0;
+        if (combo > 0) {
+          parsedList.push({
+            user_id: item.id,
+            username,
+            avatar_url: avatarUrl,
+            banner_skin: bannerSkin,
+            level: userLevel,
+            value: combo,
+            formattedValue: `x${combo} COMBO`,
+            subText: `Peak Combo · LV ${userLevel}`,
+          });
+        }
+      }
+    }
+
+    // Sort descending by value
+    parsedList.sort((a, b) => b.value - a.value);
+
+    return parsedList.slice(0, limitCount);
+  } catch (err) {
+    console.error("Failed to fetch global leaderboard:", err);
     return [];
   }
 }
