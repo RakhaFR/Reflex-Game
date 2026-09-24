@@ -238,6 +238,18 @@
   color: #ffffff;
 }
 
+.btn-cyan {
+  background: linear-gradient(180deg, #00e5ff 0%, #0099cc 100%);
+}
+.btn-cyan .btn-text {
+  color: #050a14;
+  text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.4);
+}
+.btn-cyan .btn-icon {
+  color: #050a14;
+  text-shadow: none;
+}
+
 /* Interactive Hover Actions Animation (BANGER IMPACT!) */
 .menu-btn:hover {
   transform: skewX(-15deg) scale(1.08); /* Berubah kemiringan & membesar saat di-hover */

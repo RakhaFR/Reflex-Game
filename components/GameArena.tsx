@@ -1039,7 +1039,7 @@ function GameArenaInner() {
                 setIsQuitConfirmOpen(true);
               }}
             >
-              ✕ QUIT
+              <i className="fa-solid fa-xmark mr-1"></i> QUIT
             </button>
             <span
               id="bmDiffBadge"
@@ -1177,7 +1177,7 @@ function GameArenaInner() {
             <div className="qc-header">
               <div className="qc-star qc-star-yellow"></div>
               <div className="qc-star qc-star-cyan"></div>
-              <div className="qc-sublabel">⚠ System Alert ⚠</div>
+              <div className="qc-sublabel"><i className="fa-solid fa-triangle-exclamation mr-1"></i> SYSTEM ALERT</div>
               <div className="qc-title-line">
                 <span className="qc-title-mission">Track</span>
                 <span className="qc-title-abort">Dihentikan!</span>
@@ -1255,7 +1255,7 @@ function GameArenaInner() {
             <div className="rp-header">
               <div className="rp-star rp-star-yellow"></div>
               <div className="rp-star rp-star-cyan"></div>
-              <div className="rp-sublabel">✦ Track Clear ✦</div>
+              <div className="rp-sublabel"><i className="fa-solid fa-star mr-1"></i> TRACK CLEAR</div>
               <div className="rp-title-line">
                 <span className="rp-title-mission">Track</span>
                 <span className="rp-title-completed">Completed!</span>

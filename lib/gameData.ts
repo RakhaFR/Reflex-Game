@@ -729,15 +729,26 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
+    version: "v0.3.6 — 1-Click PWA Install & Icon Standardization",
+    date: "24 SEP 2026",
+    badgeClass: "cyan",
+    bannerImg: "/assets/picture/new-logo.png",
+    changes: [
+      { type: "add", text: "1-Click PWA Native App Install: Tombol instalasi aplikasi web instan yang langsung memunculkan dialog pop-up resmi browser tanpa perlu membuka menu titik tiga manual. Tombol otomatis tersembunyi saat game sudah terpasang." },
+      { type: "upd", text: "Universal Vector Icons: Standarisasi seluruh elemen antarmuka, modal, status streak, dan leaderboard menggunakan FontAwesome Vector Icons berdesain neon arcade modern." },
+      { type: "add", text: "Smart Device Installation Guidance: Petunjuk visual terpadu untuk pengguna perangkat iOS Safari dan platform desktop yang memerlukan instalasi manual." },
+    ],
+  },
+  {
     version: "v0.3.5 — Global 4-Tab Leaderboard & Cumulative Score Stats",
     date: "19 SEP 2026",
     badgeClass: "yellow",
     bannerImg: "/assets/picture/new-logo.png",
     changes: [
-      { type: "add", text: "Global Leaderboard System 🏆: Tombol papan peringkat baru di header Lobby dengan 4 kategori tab: Total Skor Kumulatif (BM + NOM semua difficulty), Active Streak Nyala, Total Games Played, dan Longest Combo." },
-      { type: "add", text: "Total Cumulative Score Metric 📊: Statistik profil kini menampilkan akumulasi penuh seluruh skor terbaik di Basic Mode & Night Owl Mode (Normal, Medium, Hard, Extreme)." },
-      { type: "upd", text: "Active Streak Exclusivity 🔥: Leaderboard Active Streak hanya menampilkan pemain dengan streak yang masih membara (aktif hari ini / kemarin). Streak yang padam otomatis tereliminasi." },
-      { type: "upd", text: "Tactile Ranking & History Button 🕹️: Tombol shortcut rekor di selector lagu kini memiliki desain tombol arcade dengan border neon cyan dan efek hover glow nyata." },
+      { type: "add", text: "Global Leaderboard System: Tombol papan peringkat baru di header Lobby dengan 4 kategori tab: Total Skor Kumulatif (BM + NOM semua difficulty), Active Streak Nyala, Total Games Played, dan Longest Combo." },
+      { type: "add", text: "Total Cumulative Score Metric: Statistik profil kini menampilkan akumulasi penuh seluruh skor terbaik di Basic Mode & Night Owl Mode (Normal, Medium, Hard, Extreme)." },
+      { type: "upd", text: "Active Streak Exclusivity: Leaderboard Active Streak hanya menampilkan pemain dengan streak yang masih membara (aktif hari ini / kemarin). Streak yang padam otomatis tereliminasi." },
+      { type: "upd", text: "Tactile Ranking & History Button: Tombol shortcut rekor di selector lagu kini memiliki desain tombol arcade dengan border neon cyan dan efek hover glow nyata." },
     ],
   },
   {
@@ -746,7 +757,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     badgeClass: "magenta",
     bannerImg: "/assets/picture/bug-fix.jpg",
     changes: [
-      { type: "upd", text: "Direct Return on Quit 🚪: Menekan konfirmasi keluar ('Ya, Akhiri') kini langsung mengembalikan pemain ke Lobby tanpa menampilkan Result Popup." },
+      { type: "upd", text: "Direct Return on Quit: Menekan konfirmasi keluar ('Ya, Akhiri') kini langsung mengembalikan pemain ke Lobby tanpa menampilkan Result Popup." },
       { type: "fix", text: "No Partial Stats Saved: Skor parsial, XP, dan data game yang dibatalkan di tengah jalan tidak akan tersimpan ke statistik akun." },
       { type: "upd", text: "Active Track Preservation: Posisi track dan mode game terakhir tetap tersimpan otomatis di Lobby saat pemain kembali." },
     ],
@@ -757,7 +768,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     badgeClass: "yellow",
     bannerImg: "/assets/picture/bug-fix.jpg",
     changes: [
-      { type: "add", text: "Multi-Touch Gameplay Support 📱: Pemain mobile kini dapat menekan 2 atau lebih node lagu secara bersamaan (simultaneous tap) dengan respons instan tanpa delay." },
+      { type: "add", text: "Multi-Touch Gameplay Support: Pemain mobile kini dapat menekan 2 atau lebih node lagu secara bersamaan (simultaneous tap) dengan respons instan tanpa delay." },
       { type: "upd", text: "Zero Gesture Delay: Menerapkan 'touch-action: none' & touchstart direct handler pada arena untuk meniadakan ghost clicks dan latensi browser default." },
     ],
   },
@@ -767,7 +778,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     badgeClass: "cyan",
     bannerImg: "/assets/picture/new-logo.png",
     changes: [
-      { type: "add", text: "Keybind Font Style Customizer 🔤: Pilihan 10 jenis font typography di Settings (Orbitron, Slackey, Press Start 2P, Righteous, Russo One, Bungee, VT323, Audiowide, Rajdhani, Bebas Neue)." },
+      { type: "add", text: "Keybind Font Style Customizer: Pilihan 10 jenis font typography di Settings (Orbitron, Slackey, Press Start 2P, Righteous, Russo One, Bungee, VT323, Audiowide, Rajdhani, Bebas Neue)." },
       { type: "upd", text: "Visualisasi Note Gameplay: Huruf note di arena kini langsung mengikuti font pilihan player agar lebih nyaman dan mudah terbaca saat reflex session." },
       { type: "upd", text: "Live Preview Font Grid: Kartu pilihan font interaktif di modal Settings menampilkan preview QWER, nama font, dan kategori style." },
     ],
@@ -778,10 +789,10 @@ export const UPDATE_LOGS: UpdateLog[] = [
     badgeClass: "yellow",
     bannerImg: "/assets/picture/bug-fix.jpg",
     changes: [
-      { type: "add", text: "Pop-up Daily Play Streak (Duolingo Style) 🔥: Modal interaktif menampilkan kalender 7-hari mingguan, rekor terbaik, dan quotes motivasi karakter." },
+      { type: "add", text: "Pop-up Daily Play Streak (Duolingo Style): Modal interaktif menampilkan kalender 7-hari mingguan, rekor terbaik, dan quotes motivasi karakter." },
       { type: "add", text: "Live2D Mascot Video Player: Video animasi karakter OG (Kamia, Ocean, Silia, & Trio) looping dinamis dengan jeda 2 detik & fade-to-black." },
       { type: "upd", text: "Seamless 4-Sided Screen Blend: Video Live2D berbaur mulus tanpa frame kotak/bulat dengan mix-blend mode & radial vignette overlay." },
-      { type: "upd", text: "Status Streak To-The-Point: Indikator status langsung menampilkan '🔥 STREAK NYALA' atau '❄️ STREAK PADAM'." },
+      { type: "upd", text: "Status Streak To-The-Point: Indikator status langsung menampilkan 'STREAK NYALA' (ikon api) atau 'STREAK PADAM' (ikon salju)." },
       { type: "fix", text: "Aturan Validasi Streak: Streak harian hanya tercatat jika lagu dimainkan penuh sampai habis (keluar/menyerah di tengah jalan tidak menambah streak)." },
       { type: "fix", text: "Perbaikan Resiliensi Chat (Error 401 JWT): Auto-recovery dari clock skew dengan session refresh dan fallback public REST query." },
     ],
@@ -792,9 +803,9 @@ export const UPDATE_LOGS: UpdateLog[] = [
     badgeClass: "cyan",
     bannerImg: "/assets/picture/alpha-build.jpg",
     changes: [
-      { type: "add", text: "Global Chat Room 💬: Komunikasi publik secara real-time antar pemain langsung dari Lobby." },
+      { type: "add", text: "Global Chat Room: Komunikasi publik secara real-time antar pemain langsung dari Lobby." },
       { type: "upd", text: "Tata Letak Topbar Baru: Tombol Chat, Settings, & Fullscreen kini rapi di sisi kanan bersebelahan dengan tombol BACK." },
-      { type: "upd", text: "Widget Daily Play Streak 🔥: Kini berdiri mandiri di samping kanan kartu Profil untuk akses instan ke kalender streak." },
+      { type: "upd", text: "Widget Daily Play Streak: Kini berdiri mandiri di samping kanan kartu Profil untuk akses instan ke kalender streak." },
       { type: "add", text: "Sistem Auto-Prune (Maks. 100 Pesan): Chat history selalu optimal dan terawat otomatis di Supabase Database." },
       { type: "add", text: "Identity & Level Badges: Setiap pesan menampilkan avatar, level, dan rank tier (Legend/Master/Elite/Operator)." },
       { type: "upd", text: "Cooldown Anti-Spam: Proteksi 2 detik antar pesan untuk menjaga percakapan tetap nyaman dan teratur." },
@@ -806,8 +817,8 @@ export const UPDATE_LOGS: UpdateLog[] = [
     badgeClass: "magenta",
     bannerImg: "/assets/picture/bug-fix.jpg",
     changes: [
-      { type: "add", text: "Fitur Daily Play Streak 🔥: Menggantikan bintang widget profil dengan counter streak harian interaktif yang menyala saat bermain." },
-      { type: "add", text: "Toggle Lihat Password 👁️: Tombol icon mata pada form Login/Sign Up untuk menampilkan & menyembunyikan kata sandi." },
+      { type: "add", text: "Fitur Daily Play Streak: Menggantikan bintang widget profil dengan counter streak harian interaktif yang menyala saat bermain." },
+      { type: "add", text: "Toggle Lihat Password: Tombol icon mata pada form Login/Sign Up untuk menampilkan & menyembunyikan kata sandi." },
       { type: "fix", text: "Perbaikan Navigasi & Auto-Scroll Track: Pemilihan lagu baik ke atas maupun ke bawah kini presisi menampilkan kartu lagu & panel difficulty tanpa terpotong." },
       { type: "upd", text: "Desain Baru Modal Autentikasi: Split layout dengan panel artwork bergaya anime/cyber, tombol Google modern, dan form pendaftaran interaktif." },
       { type: "fix", text: "Feedback Parameter Login & Registrasi: Pesan error kini spesifik menunjukkan ketidakcocokan email, username, password, atau akun tidak terdaftar." },

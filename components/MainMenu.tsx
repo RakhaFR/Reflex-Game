@@ -4,12 +4,17 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { OG_GAMES, UPDATE_LOGS } from "@/lib/gameData";
 import { playSfx } from "@/lib/profile";
+import { usePwaInstall } from "@/lib/pwa";
+import PwaModal from "@/components/PwaModal";
 
 export default function MainMenu() {
   const router = useRouter();
   const [isOtherGamesOpen, setIsOtherGamesOpen] = useState(false);
   const [isUpdateLogOpen, setIsUpdateLogOpen] = useState(false);
+  const [isPwaModalOpen, setIsPwaModalOpen] = useState(false);
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
+
+  const { isInstalled, triggerInstall } = usePwaInstall();
 
   useEffect(() => {
     // If returning from Google OAuth or password reset link, immediately redirect to lobby with profile identity open
@@ -134,6 +139,28 @@ export default function MainMenu() {
               </div>
             </a>
 
+            {!isInstalled && (
+              <button
+                onClick={async () => {
+                  playSfx("clickSound");
+                  const res = await triggerInstall();
+                  if (res === "ios" || res === "unsupported") {
+                    setIsPwaModalOpen(true);
+                  }
+                }}
+                className="menu-btn btn-utility btn-cyan"
+                id="btnMainInstallPwa"
+                type="button"
+              >
+                <div className="btn-skew-inner">
+                  <span className="btn-icon">
+                    <i className="fa-solid fa-download"></i>
+                  </span>
+                  <span className="btn-text">INSTALL APP</span>
+                </div>
+              </button>
+            )}
+
             <button
               onClick={handleOpenOtherGames}
               className="menu-btn btn-utility btn-orange"
@@ -229,24 +256,26 @@ export default function MainMenu() {
         </footer>
       </main>
 
-      {/* FULLSCREEN QUICK SHORTCUT BUTTON */}
-      <button
-        onClick={() => {
-          playSfx("clickSound");
-          const docEl = document.documentElement as any;
-          if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
-          else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
-          else if (docEl.mozRequestFullScreen) docEl.mozRequestFullScreen();
-          else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
-        }}
-        className="update-log-trigger"
-        style={{ bottom: "60px", background: "rgba(0,229,255,0.08)", borderColor: "rgba(0,229,255,0.4)", color: "#00e5ff", padding: "6px 12px", fontSize: "10px", gap: "5px" }}
-        type="button"
-        title="Toggle Fullscreen Mode"
-      >
-        <i className="fa-solid fa-expand"></i>
-        <span>FULLSCREEN</span>
-      </button>
+      {/* FULLSCREEN QUICK SHORTCUT BUTTON (Hidden when installed as PWA) */}
+      {!isInstalled && (
+        <button
+          onClick={() => {
+            playSfx("clickSound");
+            const docEl = document.documentElement as any;
+            if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
+            else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+            else if (docEl.mozRequestFullScreen) docEl.mozRequestFullScreen();
+            else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
+          }}
+          className="update-log-trigger"
+          style={{ bottom: "60px", background: "rgba(0,229,255,0.08)", borderColor: "rgba(0,229,255,0.4)", color: "#00e5ff", padding: "6px 12px", fontSize: "10px", gap: "5px" }}
+          type="button"
+          title="Toggle Fullscreen Mode"
+        >
+          <i className="fa-solid fa-expand"></i>
+          <span>FULLSCREEN</span>
+        </button>
+      )}
 
       {/* UPDATE LOG BUTTON */}
       <button
@@ -276,7 +305,7 @@ export default function MainMenu() {
               id="btnCloseUpdateLog"
               type="button"
             >
-              ✕
+              <i className="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div className="popup-body-content" id="updateLogContent">
@@ -335,7 +364,7 @@ export default function MainMenu() {
               id="btnCloseModal"
               type="button"
             >
-              ✕
+              <i className="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div className="popup-body-content">
@@ -393,6 +422,9 @@ export default function MainMenu() {
           </div>
         </div>
       </div>
+
+      {/* PWA INSTALL GUIDANCE MODAL */}
+      <PwaModal isOpen={isPwaModalOpen} onClose={() => setIsPwaModalOpen(false)} />
 
       {/* LANDSCAPE NOTICE */}
       <div id="landscapeNotice">

@@ -3,6 +3,7 @@ import "./globals.css";
 import LoadingScreen from "@/components/LoadingScreen";
 
 export const metadata: Metadata = {
+  manifest: "/manifest.json",
   title: {
     default: "ReflexRHYTHM - Music & Reflex Arcade Game",
     template: "%s | ReflexRHYTHM",
@@ -50,6 +51,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id">
       <head>
+        {/* PWA & Mobile Icons */}
+        <meta name="theme-color" content="#00f0ff" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="ReflexRHYTHM" />
+        <link rel="apple-touch-icon" href="/assets/picture/new-logo.png" />
+        <link rel="manifest" href="/manifest.json" />
         {/* CSS Vanilla — copy dari css/ ke public/css/ */}
         <link rel="stylesheet" href="/css/base.css" />
         <link rel="stylesheet" href="/css/home-new.css" />

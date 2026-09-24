@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { initGlobalPwaListeners } from "@/lib/pwa";
 
 const MESSAGES = [
   { at: 0, msg: "INITIALIZING REFLEX ENGINE..." },
@@ -15,6 +16,10 @@ const MESSAGES = [
 
 export default function LoadingScreen() {
   const pathname = usePathname();
+
+  useEffect(() => {
+    initGlobalPwaListeners();
+  }, []);
 
   // Mode: "full" (Image 1 on initial load) or "transition" (Image 2 on page navigation)
   const [mode, setMode] = useState<"full" | "transition">("full");

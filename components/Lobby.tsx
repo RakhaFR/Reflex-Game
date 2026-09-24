@@ -33,6 +33,8 @@ import {
 } from "@/lib/profile";
 import { User } from "@supabase/supabase-js";
 import StreakModal from "./StreakModal";
+import PwaModal from "./PwaModal";
+import { usePwaInstall } from "@/lib/pwa";
 import {
   supabase,
   isSupabaseConfigured,
@@ -67,6 +69,8 @@ export default function Lobby() {
 
   // ── Profile State ──────────────────────────────────────────
   const [profile, setProfile] = useState<ProfileData>(PROFILE_DEFAULT);
+  const [isPwaModalOpen, setIsPwaModalOpen] = useState(false);
+  const { isInstalled, triggerInstall } = usePwaInstall();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
   const [activeModalTab, setActiveModalTab] = useState<"tabIdentity" | "tabStats" | "tabSettings">("tabIdentity");
@@ -246,10 +250,12 @@ export default function Lobby() {
       document.fullscreenElement ||
       (document as any).webkitFullscreenElement ||
       (document as any).mozFullScreenElement ||
-      (document as any).msFullscreenElement
+      (document as any).msFullscreenElement ||
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as any).standalone === true
     );
 
-    if (isFS) return;
+    if (isFS || isInstalled) return;
 
     const lastDismissed = localStorage.getItem("rhg_fullscreen_prompt_dismissed");
     const now = Date.now();
@@ -1592,19 +1598,40 @@ export default function Lobby() {
               <i className="fas fa-cog"></i>
             </button>
 
-            {/* FULLSCREEN BUTTON */}
-            <button
-              className="header-action-btn header-fullscreen-btn"
-              id="headerFullscreenBtn"
-              title="Toggle Fullscreen Mode"
-              type="button"
-              onClick={() => {
-                playSfx("clickSound");
-                handleEnableFullscreen();
-              }}
-            >
-              <i className="fa-solid fa-expand"></i>
-            </button>
+            {/* PWA INSTALL BUTTON (Auto-hidden if installed) */}
+            {!isInstalled && (
+              <button
+                className="header-action-btn header-pwa-btn"
+                id="headerPwaInstallBtn"
+                title="Install ReflexRHYTHM Native Web App"
+                type="button"
+                onClick={async () => {
+                  playSfx("clickSound");
+                  const res = await triggerInstall();
+                  if (res === "ios" || res === "unsupported") {
+                    setIsPwaModalOpen(true);
+                  }
+                }}
+              >
+                <i className="fa-solid fa-download"></i>
+              </button>
+            )}
+
+            {/* FULLSCREEN BUTTON (Hidden when installed as PWA) */}
+            {!isInstalled && (
+              <button
+                className="header-action-btn header-fullscreen-btn"
+                id="headerFullscreenBtn"
+                title="Toggle Fullscreen Mode"
+                type="button"
+                onClick={() => {
+                  playSfx("clickSound");
+                  handleEnableFullscreen();
+                }}
+              >
+                <i className="fa-solid fa-expand"></i>
+              </button>
+            )}
 
             {/* BACK TO MAIN MENU */}
             <a
@@ -1657,7 +1684,7 @@ export default function Lobby() {
                   setIsProfileModalOpen(false);
                 }}
               >
-                ✕ CLOSE
+                <i className="fa-solid fa-xmark"></i> CLOSE
               </button>
             </div>
 
@@ -1775,7 +1802,7 @@ export default function Lobby() {
                           <span>EXP PROGRESSION</span>
                           <span>
                             {currentLevel >= 500
-                              ? "MAX LEVEL ★"
+                              ? "MAX LEVEL"
                               : `${fmtXP(currentExpInLevel)} / ${fmtXP(xpThisLevel)} PTS`}
                           </span>
                         </div>
@@ -2410,7 +2437,7 @@ export default function Lobby() {
                     setAuthConfirmPassword("");
                   }}
                 >
-                  ✕ CLOSE
+                  <i className="fa-solid fa-xmark"></i> CLOSE
                 </button>
               </div>
 
@@ -2936,7 +2963,7 @@ export default function Lobby() {
                     setIsChangeEmailModalOpen(false);
                   }}
                 >
-                  ✕ CLOSE
+                  <i className="fa-solid fa-xmark"></i> CLOSE
                 </button>
               </div>
 
@@ -2996,7 +3023,7 @@ export default function Lobby() {
                     setIsChangePassModalOpen(false);
                   }}
                 >
-                  ✕ CLOSE
+                  <i className="fa-solid fa-xmark"></i> CLOSE
                 </button>
               </div>
 
@@ -3141,7 +3168,7 @@ export default function Lobby() {
                     <span className="modal-main-icon" style={{ color: "#ffe500" }}>
                       <i className="fa-solid fa-trophy"></i>
                     </span>
-                    <h3 className="modal-title-text">[🏆] GLOBAL LEADERBOARD</h3>
+                    <h3 className="modal-title-text">[L] GLOBAL LEADERBOARD</h3>
                   </div>
                   <button
                     className="profile-modal-close"
@@ -3150,9 +3177,9 @@ export default function Lobby() {
                       playSfx("clickSound");
                       setIsGlobalLeaderboardOpen(false);
                     }}
-                  >
-                    ✕ CLOSE
-                  </button>
+                >
+                  <i className="fa-solid fa-xmark"></i> CLOSE
+                </button>
                 </div>
 
                 <div style={{ padding: "18px 22px" }}>
@@ -3375,7 +3402,7 @@ export default function Lobby() {
                     setIsLeaderboardModalOpen(false);
                   }}
                 >
-                  ✕ CLOSE
+                  <i className="fa-solid fa-xmark"></i> CLOSE
                 </button>
               </div>
 
@@ -3512,8 +3539,8 @@ export default function Lobby() {
           </div>
         )}
 
-        {/* PERIODIC FULLSCREEN PROMPT MODAL */}
-        {showFullscreenPrompt && (
+        {/* PERIODIC FULLSCREEN PROMPT MODAL (Hidden when installed as PWA) */}
+        {!isInstalled && showFullscreenPrompt && (
           <div className="profile-modal-overlay active" style={{ zIndex: 100007 }}>
             <div className="profile-modal-box" style={{ maxWidth: "460px", margin: "auto", textAlign: "center" }}>
               <div className="modal-corner-accent top-left"></div>
@@ -3704,58 +3731,7 @@ export default function Lobby() {
                                 <span style={{ color: "#ffe500", fontWeight: "bold" }}>
                                   RANK {currentPB.rank} · {currentPB.accuracy}
                                 </span>
-        )}
-
-        {/* PERIODIC FULLSCREEN PROMPT MODAL */}
-        {showFullscreenPrompt && (
-          <div className="profile-modal-overlay active" style={{ zIndex: 100007 }}>
-            <div className="profile-modal-box" style={{ maxWidth: "460px", margin: "auto", textAlign: "center" }}>
-              <div className="modal-corner-accent top-left"></div>
-              <div className="modal-corner-accent bottom-right"></div>
-
-              <div className="profile-modal-header" style={{ justifyContent: "center" }}>
-                <div className="modal-title-group">
-                  <span className="modal-main-icon" style={{ color: "#00e5ff" }}>
-                    <i className="fa-solid fa-expand"></i>
-                  </span>
-                  <h3 className="modal-title-text">[R] RECOMMENDED IMMERSION</h3>
-                </div>
-              </div>
-
-              <div style={{ padding: "24px 20px" }}>
-                <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "rgba(0, 229, 255, 0.1)", border: "1.5px solid #00e5ff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "#00e5ff", fontSize: "1.4rem" }}>
-                  <i className="fa-solid fa-display"></i>
-                </div>
-
-                <h4 style={{ color: "#fff", margin: "0 0 8px 0", fontSize: "1.1rem", fontFamily: "Orbitron, sans-serif" }}>
-                  FULLSCREEN MODE RECOMMENDED
-                </h4>
-                <p style={{ color: "#aaa", fontSize: "0.85rem", lineHeight: "1.5", margin: "0 0 20px 0" }}>
-                  Mainkan ReflexRHYTHM dalam mode Layar Penuh untuk pengalaman ritme terbaik dan bebas gangguan browser!
-                </p>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  <button
-                    type="button"
-                    className="pact-btn-save-blueprint"
-                    style={{ width: "100%", padding: "12px", fontSize: "0.9rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
-                    onClick={handleEnableFullscreen}
-                  >
-                    <i className="fa-solid fa-expand"></i> MASUK MODE FULLSCREEN
-                  </button>
-
-                  <button
-                    type="button"
-                    style={{ background: "none", border: "none", color: "#888", fontSize: "0.8rem", cursor: "pointer", textDecoration: "underline", marginTop: "4px" }}
-                    onClick={handleDismissFullscreenPrompt}
-                  >
-                    Nanti Saja / Abaikan
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+                              )}
                             </div>
                           </div>
                         );
@@ -3853,7 +3829,7 @@ export default function Lobby() {
                 }}
                 title="Tutup Chat"
               >
-                ✕
+                <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
           </div>
@@ -4014,6 +3990,9 @@ export default function Lobby() {
           {toastMsg.text}
         </div>
       )}
+
+      {/* PWA INSTALL GUIDANCE MODAL */}
+      <PwaModal isOpen={isPwaModalOpen} onClose={() => setIsPwaModalOpen(false)} />
 
       {/* LANDSCAPE NOTICE */}
       <div id="landscapeNotice">
