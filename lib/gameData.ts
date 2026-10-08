@@ -914,13 +914,13 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
-    version: "v0.5.0 — Game Guide Onboarding & Full Keybinds/Numpad Engine",
+    version: "v0.5.0 — Game Guide Playbook & Full Keybind Engine",
     date: "08 OCT 2026",
     badgeClass: "cyan",
     bannerImg: "/assets/picture/new-logo.png",
     stageDivider: "══ BETA STAGE ══",
     changes: [
-      { type: "add", text: "Interactive 5-Step Game Guide Onboarding: Modal panduan gameplay interaktif lengkap dengan mini SVG ilustrasi, mencakup Cara Main 4-Lane/Arena, Mascot Sync, Settings Kustomisasi, Global Chat, dan Leaderboard Stats. Tombol GUIDE PLAY tersedia di kiri atas Main Menu." },
+      { type: "add", text: "Interactive 5-Step Game Guide Onboarding: Modal panduan gameplay interaktif lengkap dengan diagram SVG visual, mencakup Cara Main 4-Lane/Arena, Mascot Sync, Settings Kustomisasi, Global Chat, dan Leaderboard Stats. Tombol GUIDE PLAY tersedia di kiri atas Main Menu." },
       { type: "add", text: "Full Keyboard & Numpad Customizer: Bebas menggunakan seluruh tombol keyboard dan Numpad (Numpad 0-9, Numpad +, -, *, /, Enter, Arrow Keys, Shift, Ctrl, Space) tanpa batasan." },
       { type: "upd", text: "Compact Smart Key Icons: Huruf dan simbol keybind (↑, ↓, ←, →, N1, N+, ⇧, CTRL, ␣) terformat rapi dan presisi di dalam lingkaran node/reseptor tanpa membuat node memanjang." },
       { type: "upd", text: "Default 4-Lane Mania Scenario: Pemain baru kini otomatis langsung memulai dengan skenario Vertical 4-Lane yang optimal untuk mobile multi-touch & desktop keyboard." },

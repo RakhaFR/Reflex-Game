@@ -189,14 +189,17 @@ export default function MainMenu() {
       return (
         <svg viewBox="0 0 240 130" className="guide-card-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect width="240" height="130" rx="8" fill="#060814" />
-          <rect x="20" y="20" width="200" height="38" rx="6" fill="#0e142b" stroke="#1a2744" />
-          <circle cx="36" cy="39" r="10" fill="#ff2d78" />
-          <text x="54" y="34" fill="#00f0ff" fontSize="8" fontWeight="bold" fontFamily="Orbitron">PlayerOne [Lv.42]</text>
-          <text x="54" y="48" fill="#fff" fontSize="8">Siapa yang mau duel di track Pixel Panic?!</text>
-          <rect x="20" y="68" width="200" height="38" rx="6" fill="#0e142b" stroke="#1a2744" />
-          <circle cx="36" cy="87" r="10" fill="#00ff88" />
-          <text x="54" y="82" fill="#ffe500" fontSize="8" fontWeight="bold" fontFamily="Orbitron">RhythmMaster [Lv.99]</text>
-          <text x="54" y="96" fill="#fff" fontSize="8">Gaskeun bro! Baru cetak Perfect Combo tadi 🔥</text>
+          {/* Chat Bubble 1 */}
+          <rect x="10" y="14" width="220" height="46" rx="6" fill="#0c1224" stroke="#1c2b4d" />
+          <circle cx="28" cy="37" r="10" fill="#ff2d78" />
+          <text x="44" y="30" fill="#00f0ff" fontSize="7.5" fontWeight="bold" fontFamily="Orbitron">PlayerOne [Lv.42]</text>
+          <text x="44" y="44" fill="#e2e8f0" fontSize="7.5" fontFamily="sans-serif">Duel track Pixel Panic, ada yang berani?</text>
+
+          {/* Chat Bubble 2 */}
+          <rect x="10" y="68" width="220" height="46" rx="6" fill="#0c1224" stroke="#1c2b4d" />
+          <circle cx="28" cy="91" r="10" fill="#00ff88" />
+          <text x="44" y="84" fill="#ffe500" fontSize="7.5" fontWeight="bold" fontFamily="Orbitron">RhythmMaster [Lv.99]</text>
+          <text x="44" y="98" fill="#e2e8f0" fontSize="7.5" fontFamily="sans-serif">Gaskeun! Baru cetak All Perfect Combo!</text>
         </svg>
       );
     }
@@ -204,12 +207,16 @@ export default function MainMenu() {
     return (
       <svg viewBox="0 0 240 130" className="guide-card-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect width="240" height="130" rx="8" fill="#060814" />
-        <rect x="30" y="55" width="50" height="55" rx="4" fill="#12182b" stroke="#00f0ff" strokeWidth="1" />
-        <text x="55" y="85" fill="#00f0ff" fontSize="16" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">#2</text>
-        <rect x="95" y="35" width="50" height="75" rx="4" fill="#1c182b" stroke="#ffe500" strokeWidth="1.5" />
-        <text x="120" y="70" fill="#ffe500" fontSize="20" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">👑#1</text>
-        <rect x="160" y="65" width="50" height="45" rx="4" fill="#12182b" stroke="#ff2d78" strokeWidth="1" />
-        <text x="185" y="90" fill="#ff2d78" fontSize="14" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">#3</text>
+        {/* Podium 2 */}
+        <rect x="28" y="56" width="54" height="56" rx="4" fill="#12182b" stroke="#00f0ff" strokeWidth="1.5" />
+        <text x="55" y="88" fill="#00f0ff" fontSize="16" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">#2</text>
+        {/* Podium 1 (Winner with Vector Crown) */}
+        <rect x="93" y="38" width="54" height="74" rx="4" fill="#1c182b" stroke="#ffe500" strokeWidth="1.5" />
+        <path d="M107 48 L113 54 L120 45 L127 54 L133 48 L131 58 L109 58 Z" fill="#ffe500" />
+        <text x="120" y="78" fill="#ffe500" fontSize="18" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">#1</text>
+        {/* Podium 3 */}
+        <rect x="158" y="66" width="54" height="46" rx="4" fill="#12182b" stroke="#ff2d78" strokeWidth="1.5" />
+        <text x="185" y="92" fill="#ff2d78" fontSize="15" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">#3</text>
         <text x="120" y="24" fill="#00ffcc" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">GLOBAL 4-TAB RANKING</text>
       </svg>
     );
