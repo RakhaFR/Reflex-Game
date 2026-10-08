@@ -136,8 +136,8 @@ function GameArenaInner() {
   const [judgeText, setJudgeText] = useState<{ text: string; cls: string; key: number } | null>(
     null
   );
-  const [pressedKey, setPressedKey] = useState<string | null>(null);
-  const [pressedLaneIdx, setPressedLaneIdx] = useState<number | null>(null);
+  const [pressedKeys, setPressedKeys] = useState<{ [k: string]: boolean }>({});
+  const [pressedLanes, setPressedLanes] = useState<{ [lane: number]: boolean }>({});
   const [audioClockSec, setAudioClockSec] = useState<number>(0);
   const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
 
@@ -573,11 +573,13 @@ function GameArenaInner() {
         triggerParticles(note.x, note.y, note.type.color);
       }
 
-      // Mark note as exiting & remove
+      // Mark note as exiting synchronously in ref and React state
+      note.isExiting = true;
       setActiveNotes((prev) =>
         prev.map((n) => (n.id === note.id ? { ...n, isExiting: true } : n))
       );
       setTimeout(() => {
+        activeNotesRef.current = activeNotesRef.current.filter((n) => n.id !== note.id);
         setActiveNotes((prev) => prev.filter((n) => n.id !== note.id));
       }, 150);
     },
@@ -982,8 +984,8 @@ function GameArenaInner() {
       const laneKey = keys[laneIdx];
       if (!laneKey) return;
 
-      setPressedLaneIdx(laneIdx);
-      setTimeout(() => setPressedLaneIdx((curr) => (curr === laneIdx ? null : curr)), 120);
+      setPressedLanes((prev) => ({ ...prev, [laneIdx]: true }));
+      setTimeout(() => setPressedLanes((prev) => ({ ...prev, [laneIdx]: false })), 120);
 
       // Find earliest active note in this lane
       const laneNotes = activeNotesRef.current
@@ -1029,8 +1031,8 @@ function GameArenaInner() {
       if (!runningRef.current || pausedRef.current) return;
 
       const k = e.key.toLowerCase();
-      setPressedKey(k);
-      setTimeout(() => setPressedKey(null), 120);
+      setPressedKeys((prev) => ({ ...prev, [k]: true }));
+      setTimeout(() => setPressedKeys((prev) => ({ ...prev, [k]: false })), 120);
 
       const keys =
         Array.isArray(profileRef.current.settings?.keybinds) &&
@@ -1039,8 +1041,8 @@ function GameArenaInner() {
           : ["q", "w", "e", "r"];
       const laneIdx = keys.indexOf(k);
       if (laneIdx >= 0) {
-        setPressedLaneIdx(laneIdx);
-        setTimeout(() => setPressedLaneIdx((curr) => (curr === laneIdx ? null : curr)), 120);
+        setPressedLanes((prev) => ({ ...prev, [laneIdx]: true }));
+        setTimeout(() => setPressedLanes((prev) => ({ ...prev, [laneIdx]: false })), 120);
       }
 
       handleNoteClickOrKey(k);
@@ -1219,7 +1221,7 @@ function GameArenaInner() {
               {keybinds.map((k, idx) => (
                 <div
                   key={idx}
-                  className={`bm-lane-column ${pressedLaneIdx === idx || pressedKey === k ? "pressed" : ""}`}
+                  className={`bm-lane-column ${pressedLanes[idx] || pressedKeys[k] ? "pressed" : ""}`}
                   onTouchStart={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
@@ -1238,7 +1240,7 @@ function GameArenaInner() {
               {/* Target Receptors Bar */}
               <div className="bm-lanes-receptors-bar">
                 {keybinds.map((k, idx) => {
-                  const isPressed = pressedLaneIdx === idx || pressedKey === k;
+                  const isPressed = pressedLanes[idx] || pressedKeys[k];
                   return (
                     <div key={idx} className="bm-lane-receptor-slot">
                       <div className={`bm-lane-receptor ${isPressed ? "hit-flash" : ""}`}>
@@ -1277,9 +1279,21 @@ function GameArenaInner() {
                       {
                         left: `${lanePct}%`,
                         top: `${topPos}%`,
+                        cursor: "pointer",
+                        pointerEvents: "auto",
                         "--nc": note.type.color,
                       } as React.CSSProperties
                     }
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      handleNoteClickOrKey(note.id, true);
+                    }}
+                    onPointerDown={(e) => {
+                      if (e.pointerType === "touch") return;
+                      e.stopPropagation();
+                      handleNoteClickOrKey(note.id, true);
+                    }}
                   >
                     {note.key.toUpperCase()}
                   </div>
@@ -1398,7 +1412,7 @@ function GameArenaInner() {
               <div
                 key={idx}
                 id={`bmChip-${k}`}
-                className={`bm-key-chip ${pressedKey === k ? "pressed" : ""}`}
+                className={`bm-key-chip ${pressedKeys[k] ? "pressed" : ""}`}
               >
                 {k.toUpperCase()}
               </div>
