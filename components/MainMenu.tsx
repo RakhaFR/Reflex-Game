@@ -114,7 +114,7 @@ export default function MainMenu() {
         {/* BRANDING TITLE */}
         <header className="menu-header">
           <div className="brand-box">
-            <span className="splash-text">ALPHA BUILD!</span>
+            <span className="splash-text">BETA BUILD!</span>
             <h1 className="game-title-main">
               REFLEX<span className="accent">RHYTHM</span>
             </h1>
