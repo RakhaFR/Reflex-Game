@@ -2205,7 +2205,7 @@ export default function Lobby() {
                       </div>
                     </div>
 
-                    <div className="settings-blueprint-card">
+                    <div className="settings-blueprint-card span-2">
                       <div className="card-blueprint-title">// MASCOT COMPANION</div>
                       <div className="setting-blueprint-row">
                         <span>Mascot Reactions</span>
@@ -2217,7 +2217,7 @@ export default function Lobby() {
                           {profile.settings.mascotEnabled !== false ? "ON" : "OFF"}
                         </button>
                       </div>
-                      <div style={{ marginTop: "6px" }}>
+                      <div style={{ marginTop: "8px" }}>
                         <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>
                           Select Character:
                         </span>
@@ -2266,7 +2266,7 @@ export default function Lobby() {
                       </div>
                     </div>
 
-                    <div className="settings-blueprint-card">
+                    <div className="settings-blueprint-card span-2">
                       <div className="card-blueprint-title">// GAMEPLAY SCENARIO</div>
                       <div className="playstyle-select-grid">
                         <div
@@ -2278,6 +2278,7 @@ export default function Lobby() {
                               settings: {
                                 ...profile.settings,
                                 playStyle: "arena" as "arena" | "lanes",
+                                mouseClickEnabled: true,
                               },
                             };
                             setProfile(updated);
@@ -2290,11 +2291,29 @@ export default function Lobby() {
                               <i className="fa-solid fa-check"></i>
                             </div>
                           )}
-                          <div className="playstyle-card-title">
-                            <i className="fa-solid fa-bullseye mr-1"></i> FREE ARENA
+                          <div className="playstyle-preview-svg">
+                            <svg width="88" height="60" viewBox="0 0 88 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect width="88" height="60" fill="#050714" />
+                              <circle cx="44" cy="30" r="24" stroke="#00f0ff" strokeWidth="0.75" strokeDasharray="3 3" opacity="0.25" />
+                              <line x1="44" y1="4" x2="44" y2="56" stroke="#00f0ff" strokeWidth="0.5" opacity="0.15" />
+                              <line x1="4" y1="30" x2="84" y2="30" stroke="#00f0ff" strokeWidth="0.5" opacity="0.15" />
+                              <circle cx="18" cy="18" r="6" fill="#ff2d78" opacity="0.7" />
+                              <circle cx="18" cy="18" r="10" stroke="#ff2d78" strokeWidth="1" strokeDasharray="2 2" opacity="0.4" />
+                              <text x="18" y="21" fill="#fff" fontSize="6" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">Q</text>
+                              <circle cx="56" cy="36" r="17" stroke="#00f0ff" strokeWidth="1.5" opacity="0.8" />
+                              <circle cx="56" cy="36" r="9" fill="#00f0ff" />
+                              <circle cx="56" cy="36" r="6" fill="#050714" />
+                              <text x="56" y="39" fill="#00f0ff" fontSize="7" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">W</text>
+                            </svg>
                           </div>
-                          <div className="playstyle-card-desc">
-                            Osu-style bebas 2D dengan ring menyusut di seluruh area arena.
+                          <div className="playstyle-card-info">
+                            <div className="playstyle-card-title">
+                              <i className="fa-solid fa-bullseye mr-1"></i> FREE ARENA
+                            </div>
+                            <div className="playstyle-card-tag">2D DYNAMIC REFLEX</div>
+                            <div className="playstyle-card-desc">
+                              Osu-style bebas 2D dengan ring menyusut di seluruh area arena.
+                            </div>
                           </div>
                         </div>
 
@@ -2307,6 +2326,7 @@ export default function Lobby() {
                               settings: {
                                 ...profile.settings,
                                 playStyle: "lanes" as "arena" | "lanes",
+                                mouseClickEnabled: false,
                               },
                             };
                             setProfile(updated);
@@ -2319,11 +2339,34 @@ export default function Lobby() {
                               <i className="fa-solid fa-check"></i>
                             </div>
                           )}
-                          <div className="playstyle-card-title">
-                            <i className="fa-solid fa-bars-progress mr-1"></i> VERTICAL 4-LANE
+                          <div className="playstyle-preview-svg">
+                            <svg width="88" height="60" viewBox="0 0 88 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect width="88" height="60" fill="#050714" />
+                              <line x1="22" y1="0" x2="22" y2="60" stroke="#ffffff" strokeWidth="0.5" opacity="0.15" />
+                              <line x1="44" y1="0" x2="44" y2="60" stroke="#ffffff" strokeWidth="0.5" opacity="0.15" />
+                              <line x1="66" y1="0" x2="66" y2="60" stroke="#ffffff" strokeWidth="0.5" opacity="0.15" />
+                              <circle cx="11" cy="12" r="7" stroke="#ffffff" strokeWidth="1.5" fill="rgba(255,255,255,0.08)" />
+                              <text x="11" y="15" fill="#fff" fontSize="7" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">Q</text>
+                              <circle cx="33" cy="12" r="7" stroke="#ffffff" strokeWidth="1.5" fill="rgba(255,255,255,0.08)" />
+                              <text x="33" y="15" fill="#fff" fontSize="7" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">W</text>
+                              <circle cx="55" cy="12" r="7" stroke="#00f0ff" strokeWidth="1.5" fill="rgba(0,240,255,0.25)" />
+                              <text x="55" y="15" fill="#00f0ff" fontSize="7" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">E</text>
+                              <circle cx="77" cy="12" r="7" stroke="#ffffff" strokeWidth="1.5" fill="rgba(255,255,255,0.08)" />
+                              <text x="77" y="15" fill="#fff" fontSize="7" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">R</text>
+                              <circle cx="11" cy="46" r="5" fill="#00ff88" />
+                              <circle cx="33" cy="30" r="5" fill="#ffe500" />
+                              <circle cx="55" cy="12" r="5" fill="#00f0ff" opacity="0.9" />
+                              <circle cx="77" cy="40" r="5" fill="#00ff88" />
+                            </svg>
                           </div>
-                          <div className="playstyle-card-desc">
-                            Mania-style 4 kolom berurutan dengan receptor & multi-touch HP.
+                          <div className="playstyle-card-info">
+                            <div className="playstyle-card-title">
+                              <i className="fa-solid fa-bars-progress mr-1"></i> VERTICAL 4-LANE
+                            </div>
+                            <div className="playstyle-card-tag">MANIA HIGHWAY & MULTI-TOUCH</div>
+                            <div className="playstyle-card-desc">
+                              4 kolom jalur berurutan dengan receptor & multi-touch HP.
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -2355,7 +2398,7 @@ export default function Lobby() {
                               <i
                                 className={`fa-solid ${(profile.settings as any)?.scrollDirection === "downscroll" ? "fa-arrow-down" : "fa-arrow-up"} mr-1`}
                               ></i>
-                              {(profile.settings as any)?.scrollDirection === "downscroll" ? "DOWNSCROLL" : "UPSCROLL"}
+                              {(profile.settings as any)?.scrollDirection === "downscroll" ? "DOWNSCROLL (KE BAWAH)" : "UPSCROLL (KE ATAS)"}
                             </button>
                           </div>
                         </div>
@@ -2366,14 +2409,29 @@ export default function Lobby() {
                       <div className="settings-blueprint-card" id="mouseClickToggleCard">
                         <div className="card-blueprint-title">// GAMEPLAY INPUT</div>
                         <div className="setting-blueprint-row">
-                          <span>Mouse Click</span>
+                          <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span>Mouse Click</span>
+                            {((profile.settings as any)?.playStyle || "arena") === "lanes" && (
+                              <span style={{ fontSize: "8px", color: "#ff9f43", marginTop: "2px" }}>
+                                (Otomatis dinonaktifkan di mode 4-Lane)
+                              </span>
+                            )}
+                          </div>
                           <button
                             type="button"
                             id="mouseClickToggleBtn"
-                            className={`toggle-blueprint-btn ${profile.settings.mouseClickEnabled ? "on" : "off"}`}
-                            onClick={() => handleToggleSetting("mouseClickEnabled")}
+                            disabled={((profile.settings as any)?.playStyle || "arena") === "lanes"}
+                            style={{
+                              opacity: ((profile.settings as any)?.playStyle || "arena") === "lanes" ? 0.4 : 1,
+                              cursor: ((profile.settings as any)?.playStyle || "arena") === "lanes" ? "not-allowed" : "pointer",
+                            }}
+                            className={`toggle-blueprint-btn ${profile.settings.mouseClickEnabled && ((profile.settings as any)?.playStyle || "arena") !== "lanes" ? "on" : "off"}`}
+                            onClick={() => {
+                              if (((profile.settings as any)?.playStyle || "arena") === "lanes") return;
+                              handleToggleSetting("mouseClickEnabled");
+                            }}
                           >
-                            {profile.settings.mouseClickEnabled ? "ON" : "OFF"}
+                            {profile.settings.mouseClickEnabled && ((profile.settings as any)?.playStyle || "arena") !== "lanes" ? "ON" : "OFF"}
                           </button>
                         </div>
                       </div>
@@ -2381,7 +2439,7 @@ export default function Lobby() {
                   </div>
 
                   {!isTouchDevice && (
-                    <div className="settings-blueprint-card" style={{ marginTop: "14px" }}>
+                    <div className="settings-blueprint-card span-2" style={{ marginTop: "14px" }}>
                       <div className="card-blueprint-title">
                         // GAMEPLAY KEYBINDS <span style={{ fontSize: "10px", color: "#52638a", fontWeight: 400 }}>(4 KEYS)</span>
                       </div>
