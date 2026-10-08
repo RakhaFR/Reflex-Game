@@ -40,6 +40,7 @@ import { buildRhythmChart, ScheduledRhythmBeat } from "@/lib/rhythmDifficulty";
 interface ActiveNote {
   id: string;
   zoneIdx: number;
+  laneIdx?: number;
   x: number;
   y: number;
   key: string;
@@ -50,6 +51,30 @@ interface ActiveNote {
   windowMs: number;
   isExiting?: boolean;
 }
+
+const MASCOT_ASSETS: Record<string, Record<string, string>> = {
+  kamia: {
+    idle: "/assets/picture/kamia/kamia-happy.png",
+    perfect: "/assets/picture/kamia/kamia-spirit.png",
+    good: "/assets/picture/kamia/kamia-happy.png",
+    ok: "/assets/picture/kamia/kamia-know.png",
+    miss: "/assets/picture/kamia/kamia-cry.png",
+  },
+  ocean: {
+    idle: "/assets/picture/ocean/ocean-happy.png",
+    perfect: "/assets/picture/ocean/ocean-spirit.png",
+    good: "/assets/picture/ocean/ocean-happy.png",
+    ok: "/assets/picture/ocean/ocean-know.png",
+    miss: "/assets/picture/ocean/ocean-sad.png",
+  },
+  silia: {
+    idle: "/assets/picture/silia/silia-hope.png",
+    perfect: "/assets/picture/silia/silia-wow.png",
+    good: "/assets/picture/silia/silia-spirit.png",
+    ok: "/assets/picture/silia/silia-flat.png",
+    miss: "/assets/picture/silia/silia-sad.png",
+  },
+};
 
 interface Particle {
   x: number;
@@ -112,7 +137,52 @@ function GameArenaInner() {
     null
   );
   const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const [pressedLaneIdx, setPressedLaneIdx] = useState<number | null>(null);
+  const [audioClockSec, setAudioClockSec] = useState<number>(0);
   const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
+
+  // ── Mascot Companion Reaction State ─────────────────────────
+  const [mascotReaction, setMascotReaction] = useState<{
+    emotion: "idle" | "perfect" | "good" | "ok" | "miss";
+    animCls: string;
+    speech: string | null;
+    id: number;
+  }>({
+    emotion: "idle",
+    animCls: "idle",
+    speech: null,
+    id: 0,
+  });
+  const mascotTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const triggerMascotReaction = useCallback(
+    (emotion: "perfect" | "good" | "ok" | "miss", speechText?: string) => {
+      if (mascotTimerRef.current) clearTimeout(mascotTimerRef.current);
+      setMascotReaction({
+        emotion,
+        animCls: `anim-${emotion}`,
+        speech:
+          speechText ||
+          (emotion === "perfect"
+            ? "PERFECT!"
+            : emotion === "good"
+            ? "NICE!"
+            : emotion === "ok"
+            ? "OK~"
+            : "OUCH!"),
+        id: Date.now(),
+      });
+      mascotTimerRef.current = setTimeout(() => {
+        setMascotReaction({
+          emotion: "idle",
+          animCls: "idle",
+          speech: null,
+          id: Date.now(),
+        });
+      }, 1000);
+    },
+    []
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -392,10 +462,12 @@ function GameArenaInner() {
         }
 
         const key = freeKeys[i];
+        const laneIdx = keys.indexOf(key) >= 0 ? keys.indexOf(key) : i % 4;
 
         newWave.push({
           id: `note-${hitTimestamp.toFixed(2)}-${i}-${Math.random().toString(36).substring(2, 6)}`,
           zoneIdx: zone.idx,
+          laneIdx,
           x: zone.x,
           y: zone.y,
           key,
@@ -431,6 +503,7 @@ function GameArenaInner() {
         totalWrongClicksRef.current += 1;
         recordNoteMissOrWrong(mode);
         showJudge("WRONG!", "bm-j-wrong bm-j-pop");
+        triggerMascotReaction("miss", "WRONG!");
         return;
       }
 
@@ -444,6 +517,7 @@ function GameArenaInner() {
         totalWrongClicksRef.current += 1;
         recordNoteMissOrWrong(mode);
         showJudge("WRONG!", "bm-j-wrong bm-j-pop");
+        triggerMascotReaction("miss", "OUCH!");
         triggerParticles(note.x, note.y, "#ff4444");
       } else if (audioSec > note.expireTime) {
         // Note hit late (expired) -> MISS & reset combo
@@ -452,6 +526,7 @@ function GameArenaInner() {
         totalWrongClicksRef.current += 1;
         recordNoteMissOrWrong(mode);
         showJudge("MISS", "bm-j-miss bm-j-pop");
+        triggerMascotReaction("miss", "MISS!");
         triggerParticles(note.x, note.y, "#ff4444");
       } else {
         const isBonus = note.type.id === "bonus";
@@ -463,14 +538,17 @@ function GameArenaInner() {
           multiplier = 2.0;
           judgeStr = "PERFECT!";
           judgeCls = "bm-j-perfect";
+          triggerMascotReaction("perfect", "PERFECT!!");
         } else if (deltaMs <= diff.goodMs) {
           multiplier = 1.2;
           judgeStr = "GOOD";
           judgeCls = "bm-j-good";
+          triggerMascotReaction("good", "NICE!");
         } else {
           multiplier = 0.8;
           judgeStr = "OK";
           judgeCls = "bm-j-good";
+          triggerMascotReaction("ok", "OK~");
         }
 
         const currentC = currentComboRef.current;
@@ -693,6 +771,7 @@ function GameArenaInner() {
 
     if (!pausedRef.current && trackAudioRef.current) {
       const audioSec = trackAudioRef.current.currentTime || 0;
+      setAudioClockSec(audioSec);
       const totalDur = currentTrackRef.current.duration || 60;
       const remain = Math.max(0, Math.ceil(totalDur - audioSec));
       setTimeLeft(remain);
@@ -724,6 +803,7 @@ function GameArenaInner() {
           if (note.type.id === "avoid") {
             // Avoid note successfully expired!
             showJudge("NICE!", "bm-j-nice bm-j-pop");
+            triggerMascotReaction("good", "DODGED!");
             triggerParticles(note.x, note.y, "#00ff88");
           } else {
             // Regular note missed
@@ -732,6 +812,7 @@ function GameArenaInner() {
             totalWrongClicksRef.current += 1;
             recordNoteMissOrWrong(modeParamRef.current);
             showJudge("MISS", "bm-j-miss bm-j-pop");
+            triggerMascotReaction("miss", "MISS!");
             triggerParticles(note.x, note.y, "#ff4444");
           }
         });
@@ -889,6 +970,35 @@ function GameArenaInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Lane Column Press Handler (Touch & Click) ─────────────
+  const handleLanePress = useCallback(
+    (laneIdx: number) => {
+      if (!runningRef.current || pausedRef.current) return;
+      const keys =
+        Array.isArray(profileRef.current.settings?.keybinds) &&
+        profileRef.current.settings.keybinds.length >= 4
+          ? profileRef.current.settings.keybinds.slice(0, 4).map((kb) => kb.toLowerCase())
+          : ["q", "w", "e", "r"];
+      const laneKey = keys[laneIdx];
+      if (!laneKey) return;
+
+      setPressedLaneIdx(laneIdx);
+      setTimeout(() => setPressedLaneIdx((curr) => (curr === laneIdx ? null : curr)), 120);
+
+      // Find earliest active note in this lane
+      const laneNotes = activeNotesRef.current
+        .filter((n) => !n.isExiting && (n.laneIdx === laneIdx || n.key === laneKey))
+        .sort((a, b) => a.hitTimestamp - b.hitTimestamp);
+
+      if (laneNotes.length > 0) {
+        handleNoteClickOrKey(laneNotes[0].id, true);
+      } else {
+        handleNoteClickOrKey(laneKey, false);
+      }
+    },
+    [handleNoteClickOrKey]
+  );
+
   // ── Keyboard Listener ──────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -922,6 +1032,17 @@ function GameArenaInner() {
       setPressedKey(k);
       setTimeout(() => setPressedKey(null), 120);
 
+      const keys =
+        Array.isArray(profileRef.current.settings?.keybinds) &&
+        profileRef.current.settings.keybinds.length >= 4
+          ? profileRef.current.settings.keybinds.slice(0, 4).map((kb) => kb.toLowerCase())
+          : ["q", "w", "e", "r"];
+      const laneIdx = keys.indexOf(k);
+      if (laneIdx >= 0) {
+        setPressedLaneIdx(laneIdx);
+        setTimeout(() => setPressedLaneIdx((curr) => (curr === laneIdx ? null : curr)), 120);
+      }
+
       handleNoteClickOrKey(k);
     };
 
@@ -944,6 +1065,13 @@ function GameArenaInner() {
     (f) => f.id === (profile.settings as any)?.keybindFont
   ) || KEYBIND_FONTS[0];
   const activeKeyFont = selectedFontObj.fontFamily;
+
+  const playStyle = (profile.settings as any)?.playStyle || "arena";
+  const scrollDirection = (profile.settings as any)?.scrollDirection || "upscroll";
+  const mascotEnabled = (profile.settings as any)?.mascotEnabled !== false;
+  const mascotChar = ((profile.settings as any)?.mascotCharacter || "kamia") as "kamia" | "ocean" | "silia";
+  const mascotAssets = MASCOT_ASSETS[mascotChar] || MASCOT_ASSETS.kamia;
+  const mascotImgSrc = mascotAssets[mascotReaction.emotion] || mascotAssets.idle;
 
   return (
     <>
@@ -1084,48 +1212,145 @@ function GameArenaInner() {
           </div>
         </div>
 
-        {/* NOTE ARENA */}
-        <div
-          id="bmArena"
-          style={{
-            position: "fixed",
-            inset: "72px 0 80px 0",
-            zIndex: 10,
-            pointerEvents: "auto",
-            touchAction: "none",
-          }}
-        >
-          {activeNotes.map((note) => (
-            <div
-              key={note.id}
-              className={`bm-note ${note.isExiting ? "bm-note-exit" : ""}`}
-              style={
-                {
-                  left: `${note.x}%`,
-                  top: `${note.y}%`,
-                  cursor: "pointer",
-                  pointerEvents: "auto",
-                  "--nc": note.type.color,
-                  "--rc": note.type.ring,
-                  "--dur": `${note.windowMs}ms`,
-                } as React.CSSProperties
-              }
-              onTouchStart={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                handleNoteClickOrKey(note.id, true);
-              }}
-              onPointerDown={(e) => {
-                if (e.pointerType === "touch") return; // Avoid double triggering since onTouchStart handled it
-                e.stopPropagation();
-                handleNoteClickOrKey(note.id, true);
-              }}
-            >
-              {!isTouchDevice && <span className="bm-key-label">{note.key.toUpperCase()}</span>}
-              <div className="bm-ring"></div>
+        {/* GAMEPLAY LAYOUT: VERTICAL 4-LANE (MANIA STYLE) vs FREE ARENA */}
+        {playStyle === "lanes" ? (
+          <div className={`bm-lanes-stage ${scrollDirection}`}>
+            <div className="bm-lanes-highway">
+              {keybinds.map((k, idx) => (
+                <div
+                  key={idx}
+                  className={`bm-lane-column ${pressedLaneIdx === idx || pressedKey === k ? "pressed" : ""}`}
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleLanePress(idx);
+                  }}
+                  onPointerDown={(e) => {
+                    if (e.pointerType === "touch") return; // Handled by onTouchStart for multi-touch
+                    e.stopPropagation();
+                    handleLanePress(idx);
+                  }}
+                >
+                  <div className="bm-lane-beam"></div>
+                </div>
+              ))}
+
+              {/* Target Receptors Bar */}
+              <div className="bm-lanes-receptors-bar">
+                {keybinds.map((k, idx) => {
+                  const isPressed = pressedLaneIdx === idx || pressedKey === k;
+                  return (
+                    <div key={idx} className="bm-lane-receptor-slot">
+                      <div className={`bm-lane-receptor ${isPressed ? "hit-flash" : ""}`}>
+                        {k.toUpperCase()}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Dynamic Lane Notes */}
+              {activeNotes.map((note) => {
+                const lane =
+                  note.laneIdx !== undefined && note.laneIdx >= 0 && note.laneIdx < 4
+                    ? note.laneIdx
+                    : keybinds.indexOf(note.key) >= 0
+                    ? keybinds.indexOf(note.key)
+                    : 0;
+                const lanePct = (lane + 0.5) * 25; // 12.5%, 37.5%, 62.5%, 87.5%
+                const timeRemaining = note.hitTimestamp - audioClockSec;
+                const totalDuration = note.windowMs / 1000;
+                const progress = Math.max(0, Math.min(1.2, 1 - timeRemaining / totalDuration));
+
+                // Upscroll: starts at 88%, moves to 10% (top receptor)
+                // Downscroll: starts at 10%, moves to 88% (bottom receptor)
+                const topPos =
+                  scrollDirection === "upscroll"
+                    ? (1 - progress) * 76 + 10
+                    : progress * 76 + 10;
+
+                return (
+                  <div
+                    key={note.id}
+                    className={`bm-lane-note ${note.isExiting ? "bm-note-exit" : ""}`}
+                    style={
+                      {
+                        left: `${lanePct}%`,
+                        top: `${topPos}%`,
+                        "--nc": note.type.color,
+                      } as React.CSSProperties
+                    }
+                  >
+                    {note.key.toUpperCase()}
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          /* FREE ARENA MODE (OSU-STYLE) */
+          <div
+            id="bmArena"
+            style={{
+              position: "fixed",
+              inset: "72px 0 80px 0",
+              zIndex: 10,
+              pointerEvents: "auto",
+              touchAction: "none",
+            }}
+          >
+            {activeNotes.map((note) => (
+              <div
+                key={note.id}
+                className={`bm-note ${note.isExiting ? "bm-note-exit" : ""}`}
+                style={
+                  {
+                    left: `${note.x}%`,
+                    top: `${note.y}%`,
+                    cursor: "pointer",
+                    pointerEvents: "auto",
+                    "--nc": note.type.color,
+                    "--rc": note.type.ring,
+                    "--dur": `${note.windowMs}ms`,
+                  } as React.CSSProperties
+                }
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleNoteClickOrKey(note.id, true);
+                }}
+                onPointerDown={(e) => {
+                  if (e.pointerType === "touch") return; // Avoid double triggering since onTouchStart handled it
+                  e.stopPropagation();
+                  handleNoteClickOrKey(note.id, true);
+                }}
+              >
+                {!isTouchDevice && <span className="bm-key-label">{note.key.toUpperCase()}</span>}
+                <div className="bm-ring"></div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* MASCOT COMPANION WIDGET (BOTTOM-LEFT) */}
+        {mascotEnabled && (
+          <div className="bm-companion-container">
+            <div className="bm-companion-avatar-wrap">
+              {mascotReaction.speech && (
+                <div key={mascotReaction.id} className="bm-companion-bubble">
+                  {mascotReaction.speech}
+                </div>
+              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={`${mascotChar}-${mascotReaction.animCls}`}
+                src={mascotImgSrc}
+                alt={mascotChar}
+                className={`bm-companion-img ${mascotReaction.animCls}`}
+              />
+            </div>
+          </div>
+        )}
 
         {/* JUDGE TEXT */}
         {judgeText && (

@@ -1523,6 +1523,18 @@
   #bmArena {
     inset: 58px 0 68px 0;
   }
+  .bm-lanes-stage {
+    top: 56px;
+    max-width: 400px;
+  }
+  .bm-companion-container {
+    bottom: 14px;
+    left: 16px;
+  }
+  .bm-companion-avatar-wrap {
+    width: 96px;
+    height: 96px;
+  }
   #bmKeyLegend {
     height: 62px;
     padding-bottom: 8px;
@@ -1590,6 +1602,34 @@
   }
   #bmArena {
     inset: 46px 0 54px 0;
+  }
+  .bm-lanes-stage {
+    top: 44px;
+    max-width: 320px;
+  }
+  .bm-lane-receptor {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+    border-width: 2px;
+  }
+  .bm-lane-note {
+    width: 38px;
+    height: 38px;
+    font-size: 13px;
+  }
+  .bm-companion-container {
+    bottom: 6px;
+    left: 8px;
+  }
+  .bm-companion-avatar-wrap {
+    width: 68px;
+    height: 68px;
+  }
+  .bm-companion-bubble {
+    font-size: 8px;
+    padding: 2px 6px;
+    top: -10px;
   }
   #bmKeyLegend {
     height: 50px;

@@ -658,3 +658,316 @@
     0 0 28px rgba(255, 200, 0, 0.9),
     0 0 60px rgba(255, 80, 0, 0.4);
 }
+
+/* ==========================================================================
+   REFLEXRHYTHM — MASCOT COMPANION & 4-LANE VERTICAL TRACK
+   ========================================================================== */
+
+/* ── Mascot Companion Widget (Bottom-Left) ── */
+.bm-companion-container {
+  position: fixed;
+  bottom: 24px;
+  left: 28px;
+  z-index: 25;
+  pointer-events: none;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.bm-companion-avatar-wrap {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
+}
+
+.bm-companion-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+/* Mascot Animation States */
+.bm-companion-img.idle {
+  animation: companionFloat 3s ease-in-out infinite;
+}
+
+.bm-companion-img.anim-perfect {
+  animation: companionPerfect 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.bm-companion-img.anim-good {
+  animation: companionGood 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.bm-companion-img.anim-ok {
+  animation: companionOk 0.6s ease-in-out forwards;
+}
+
+.bm-companion-img.anim-miss {
+  animation: companionMiss 0.65s ease-in-out forwards;
+}
+
+@keyframes companionFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-7px) rotate(1.5deg); }
+}
+
+@keyframes companionPerfect {
+  0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 0px #00f0ff); }
+  30% { transform: scale(1.2, 0.85) translateY(-26px) rotate(-4deg); filter: drop-shadow(0 0 18px rgba(0, 240, 255, 0.8)); }
+  60% { transform: scale(0.95, 1.08) translateY(-6px) rotate(2deg); filter: drop-shadow(0 0 12px rgba(255, 45, 120, 0.7)); }
+  100% { transform: scale(1) translateY(0) rotate(0deg); filter: drop-shadow(0 0 0px transparent); }
+}
+
+@keyframes companionGood {
+  0% { transform: scale(1) translateY(0); }
+  35% { transform: scale(1.12, 0.9) translateY(-16px) rotate(3deg); filter: drop-shadow(0 0 12px rgba(0, 255, 136, 0.7)); }
+  70% { transform: scale(0.98, 1.02) translateY(-3px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+@keyframes companionOk {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.04) rotate(-8deg); }
+  60% { transform: scale(0.98) rotate(6deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes companionMiss {
+  0% { transform: translate(0, 0) scale(1); }
+  20% { transform: translate(-10px, 4px) rotate(-6deg) scale(0.95); filter: drop-shadow(0 0 14px rgba(255, 68, 68, 0.8)); }
+  40% { transform: translate(10px, -3px) rotate(6deg) scale(0.92); }
+  60% { transform: translate(-6px, 6px) rotate(-4deg); }
+  80% { transform: translate(4px, 2px) rotate(2deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); filter: drop-shadow(0 0 0px transparent); }
+}
+
+/* Mascot Speech / Reaction Tag */
+.bm-companion-bubble {
+  position: absolute;
+  top: -14px;
+  right: -10px;
+  background: rgba(4, 4, 15, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 240, 255, 0.5);
+  color: #00f0ff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 12px;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  animation: bubblePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes bubblePop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Vertical 4-Lane Track (Mania Style) ── */
+.bm-lanes-stage {
+  position: absolute;
+  top: 72px;
+  bottom: 0px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  z-index: 15;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.bm-lanes-highway {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: linear-gradient(to bottom, rgba(4, 4, 10, 0.85), rgba(8, 8, 20, 0.65) 50%, rgba(4, 4, 10, 0.85));
+  border-left: 2px solid rgba(0, 240, 255, 0.25);
+  border-right: 2px solid rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(0, 240, 255, 0.05);
+  touch-action: none;
+}
+
+.bm-lane-column {
+  position: relative;
+  height: 100%;
+  border-right: 1px dashed rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bm-lane-column:last-child {
+  border-right: none;
+}
+
+.bm-lane-column.pressed {
+  background: linear-gradient(to bottom, rgba(0, 240, 255, 0.18), rgba(255, 45, 120, 0.08));
+}
+
+.bm-lane-beam {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 240, 255, 0.35), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.08s ease-out;
+}
+
+.bm-lane-column.pressed .bm-lane-beam {
+  opacity: 1;
+}
+
+/* Receptors (Target Circle Hit Zone) */
+.bm-lanes-receptors-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 80px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Upscroll: Receptors at top */
+.bm-lanes-stage.upscroll .bm-lanes-receptors-bar {
+  top: 18px;
+}
+
+/* Downscroll: Receptors at bottom */
+.bm-lanes-stage.downscroll .bm-lanes-receptors-bar {
+  bottom: 24px;
+}
+
+.bm-lane-receptor-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bm-lane-receptor {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 3.5px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--key-font, "Orbitron"), sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.3), inset 0 0 12px rgba(255, 255, 255, 0.2);
+  transition: transform 0.08s ease, border-color 0.08s ease, box-shadow 0.08s ease, background-color 0.08s ease;
+}
+
+.bm-lane-receptor.hit-flash {
+  transform: scale(1.18);
+  border-color: #00f0ff;
+  background: rgba(0, 240, 255, 0.35);
+  box-shadow: 0 0 30px #00f0ff, inset 0 0 20px #00f0ff;
+}
+
+/* Falling / Rising Lane Note */
+.bm-lane-note {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--nc, #00ff88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--key-font, "Orbitron"), sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #000;
+  box-shadow: 0 0 20px var(--nc, #00ff88), inset 0 0 10px rgba(255, 255, 255, 0.6);
+  z-index: 5;
+  pointer-events: none;
+  will-change: top, transform;
+}
+
+.bm-lane-note.bm-note-exit {
+  animation: laneNoteHitExplode 0.18s ease-out forwards;
+}
+
+@keyframes laneNoteHitExplode {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; filter: blur(4px); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .bm-companion-container {
+    bottom: 16px;
+    left: 14px;
+  }
+  .bm-companion-avatar-wrap {
+    width: 90px;
+    height: 90px;
+  }
+  .bm-lanes-stage {
+    max-width: 100%;
+    padding: 0 8px;
+  }
+  .bm-lane-receptor {
+    width: 54px;
+    height: 54px;
+    font-size: 18px;
+  }
+  .bm-lane-note {
+    width: 50px;
+    height: 50px;
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bm-companion-container {
+    bottom: 10px;
+    left: 8px;
+    opacity: 0.85;
+  }
+  .bm-companion-avatar-wrap {
+    width: 74px;
+    height: 74px;
+  }
+  .bm-lane-receptor {
+    width: 46px;
+    height: 46px;
+    font-size: 16px;
+    border-width: 2.5px;
+  }
+  .bm-lane-note {
+    width: 42px;
+    height: 42px;
+    font-size: 15px;
+  }
+}

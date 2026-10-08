@@ -729,6 +729,18 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
+    version: "v0.4.1 — Mascot Reactions & Vertical 4-Lane Track Scenario",
+    date: "08 OCT 2026",
+    badgeClass: "pink",
+    bannerImg: "/assets/picture/new-logo.png",
+    changes: [
+      { type: "add", text: "Interactive Mascot Reaction Companion: Maskot chibi anime di arena bermain (Kamia, Ocean, Silia) yang berekspresi real-time dengan animasi bouncing/shaking saat PERFECT, GOOD, OK, atau MISS." },
+      { type: "add", text: "Vertical 4-Lane Rhythm Track Mode (Mania-Style): Pilihan skenario gameplay jalur kolom vertikal dengan target hit receptor dan multi-touch support responsif di perangkat mobile & tablet landscape." },
+      { type: "add", text: "Reversible Scroll Direction: Kemampuan membalik arah jalur nada (Upscroll meluncur ke atas atau Downscroll jatuh ke bawah) pada mode 4-Lane." },
+      { type: "upd", text: "Settings Customizer Expansion: Pengaturan terpadu untuk memilih karakter maskot, toggle animasi ekspresi, play style scenario, dan arah scroll jalur." },
+    ],
+  },
+  {
     version: "v0.4.0 — Audio Beat Synchronizer & Rhythm Engine",
     date: "08 OCT 2026",
     badgeClass: "cyan",
@@ -932,5 +944,9 @@ export const PROFILE_DEFAULT = {
     mouseClickEnabled: true,
     keybinds: ["q", "w", "e", "r"],
     keybindFont: "orbitron",
+    mascotEnabled: true,
+    mascotCharacter: "kamia" as "kamia" | "ocean" | "silia",
+    playStyle: "arena" as "arena" | "lanes",
+    scrollDirection: "upscroll" as "upscroll" | "downscroll",
   },
 };

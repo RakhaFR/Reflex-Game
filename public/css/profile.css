@@ -1057,3 +1057,146 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ==========================================================================
+   SETTINGS — MASCOT & PLAY STYLE SELECTOR CARDS
+   ========================================================================== */
+.mascot-select-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.mascot-select-card {
+  position: relative;
+  background: #090c1b;
+  border: 1.5px solid #1a2238;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.mascot-select-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 45, 120, 0.5);
+  background: #0e142b;
+}
+
+.mascot-select-card.active {
+  background: linear-gradient(135deg, rgba(255, 45, 120, 0.12) 0%, rgba(14, 20, 43, 0.95) 100%);
+  border-color: #ff2d78;
+  box-shadow: 0 0 14px rgba(255, 45, 120, 0.35), inset 0 0 8px rgba(255, 45, 120, 0.15);
+}
+
+.mascot-select-thumb {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+.mascot-select-name {
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: 1px;
+}
+
+.mascot-select-card.active .mascot-select-name {
+  color: #ff2d78;
+  text-shadow: 0 0 8px rgba(255, 45, 120, 0.6);
+}
+
+.mascot-select-check {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #ff2d78;
+  color: #fff;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 6px rgba(255, 45, 120, 0.8);
+}
+
+/* Play Style Option Selector */
+.playstyle-select-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.playstyle-card {
+  position: relative;
+  background: #090c1b;
+  border: 1.5px solid #1a2238;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.playstyle-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 240, 255, 0.5);
+  background: #0e142b;
+}
+
+.playstyle-card.active {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(14, 20, 43, 0.95) 100%);
+  border-color: #00f0ff;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.35), inset 0 0 8px rgba(0, 240, 255, 0.15);
+}
+
+.playstyle-card-title {
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.playstyle-card.active .playstyle-card-title {
+  color: #00f0ff;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+}
+
+.playstyle-card-desc {
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.35;
+}
+
+.playstyle-select-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #00f0ff;
+  color: #000;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.8);
+}

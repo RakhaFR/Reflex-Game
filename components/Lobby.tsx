@@ -2205,6 +2205,163 @@ export default function Lobby() {
                       </div>
                     </div>
 
+                    <div className="settings-blueprint-card">
+                      <div className="card-blueprint-title">// MASCOT COMPANION</div>
+                      <div className="setting-blueprint-row">
+                        <span>Mascot Reactions</span>
+                        <button
+                          type="button"
+                          className={`toggle-blueprint-btn ${profile.settings.mascotEnabled !== false ? "on" : "off"}`}
+                          onClick={() => handleToggleSetting("mascotEnabled")}
+                        >
+                          {profile.settings.mascotEnabled !== false ? "ON" : "OFF"}
+                        </button>
+                      </div>
+                      <div style={{ marginTop: "6px" }}>
+                        <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>
+                          Select Character:
+                        </span>
+                        <div className="mascot-select-grid">
+                          {[
+                            { id: "kamia", label: "Kamia", img: "/assets/picture/kamia/kamia-happy.png" },
+                            { id: "ocean", label: "Ocean", img: "/assets/picture/ocean/ocean-happy.png" },
+                            { id: "silia", label: "Silia", img: "/assets/picture/silia/silia-hope.png" },
+                          ].map((char) => {
+                            const activeChar = (profile.settings as any)?.mascotCharacter || "kamia";
+                            const isSelected = activeChar === char.id;
+                            return (
+                              <div
+                                key={char.id}
+                                className={`mascot-select-card ${isSelected ? "active" : ""}`}
+                                onClick={() => {
+                                  playSfx("clickSound");
+                                  const updated = {
+                                    ...profile,
+                                    settings: {
+                                      ...profile.settings,
+                                      mascotCharacter: char.id as "kamia" | "ocean" | "silia",
+                                    },
+                                  };
+                                  setProfile(updated);
+                                  profileSave(updated);
+                                  if (authUser) syncLocalProfileToCloud(authUser, updated);
+                                }}
+                              >
+                                {isSelected && (
+                                  <div className="mascot-select-check">
+                                    <i className="fa-solid fa-check"></i>
+                                  </div>
+                                )}
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={char.img}
+                                  alt={char.label}
+                                  className="mascot-select-thumb"
+                                />
+                                <span className="mascot-select-name">{char.label}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="settings-blueprint-card">
+                      <div className="card-blueprint-title">// GAMEPLAY SCENARIO</div>
+                      <div className="playstyle-select-grid">
+                        <div
+                          className={`playstyle-card ${((profile.settings as any)?.playStyle || "arena") === "arena" ? "active" : ""}`}
+                          onClick={() => {
+                            playSfx("clickSound");
+                            const updated = {
+                              ...profile,
+                              settings: {
+                                ...profile.settings,
+                                playStyle: "arena" as "arena" | "lanes",
+                              },
+                            };
+                            setProfile(updated);
+                            profileSave(updated);
+                            if (authUser) syncLocalProfileToCloud(authUser, updated);
+                          }}
+                        >
+                          {((profile.settings as any)?.playStyle || "arena") === "arena" && (
+                            <div className="playstyle-select-check">
+                              <i className="fa-solid fa-check"></i>
+                            </div>
+                          )}
+                          <div className="playstyle-card-title">
+                            <i className="fa-solid fa-bullseye mr-1"></i> FREE ARENA
+                          </div>
+                          <div className="playstyle-card-desc">
+                            Osu-style bebas 2D dengan ring menyusut di seluruh area arena.
+                          </div>
+                        </div>
+
+                        <div
+                          className={`playstyle-card ${((profile.settings as any)?.playStyle || "arena") === "lanes" ? "active" : ""}`}
+                          onClick={() => {
+                            playSfx("clickSound");
+                            const updated = {
+                              ...profile,
+                              settings: {
+                                ...profile.settings,
+                                playStyle: "lanes" as "arena" | "lanes",
+                              },
+                            };
+                            setProfile(updated);
+                            profileSave(updated);
+                            if (authUser) syncLocalProfileToCloud(authUser, updated);
+                          }}
+                        >
+                          {((profile.settings as any)?.playStyle || "arena") === "lanes" && (
+                            <div className="playstyle-select-check">
+                              <i className="fa-solid fa-check"></i>
+                            </div>
+                          )}
+                          <div className="playstyle-card-title">
+                            <i className="fa-solid fa-bars-progress mr-1"></i> VERTICAL 4-LANE
+                          </div>
+                          <div className="playstyle-card-desc">
+                            Mania-style 4 kolom berurutan dengan receptor & multi-touch HP.
+                          </div>
+                        </div>
+                      </div>
+
+                      {((profile.settings as any)?.playStyle || "arena") === "lanes" && (
+                        <div style={{ marginTop: "12px", paddingTop: "10px", borderTop: "1px dashed rgba(255,255,255,0.1)" }}>
+                          <div className="setting-blueprint-row">
+                            <span>Scroll Direction (4-Lane)</span>
+                            <button
+                              type="button"
+                              className="toggle-blueprint-btn on"
+                              style={{ width: "auto", padding: "4px 12px" }}
+                              onClick={() => {
+                                playSfx("clickSound");
+                                const currentDir = (profile.settings as any)?.scrollDirection || "upscroll";
+                                const nextDir = currentDir === "upscroll" ? "downscroll" : "upscroll";
+                                const updated = {
+                                  ...profile,
+                                  settings: {
+                                    ...profile.settings,
+                                    scrollDirection: nextDir as "upscroll" | "downscroll",
+                                  },
+                                };
+                                setProfile(updated);
+                                profileSave(updated);
+                                if (authUser) syncLocalProfileToCloud(authUser, updated);
+                              }}
+                            >
+                              <i
+                                className={`fa-solid ${(profile.settings as any)?.scrollDirection === "downscroll" ? "fa-arrow-down" : "fa-arrow-up"} mr-1`}
+                              ></i>
+                              {(profile.settings as any)?.scrollDirection === "downscroll" ? "DOWNSCROLL" : "UPSCROLL"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     {!isTouchDevice && (
                       <div className="settings-blueprint-card" id="mouseClickToggleCard">
                         <div className="card-blueprint-title">// GAMEPLAY INPUT</div>
