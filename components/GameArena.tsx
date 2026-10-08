@@ -34,6 +34,8 @@ import {
   recordBestScoreToCloud,
   syncProfileMetaToBestScores,
 } from "@/lib/supabase";
+import { getOrAnalyzeTrackBeats } from "@/lib/beatDetector";
+import { buildRhythmChart, ScheduledRhythmBeat } from "@/lib/rhythmDifficulty";
 
 interface ActiveNote {
   id: string;
@@ -43,7 +45,8 @@ interface ActiveNote {
   key: string;
   type: NoteType;
   spawnTime: number;
-  expireTime: number;
+  hitTimestamp: number; // exact audio second
+  expireTime: number;   // audio second when expired
   windowMs: number;
   isExiting?: boolean;
 }
@@ -158,10 +161,10 @@ function GameArenaInner() {
 
   const trackAudioRef = useRef<HTMLAudioElement | null>(null);
   const bgVideoRef = useRef<HTMLVideoElement | null>(null);
-  const spawnTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const musicTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const checkExpireTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rhythmChartRef = useRef<ScheduledRhythmBeat[]>([]);
+  const nextChartIdxRef = useRef<number>(0);
+  const animGameLoopRef = useRef<number | null>(null);
   const particlesRef = useRef<Particle[]>([]);
   const particleCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const animParticleRef = useRef<number | null>(null);
@@ -329,8 +332,8 @@ function GameArenaInner() {
     setJudgeText({ text, cls, key: Date.now() + Math.random() });
   }, []);
 
-  // ── Spawn Wave of Notes ────────────────────────────────────
-  const spawnWave = useCallback(() => {
+  // ── Spawn Beat Wave from Rhythm Chart ──────────────────────
+  const spawnRhythmBeat = useCallback((beat: ScheduledRhythmBeat) => {
     if (!runningRef.current || pausedRef.current) return;
 
     const mode = modeParamRef.current;
@@ -338,24 +341,15 @@ function GameArenaInner() {
     const currentProf = profileRef.current;
     const notePool = mode === "notoriginal" ? NOM_NOTE_TYPES : BM_NOTE_TYPES;
 
-    const pickNoteType = (): NoteType => {
-      const totalWeight = notePool.reduce((s, n) => s + n.weight, 0);
-      let r = Math.random() * totalWeight;
-      for (const t of notePool) {
-        r -= t.weight;
-        if (r <= 0) return t;
-      }
-      return notePool[0];
-    };
-
     const keys =
       Array.isArray(currentProf.settings.keybinds) && currentProf.settings.keybinds.length >= 4
         ? currentProf.settings.keybinds.slice(0, 4).map((k) => k.toLowerCase())
         : ["q", "w", "e", "r"];
 
+    const audioSec = trackAudioRef.current?.currentTime || 0;
+
     setActiveNotes((prevNotes) => {
-      const now = performance.now();
-      const currentActive = prevNotes.filter((n) => !n.isExiting && now < n.expireTime);
+      const currentActive = prevNotes.filter((n) => !n.isExiting && audioSec < n.expireTime);
 
       // Determine available zones far enough from active notes
       const activePositions = currentActive.map((n) => ({ x: n.x, y: n.y }));
@@ -377,23 +371,38 @@ function GameArenaInner() {
       const usedKeys = new Set(currentActive.map((n) => n.key));
       const freeKeys = keys.filter((k) => !usedKeys.has(k));
 
-      const spawnCount = Math.min(diff.noteCount, shuffledZones.length, freeKeys.length);
+      const spawnCount = Math.min(beat.noteCount, shuffledZones.length, freeKeys.length);
+      if (spawnCount <= 0) return currentActive;
+
       const newWave: ActiveNote[] = [];
+      const nowPerf = performance.now();
+      const hitTimestamp = beat.hitTimestamp;
+      const expireTime = hitTimestamp + diff.goodMs / 1000;
 
       for (let i = 0; i < spawnCount; i++) {
         const zone = shuffledZones[i];
-        const type = pickNoteType();
+        let type: NoteType;
+
+        if (i === 0 && beat.hasAvoid) {
+          type = notePool.find((n) => n.id === "avoid") || notePool[0];
+        } else if (i === 0 && beat.hasBonus) {
+          type = notePool.find((n) => n.id === "bonus") || notePool[0];
+        } else {
+          type = notePool.find((n) => n.id === "hit") || notePool[0];
+        }
+
         const key = freeKeys[i];
 
         newWave.push({
-          id: `note-${now}-${Math.random().toString(36).substring(2, 7)}`,
+          id: `note-${hitTimestamp.toFixed(2)}-${i}-${Math.random().toString(36).substring(2, 6)}`,
           zoneIdx: zone.idx,
           x: zone.x,
           y: zone.y,
           key,
           type,
-          spawnTime: now,
-          expireTime: now + diff.windowMs,
+          spawnTime: nowPerf,
+          hitTimestamp,
+          expireTime,
           windowMs: diff.windowMs,
         });
       }
@@ -409,7 +418,7 @@ function GameArenaInner() {
 
       const diff = currentDiffRef.current;
       const mode = modeParamRef.current;
-      const now = performance.now();
+      const audioSec = trackAudioRef.current?.currentTime || 0;
 
       const currentNotes = activeNotesRef.current;
       const noteIdx = currentNotes.findIndex((n) =>
@@ -426,8 +435,7 @@ function GameArenaInner() {
       }
 
       const note = currentNotes[noteIdx];
-      const elapsed = now - note.spawnTime;
-      const remaining = note.expireTime - now;
+      const deltaMs = Math.abs(audioSec - note.hitTimestamp) * 1000;
 
       if (note.type.id === "avoid") {
         // Penalty for hitting avoid note
@@ -437,7 +445,7 @@ function GameArenaInner() {
         recordNoteMissOrWrong(mode);
         showJudge("WRONG!", "bm-j-wrong bm-j-pop");
         triggerParticles(note.x, note.y, "#ff4444");
-      } else if (remaining <= 0) {
+      } else if (audioSec > note.expireTime) {
         // Note hit late (expired) -> MISS & reset combo
         currentComboRef.current = 0;
         setCombo(0);
@@ -451,13 +459,17 @@ function GameArenaInner() {
         let judgeStr = "GOOD";
         let judgeCls = "bm-j-good";
 
-        if (elapsed <= diff.perfectMs) {
+        if (deltaMs <= diff.perfectMs) {
           multiplier = 2.0;
           judgeStr = "PERFECT!";
           judgeCls = "bm-j-perfect";
-        } else {
+        } else if (deltaMs <= diff.goodMs) {
           multiplier = 1.2;
           judgeStr = "GOOD";
+          judgeCls = "bm-j-good";
+        } else {
+          multiplier = 0.8;
+          judgeStr = "OK";
           judgeCls = "bm-j-good";
         }
 
@@ -497,17 +509,9 @@ function GameArenaInner() {
   // ── Finish Game (Show Results & Play Result Music) ────────
   const finishGame = useCallback(() => {
     runningRef.current = false;
-    if (spawnTimerRef.current) {
-      clearInterval(spawnTimerRef.current);
-      spawnTimerRef.current = null;
-    }
-    if (musicTimerRef.current) {
-      clearInterval(musicTimerRef.current);
-      musicTimerRef.current = null;
-    }
-    if (checkExpireTimerRef.current) {
-      clearInterval(checkExpireTimerRef.current);
-      checkExpireTimerRef.current = null;
+    if (animGameLoopRef.current) {
+      cancelAnimationFrame(animGameLoopRef.current);
+      animGameLoopRef.current = null;
     }
 
     if (trackAudioRef.current) {
@@ -638,17 +642,9 @@ function GameArenaInner() {
       clearTimeout(countdownTimeoutRef.current);
       countdownTimeoutRef.current = null;
     }
-    if (spawnTimerRef.current) {
-      clearInterval(spawnTimerRef.current);
-      spawnTimerRef.current = null;
-    }
-    if (musicTimerRef.current) {
-      clearInterval(musicTimerRef.current);
-      musicTimerRef.current = null;
-    }
-    if (checkExpireTimerRef.current) {
-      clearInterval(checkExpireTimerRef.current);
-      checkExpireTimerRef.current = null;
+    if (animGameLoopRef.current) {
+      cancelAnimationFrame(animGameLoopRef.current);
+      animGameLoopRef.current = null;
     }
 
     // Stop audio and media
@@ -685,61 +681,73 @@ function GameArenaInner() {
       clearTimeout(countdownTimeoutRef.current);
       countdownTimeoutRef.current = null;
     }
-    if (spawnTimerRef.current) {
-      clearInterval(spawnTimerRef.current);
-      spawnTimerRef.current = null;
-    }
-    if (musicTimerRef.current) {
-      clearInterval(musicTimerRef.current);
-      musicTimerRef.current = null;
-    }
-    if (checkExpireTimerRef.current) {
-      clearInterval(checkExpireTimerRef.current);
-      checkExpireTimerRef.current = null;
+    if (animGameLoopRef.current) {
+      cancelAnimationFrame(animGameLoopRef.current);
+      animGameLoopRef.current = null;
     }
   }, []);
 
-  // ── Real-time Expiration Checker Loop ──────────────────────
-  useEffect(() => {
-    checkExpireTimerRef.current = setInterval(() => {
-      if (!runningRef.current || pausedRef.current) return;
-      const now = performance.now();
-      const currentNotes = activeNotesRef.current;
+  // ── High-Precision Audio-Clock Rhythm Loop ─────────────────
+  const gameLoop = useCallback(() => {
+    if (!runningRef.current) return;
 
-      const expired = currentNotes.filter((n) => !n.isExiting && now >= n.expireTime);
-      if (expired.length === 0) return;
+    if (!pausedRef.current && trackAudioRef.current) {
+      const audioSec = trackAudioRef.current.currentTime || 0;
+      const totalDur = currentTrackRef.current.duration || 60;
+      const remain = Math.max(0, Math.ceil(totalDur - audioSec));
+      setTimeLeft(remain);
 
-      expired.forEach((note) => {
-        if (note.type.id === "avoid") {
-          // Avoid note successfully expired!
-          showJudge("NICE!", "bm-j-nice bm-j-pop");
-          triggerParticles(note.x, note.y, "#00ff88");
-        } else {
-          // Regular note missed
-          currentComboRef.current = 0;
-          setCombo(0);
-          totalWrongClicksRef.current += 1;
-          recordNoteMissOrWrong(modeParamRef.current);
-          showJudge("MISS", "bm-j-miss bm-j-pop");
-          triggerParticles(note.x, note.y, "#ff4444");
-        }
-      });
-
-      const expiredIds = new Set(expired.map((n) => n.id));
-      setActiveNotes((prev) =>
-        prev.map((n) => (expiredIds.has(n.id) ? { ...n, isExiting: true } : n))
-      );
-      setTimeout(() => {
-        setActiveNotes((prev) => prev.filter((n) => !expiredIds.has(n.id)));
-      }, 150);
-    }, 60);
-
-    return () => {
-      if (checkExpireTimerRef.current) {
-        clearInterval(checkExpireTimerRef.current);
+      if (audioSec >= totalDur - 0.2 || trackAudioRef.current.ended) {
+        finishGame();
+        return;
       }
-    };
-  }, [showJudge, triggerParticles]);
+
+      // 1. Spawn upcoming rhythm notes
+      const chart = rhythmChartRef.current;
+      const leadTimeSec = currentDiffRef.current.windowMs / 1000;
+
+      while (
+        nextChartIdxRef.current < chart.length &&
+        audioSec >= chart[nextChartIdxRef.current].hitTimestamp - leadTimeSec
+      ) {
+        const beat = chart[nextChartIdxRef.current];
+        spawnRhythmBeat(beat);
+        nextChartIdxRef.current++;
+      }
+
+      // 2. Check note expirations
+      const currentNotes = activeNotesRef.current;
+      const expired = currentNotes.filter((n) => !n.isExiting && audioSec >= n.expireTime);
+
+      if (expired.length > 0) {
+        expired.forEach((note) => {
+          if (note.type.id === "avoid") {
+            // Avoid note successfully expired!
+            showJudge("NICE!", "bm-j-nice bm-j-pop");
+            triggerParticles(note.x, note.y, "#00ff88");
+          } else {
+            // Regular note missed
+            currentComboRef.current = 0;
+            setCombo(0);
+            totalWrongClicksRef.current += 1;
+            recordNoteMissOrWrong(modeParamRef.current);
+            showJudge("MISS", "bm-j-miss bm-j-pop");
+            triggerParticles(note.x, note.y, "#ff4444");
+          }
+        });
+
+        const expiredIds = new Set(expired.map((n) => n.id));
+        setActiveNotes((prev) =>
+          prev.map((n) => (expiredIds.has(n.id) ? { ...n, isExiting: true } : n))
+        );
+        setTimeout(() => {
+          setActiveNotes((prev) => prev.filter((n) => !expiredIds.has(n.id)));
+        }, 150);
+      }
+    }
+
+    animGameLoopRef.current = requestAnimationFrame(gameLoop);
+  }, [spawnRhythmBeat, finishGame, showJudge, triggerParticles]);
 
   // ── Countdown Audio Helper ─────────────────────────────────
   const playCountdownAudio = useCallback(() => {
@@ -776,7 +784,6 @@ function GameArenaInner() {
     }
 
     const track = currentTrackRef.current;
-    const diff = currentDiffRef.current;
 
     // Reset counters
     setScore(0);
@@ -791,6 +798,21 @@ function GameArenaInner() {
     setIsResultOpen(false);
     setIsQuitConfirmOpen(false);
     setTimeLeft(track.duration || 60);
+
+    // Pre-load audio & analyze beats asynchronously during countdown
+    getOrAnalyzeTrackBeats(track.id, track.src, track.bpm, track.duration || 60)
+      .then((analyzed) => {
+        rhythmChartRef.current = buildRhythmChart(
+          analyzed.allBeats,
+          track.bpm,
+          diffParam as any,
+          track.duration || 60
+        );
+        nextChartIdxRef.current = 0;
+      })
+      .catch((err) => {
+        console.warn("[GameArena] Beat analysis fallback:", err);
+      });
 
     const steps = ["3", "2", "1", "GO!"];
     let stepIdx = 0;
@@ -828,26 +850,17 @@ function GameArenaInner() {
             trackAudioRef.current.play().catch(() => {});
           }
 
-          // Initial wave & spawn interval
-          spawnWave();
-          spawnTimerRef.current = setInterval(spawnWave, diff.spawnIntervalMs);
-
-          // Track duration countdown
-          let dur = track.duration || 60;
-          musicTimerRef.current = setInterval(() => {
-            dur--;
-            setTimeLeft(Math.max(0, dur));
-            if (dur <= 0) {
-              if (musicTimerRef.current) clearInterval(musicTimerRef.current);
-              finishGame();
-            }
-          }, 1000);
+          // Start requestAnimationFrame rhythm game loop
+          if (animGameLoopRef.current) {
+            cancelAnimationFrame(animGameLoopRef.current);
+          }
+          animGameLoopRef.current = requestAnimationFrame(gameLoop);
         }, 900);
       }
     };
 
     runStep();
-  }, [spawnWave, finishGame, cleanupAllTimers]);
+  }, [diffParam, playCountdownAudio, gameLoop, cleanupAllTimers]);
 
   // ── Initial Start on Mount ─────────────────────────────────
   useEffect(() => {
