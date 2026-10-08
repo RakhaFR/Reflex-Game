@@ -917,7 +917,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.5.0 — Game Guide Playbook & Full Keybind Engine",
     date: "08 OCT 2026",
     badgeClass: "cyan",
-    bannerImg: "/assets/picture/new-logo.png",
+    bannerImg: "/assets/picture/beta-build.png",
     stageDivider: "══ BETA STAGE ══",
     changes: [
       { type: "add", text: "Interactive 5-Step Game Guide Onboarding: Modal panduan gameplay interaktif lengkap dengan diagram SVG visual, mencakup Cara Main 4-Lane/Arena, Mascot Sync, Settings Kustomisasi, Global Chat, dan Leaderboard Stats. Tombol GUIDE PLAY tersedia di kiri atas Main Menu." },
@@ -931,7 +931,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.4.1 — Mascot Reactions & Vertical 4-Lane Track Scenario",
     date: "08 OCT 2026",
     badgeClass: "pink",
-    bannerImg: "/assets/picture/new-logo.png",
+    bannerImg: "/assets/picture/beta-build.png",
     changes: [
       { type: "add", text: "Interactive Mascot Reaction Companion: Maskot chibi anime di arena bermain (Kamia, Ocean, Silia) yang berekspresi real-time dengan animasi bouncing/shaking saat PERFECT, GOOD, OK, atau MISS." },
       { type: "add", text: "Vertical 4-Lane Rhythm Track Mode (Mania-Style): Pilihan skenario gameplay jalur kolom vertikal dengan target hit receptor dan multi-touch support responsif di perangkat mobile & tablet landscape." },
@@ -943,7 +943,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.4.0 — Audio Beat Synchronizer & Rhythm Engine",
     date: "08 OCT 2026",
     badgeClass: "cyan",
-    bannerImg: "/assets/picture/new-logo.png",
+    bannerImg: "/assets/picture/beta-build.png",
     changes: [
       { type: "add", text: "Procedural Audio Beat Analyzer: Sistem analisis gelombang audio instan yang mendeteksi ketukan drum, bass, dan aksen lagu tanpa perlu mapping manual." },
       { type: "upd", text: "Dynamic Rhythm Difficulty Pacing: Pola kemunculan node disesuaikan dengan irama birama musik (Normal untuk Downbeat, Medium untuk Quarter note, Hard untuk Syncopation, Extreme untuk High-density Burst)." },
@@ -955,7 +955,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.3.6 — 1-Click PWA Install & Icon Standardization",
     date: "24 SEP 2026",
     badgeClass: "cyan",
-    bannerImg: "/assets/picture/new-logo.png",
+    bannerImg: "/assets/picture/update.png",
     stageDivider: "══ ALPHA STAGE ══",
     changes: [
       { type: "add", text: "1-Click PWA Native App Install: Tombol instalasi aplikasi web instan yang langsung memunculkan dialog pop-up resmi browser tanpa perlu membuka menu titik tiga manual. Tombol otomatis tersembunyi saat game sudah terpasang." },
@@ -967,7 +967,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.3.5 — Global 4-Tab Leaderboard & Cumulative Score Stats",
     date: "19 SEP 2026",
     badgeClass: "yellow",
-    bannerImg: "/assets/picture/new-logo.png",
+    bannerImg: "/assets/picture/update.png",
     changes: [
       { type: "add", text: "Global Leaderboard System: Tombol papan peringkat baru di header Lobby dengan 4 kategori tab: Total Skor Kumulatif (BM + NOM semua difficulty), Active Streak Nyala, Total Games Played, dan Longest Combo." },
       { type: "add", text: "Total Cumulative Score Metric: Statistik profil kini menampilkan akumulasi penuh seluruh skor terbaik di Basic Mode & Night Owl Mode (Normal, Medium, Hard, Extreme)." },
@@ -1000,7 +1000,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.3.2 — Keybind Font Customizer",
     date: "19 SEP 2026",
     badgeClass: "cyan",
-    bannerImg: "/assets/picture/new-logo.png",
+    bannerImg: "/assets/picture/update.png",
     changes: [
       { type: "add", text: "Keybind Font Style Customizer: Pilihan 10 jenis font typography di Settings (Orbitron, Slackey, Press Start 2P, Righteous, Russo One, Bungee, VT323, Audiowide, Rajdhani, Bebas Neue)." },
       { type: "upd", text: "Visualisasi Note Gameplay: Huruf note di arena kini langsung mengikuti font pilihan player agar lebih nyaman dan mudah terbaca saat reflex session." },
@@ -1025,7 +1025,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.3.0 — Global Chat Room",
     date: "18 SEP 2026",
     badgeClass: "cyan",
-    bannerImg: "/assets/picture/alpha-build.jpg",
+    bannerImg: "/assets/picture/update.png",
     changes: [
       { type: "add", text: "Global Chat Room: Komunikasi publik secara real-time antar pemain langsung dari Lobby." },
       { type: "upd", text: "Tata Letak Topbar Baru: Tombol Chat, Settings, & Fullscreen kini rapi di sisi kanan bersebelahan dengan tombol BACK." },
