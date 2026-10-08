@@ -63,7 +63,192 @@ export interface UpdateLog {
   date: string;
   badgeClass: "yellow" | "cyan" | "pink" | "magenta";
   bannerImg: string;
+  stageDivider?: string;
   changes: UpdateLogChange[];
+}
+
+export interface GameGuideStep {
+  step: number;
+  title: string;
+  subtitle: string;
+  tag: string;
+  icon: string;
+  points: { title: string; desc: string; icon?: string }[];
+  svgType: "lanes" | "mascot" | "settings" | "chat" | "leaderboard";
+}
+
+export const GAME_GUIDE_STEPS: GameGuideStep[] = [
+  {
+    step: 1,
+    title: "CARA BERMAIN & SKENARIO",
+    subtitle: "RHYTHM GAMEPLAY BASICS",
+    tag: "CORE GAMEPLAY",
+    icon: "fa-gamepad",
+    svgType: "lanes",
+    points: [
+      {
+        title: "Vertical 4-Lane (Default)",
+        desc: "Ketuk tombol [Q, W, E, R] di keyboard saat note meluncur menyentuh lingkaran target receptor. Di HP/Tablet, langsung sentuh kolom jalur dengan multi-touch simultan.",
+      },
+      {
+        title: "Warna & Jenis Note",
+        desc: "Hijau = Normal Note (+skor & combo), Kuning = Bonus Note (+skor berlipat), Merah = Avoid Note (JANGAN disentuh / tunggu lewat).",
+      },
+      {
+        title: "Toleransi Ketukan (Timing)",
+        desc: "PERFECT (2x Skor + Mascot Cheer), GOOD (1.2x Skor), OK (0.8x Skor), MISS / WRONG (Reset Combo ke x0).",
+      },
+    ],
+  },
+  {
+    step: 2,
+    title: "MASCOT & AUDIO SYNC",
+    subtitle: "REACTIVE COMPANION & ENGINE",
+    tag: "LIVE COMPANION",
+    icon: "fa-heart",
+    svgType: "mascot",
+    points: [
+      {
+        title: "Maskot Chibi Anime Interaktif",
+        desc: "Pilih maskot kesayanganmu (Kamia, Ocean, Silia) di pojok kiri bawah yang bereaksi gembira saat PERFECT dan sedih/marah saat kamu MISS.",
+      },
+      {
+        title: "Procedural Audio Beat Analyzer",
+        desc: "Algoritma cerdas menganalisis ketukan drum & melodi lagu Supabase secara instan agar irama node selalu sinkron dengan musik.",
+      },
+    ],
+  },
+  {
+    step: 3,
+    title: "KONTROL & PENGATURAN",
+    subtitle: "FULL KEYBOARD & CUSTOMIZATION",
+    tag: "SETTINGS CONFIG",
+    icon: "fa-sliders",
+    svgType: "settings",
+    points: [
+      {
+        title: "Dukungan Penuh Keyboard & Numpad",
+        desc: "Bebas mengatur 4 tombol kontrol favoritmu: Alfabet, Numpad 0-9, Arrow Keys, Shift/Ctrl/Space tanpa batasan.",
+      },
+      {
+        title: "Arah Jalur (Scroll Direction)",
+        desc: "Pilih mode UPSCROLL (node meluncur ke atas) atau DOWNSCROLL (node jatuh ke bawah) sesuai kenyamanan refleksmu.",
+      },
+      {
+        title: "10 Font Typography Arcade",
+        desc: "Kustomisasi gaya huruf node di Settings dengan 10 font pilihan (Orbitron, Slackey, Press Start 2P, Righteous, dsb).",
+      },
+    ],
+  },
+  {
+    step: 4,
+    title: "GLOBAL CHAT ROOM",
+    subtitle: "INTERAKSI KOMUNITAS REAL-TIME",
+    tag: "COMMUNITY CHAT",
+    icon: "fa-comments",
+    svgType: "chat",
+    points: [
+      {
+        title: "Komunikasi Publik Real-Time",
+        desc: "Buka menu chat di header Lobby untuk mengobrol dengan sesama player, berdiskusi strategi, dan menyapa teman baru.",
+      },
+      {
+        title: "Identity & Rank Badges",
+        desc: "Pesan chat menampilkan avatar kustommu, level akun, serta rank tier eksklusif (Legend / Master / Elite / Operator).",
+      },
+    ],
+  },
+  {
+    step: 5,
+    title: "LEADERBOARD & PROFIL STATS",
+    subtitle: "DAILY STREAK & GLOBAL RANK",
+    tag: "STATS & RANKING",
+    icon: "fa-trophy",
+    svgType: "leaderboard",
+    points: [
+      {
+        title: "Papan Peringkat Global 4-Tab",
+        desc: "Bersaing menduduki peringkat Top Dunia dalam: Total Skor Kumulatif, Active Daily Streak Nyala, Total Main, dan Longest Combo.",
+      },
+      {
+        title: "Daily Play Streak Harian",
+        desc: "Selesaikan minimal 1 lagu penuh setiap hari untuk menjaga api Streak tetap membara dan membuka bonus XP berlipat!",
+      },
+      {
+        title: "Level Akun hingga Lv.500",
+        desc: "Kumpulkan XP dari setiap ketukan untuk menaikkan level akun dan menyimpan rekor permanen ke Cloud Supabase.",
+      },
+    ],
+  },
+];
+
+// Helper: Format Keybind Display (Symbol & Compact Text)
+export function formatKeyDisplay(key: string): string {
+  if (!key) return "Q";
+  const k = key.toLowerCase();
+
+  // Arrow Keys
+  if (k === "arrowup") return "↑";
+  if (k === "arrowdown") return "↓";
+  if (k === "arrowleft") return "←";
+  if (k === "arrowright") return "→";
+
+  // Numpad Keys
+  if (k.startsWith("numpad")) {
+    const sub = k.replace("numpad", "");
+    if (sub === "add") return "N+";
+    if (sub === "subtract") return "N-";
+    if (sub === "multiply") return "N*";
+    if (sub === "divide") return "N/";
+    if (sub === "decimal") return "N.";
+    if (sub === "enter") return "N↵";
+    return `N${sub.toUpperCase()}`;
+  }
+
+  // Modifiers & Navigation
+  if (k === " " || k === "space") return "␣";
+  if (k === "enter") return "↵";
+  if (k === "shift") return "⇧";
+  if (k === "control") return "CTRL";
+  if (k === "alt") return "ALT";
+  if (k === "backspace") return "⌫";
+  if (k === "tab") return "⇥";
+  if (k === "capslock") return "CAPS";
+  if (k === "delete") return "DEL";
+  if (k === "insert") return "INS";
+  if (k === "pageup") return "PGUP";
+  if (k === "pagedown") return "PGDN";
+  if (k === "home") return "HOME";
+  if (k === "end") return "END";
+
+  return k.toUpperCase();
+}
+
+// Helper: Restricted System OS Keys
+export function isRestrictedKey(e: KeyboardEvent): boolean {
+  const k = e.key.toLowerCase();
+  const restrictedKeys = [
+    "meta",
+    "os",
+    "contextmenu",
+    "printscreen",
+    "scrolllock",
+    "pause",
+    "f1",
+    "f2",
+    "f3",
+    "f4",
+    "f5",
+    "f6",
+    "f7",
+    "f8",
+    "f9",
+    "f10",
+    "f11",
+    "f12",
+    "escape",
+  ];
+  return restrictedKeys.includes(k) || e.altKey && (e.key === "Tab" || e.key === "F4");
 }
 
 export interface NoteType {
@@ -729,6 +914,20 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
+    version: "v0.5.0 — Game Guide Onboarding & Full Keybinds/Numpad Engine",
+    date: "08 OCT 2026",
+    badgeClass: "cyan",
+    bannerImg: "/assets/picture/new-logo.png",
+    stageDivider: "══ BETA STAGE ══",
+    changes: [
+      { type: "add", text: "Interactive 5-Step Game Guide Onboarding: Modal panduan gameplay interaktif lengkap dengan mini SVG ilustrasi, mencakup Cara Main 4-Lane/Arena, Mascot Sync, Settings Kustomisasi, Global Chat, dan Leaderboard Stats. Tombol GUIDE PLAY tersedia di kiri atas Main Menu." },
+      { type: "add", text: "Full Keyboard & Numpad Customizer: Bebas menggunakan seluruh tombol keyboard dan Numpad (Numpad 0-9, Numpad +, -, *, /, Enter, Arrow Keys, Shift, Ctrl, Space) tanpa batasan." },
+      { type: "upd", text: "Compact Smart Key Icons: Huruf dan simbol keybind (↑, ↓, ←, →, N1, N+, ⇧, CTRL, ␣) terformat rapi dan presisi di dalam lingkaran node/reseptor tanpa membuat node memanjang." },
+      { type: "upd", text: "Default 4-Lane Mania Scenario: Pemain baru kini otomatis langsung memulai dengan skenario Vertical 4-Lane yang optimal untuk mobile multi-touch & desktop keyboard." },
+      { type: "fix", text: "System OS Key Protection: Memblokir penekanan tombol Windows/Meta, F1-F12, dan tombol sistem browser saat mengedit keybinds." },
+    ],
+  },
+  {
     version: "v0.4.1 — Mascot Reactions & Vertical 4-Lane Track Scenario",
     date: "08 OCT 2026",
     badgeClass: "pink",
@@ -757,6 +956,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     date: "24 SEP 2026",
     badgeClass: "cyan",
     bannerImg: "/assets/picture/new-logo.png",
+    stageDivider: "══ ALPHA STAGE ══",
     changes: [
       { type: "add", text: "1-Click PWA Native App Install: Tombol instalasi aplikasi web instan yang langsung memunculkan dialog pop-up resmi browser tanpa perlu membuka menu titik tiga manual. Tombol otomatis tersembunyi saat game sudah terpasang." },
       { type: "upd", text: "Universal Vector Icons: Standarisasi seluruh elemen antarmuka, modal, status streak, dan leaderboard menggunakan FontAwesome Vector Icons berdesain neon arcade modern." },
@@ -874,6 +1074,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     date: "28 MEI 2026",
     badgeClass: "yellow",
     bannerImg: "/assets/picture/pre-test.png",
+    stageDivider: "══ PRE-TEST STAGE ══",
     changes: [
       { type: "upd", text: "Penataan ulang layout menu & gameplay dengan konsep Stylized Arcade Interface." },
       { type: "add", text: "Integrasi Not Original Mode (NOM_TRACKS) ke dalam sistem lobby." },
@@ -941,12 +1142,12 @@ export const PROFILE_DEFAULT = {
     countdownSoundEnabled: true,
     particleEffectEnabled: true,
     comboAnimationEnabled: true,
-    mouseClickEnabled: true,
+    mouseClickEnabled: false,
     keybinds: ["q", "w", "e", "r"],
     keybindFont: "orbitron",
     mascotEnabled: true,
     mascotCharacter: "kamia" as "kamia" | "ocean" | "silia",
-    playStyle: "arena" as "arena" | "lanes",
+    playStyle: "lanes" as "arena" | "lanes",
     scrollDirection: "upscroll" as "upscroll" | "downscroll",
   },
 };

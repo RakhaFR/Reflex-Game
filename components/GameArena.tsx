@@ -15,6 +15,7 @@ import {
   DifficultyConfig,
   NoteType,
   KEYBIND_FONTS,
+  formatKeyDisplay,
 } from "@/lib/gameData";
 import {
   profileLoad,
@@ -1030,22 +1031,24 @@ function GameArenaInner() {
       }
       if (!runningRef.current || pausedRef.current) return;
 
-      const k = e.key.toLowerCase();
-      setPressedKeys((prev) => ({ ...prev, [k]: true }));
-      setTimeout(() => setPressedKeys((prev) => ({ ...prev, [k]: false })), 120);
+      const rawKey = e.code.toLowerCase().startsWith("numpad") ? e.code.toLowerCase() : e.key.toLowerCase();
+      const stdKey = e.key.toLowerCase();
+
+      setPressedKeys((prev) => ({ ...prev, [rawKey]: true, [stdKey]: true }));
+      setTimeout(() => setPressedKeys((prev) => ({ ...prev, [rawKey]: false, [stdKey]: false })), 120);
 
       const keys =
         Array.isArray(profileRef.current.settings?.keybinds) &&
         profileRef.current.settings.keybinds.length >= 4
           ? profileRef.current.settings.keybinds.slice(0, 4).map((kb) => kb.toLowerCase())
           : ["q", "w", "e", "r"];
-      const laneIdx = keys.indexOf(k);
+      const laneIdx = keys.indexOf(rawKey) >= 0 ? keys.indexOf(rawKey) : keys.indexOf(stdKey);
       if (laneIdx >= 0) {
         setPressedLanes((prev) => ({ ...prev, [laneIdx]: true }));
         setTimeout(() => setPressedLanes((prev) => ({ ...prev, [laneIdx]: false })), 120);
       }
 
-      handleNoteClickOrKey(k);
+      handleNoteClickOrKey(rawKey !== stdKey && keys.includes(rawKey) ? rawKey : stdKey);
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -1244,7 +1247,7 @@ function GameArenaInner() {
                   return (
                     <div key={idx} className="bm-lane-receptor-slot">
                       <div className={`bm-lane-receptor ${isPressed ? "hit-flash" : ""}`}>
-                        {k.toUpperCase()}
+                        {formatKeyDisplay(k)}
                       </div>
                     </div>
                   );
@@ -1295,7 +1298,7 @@ function GameArenaInner() {
                       handleNoteClickOrKey(note.id, true);
                     }}
                   >
-                    {note.key.toUpperCase()}
+                    {formatKeyDisplay(note.key)}
                   </div>
                 );
               })}
@@ -1339,7 +1342,7 @@ function GameArenaInner() {
                   handleNoteClickOrKey(note.id, true);
                 }}
               >
-                {!isTouchDevice && <span className="bm-key-label">{note.key.toUpperCase()}</span>}
+                {!isTouchDevice && <span className="bm-key-label">{formatKeyDisplay(note.key)}</span>}
                 <div className="bm-ring"></div>
               </div>
             ))}
@@ -1414,7 +1417,7 @@ function GameArenaInner() {
                 id={`bmChip-${k}`}
                 className={`bm-key-chip ${pressedKeys[k] ? "pressed" : ""}`}
               >
-                {k.toUpperCase()}
+                {formatKeyDisplay(k)}
               </div>
             ))}
           </div>

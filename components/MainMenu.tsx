@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { OG_GAMES, UPDATE_LOGS } from "@/lib/gameData";
+import { OG_GAMES, UPDATE_LOGS, GAME_GUIDE_STEPS, GameGuideStep } from "@/lib/gameData";
 import { playSfx } from "@/lib/profile";
 import { usePwaInstall } from "@/lib/pwa";
 import PwaModal from "@/components/PwaModal";
@@ -11,6 +11,8 @@ export default function MainMenu() {
   const router = useRouter();
   const [isOtherGamesOpen, setIsOtherGamesOpen] = useState(false);
   const [isUpdateLogOpen, setIsUpdateLogOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [guideStep, setGuideStep] = useState(0);
   const [isPwaModalOpen, setIsPwaModalOpen] = useState(false);
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
@@ -35,6 +37,12 @@ export default function MainMenu() {
         const query = search ? (search.includes("openProfile") ? search : `${search}&openProfile=true`) : "?openProfile=true";
         router.replace(`/lobby${query}${hash}`);
         return;
+      }
+
+      // Check if first-time visitor to proactively show Game Guide
+      const guideSeen = localStorage.getItem("rhg_guide_seen");
+      if (!guideSeen) {
+        setIsGuideOpen(true);
       }
     }
 
@@ -97,6 +105,114 @@ export default function MainMenu() {
   const handleCloseUpdateLog = () => {
     playSfx("clickSound");
     setIsUpdateLogOpen(false);
+  };
+
+  const handleOpenGuide = () => {
+    playSfx("clickSound");
+    setGuideStep(0);
+    setIsGuideOpen(true);
+  };
+
+  const handleCloseGuide = () => {
+    playSfx("clickSound");
+    try {
+      localStorage.setItem("rhg_guide_seen", "true");
+    } catch {
+      // ignore
+    }
+    setIsGuideOpen(false);
+  };
+
+  const renderGuideSvg = (type: string) => {
+    if (type === "lanes") {
+      return (
+        <svg viewBox="0 0 240 130" className="guide-card-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="240" height="130" rx="8" fill="#060814" />
+          <line x1="60" y1="0" x2="60" y2="130" stroke="#ffffff" strokeWidth="0.5" opacity="0.12" />
+          <line x1="120" y1="0" x2="120" y2="130" stroke="#ffffff" strokeWidth="0.5" opacity="0.12" />
+          <line x1="180" y1="0" x2="180" y2="130" stroke="#ffffff" strokeWidth="0.5" opacity="0.12" />
+          {/* Target Receptors */}
+          <circle cx="30" cy="24" r="14" stroke="#ffffff" strokeWidth="2.5" fill="rgba(255,255,255,0.08)" />
+          <text x="30" y="29" fill="#fff" fontSize="13" fontWeight="900" textAnchor="middle" fontFamily="Orbitron">Q</text>
+          <circle cx="90" cy="24" r="14" stroke="#00f0ff" strokeWidth="2.5" fill="rgba(0,240,255,0.25)" />
+          <text x="90" y="29" fill="#00f0ff" fontSize="13" fontWeight="900" textAnchor="middle" fontFamily="Orbitron">W</text>
+          <circle cx="150" cy="24" r="14" stroke="#ffffff" strokeWidth="2.5" fill="rgba(255,255,255,0.08)" />
+          <text x="150" y="29" fill="#fff" fontSize="13" fontWeight="900" textAnchor="middle" fontFamily="Orbitron">E</text>
+          <circle cx="210" cy="24" r="14" stroke="#ffffff" strokeWidth="2.5" fill="rgba(255,255,255,0.08)" />
+          <text x="210" y="29" fill="#fff" fontSize="13" fontWeight="900" textAnchor="middle" fontFamily="Orbitron">R</text>
+          {/* Falling Notes */}
+          <circle cx="30" cy="95" r="11" fill="#00ff88" filter="drop-shadow(0 0 6px #00ff88)" />
+          <text x="30" y="99" fill="#000" fontSize="10" fontWeight="900" textAnchor="middle" fontFamily="Orbitron">Q</text>
+          <circle cx="90" cy="24" r="11" fill="#00f0ff" filter="drop-shadow(0 0 8px #00f0ff)" />
+          <text x="90" y="28" fill="#000" fontSize="10" fontWeight="900" textAnchor="middle" fontFamily="Orbitron">W</text>
+          <circle cx="150" cy="65" r="11" fill="#ffe500" filter="drop-shadow(0 0 6px #ffe500)" />
+          <text x="150" y="69" fill="#000" fontSize="10" fontWeight="900" textAnchor="middle" fontFamily="Orbitron">E</text>
+          <circle cx="210" cy="105" r="11" fill="#ff4444" filter="drop-shadow(0 0 6px #ff4444)" />
+          <text x="210" y="109" fill="#fff" fontSize="9" fontWeight="900" textAnchor="middle" fontFamily="Orbitron">!</text>
+        </svg>
+      );
+    }
+    if (type === "mascot") {
+      return (
+        <svg viewBox="0 0 240 130" className="guide-card-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="240" height="130" rx="8" fill="#060814" />
+          <circle cx="70" cy="70" r="36" fill="#150a24" stroke="#ff2d78" strokeWidth="1.5" strokeDasharray="3 3" />
+          <circle cx="170" cy="70" r="36" fill="#08182b" stroke="#00f0ff" strokeWidth="1.5" strokeDasharray="3 3" />
+          <text x="70" y="74" fill="#ff2d78" fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">KAMIA</text>
+          <text x="170" y="74" fill="#00f0ff" fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">OCEAN</text>
+          <rect x="40" y="18" width="60" height="20" rx="10" fill="#ff2d78" />
+          <text x="70" y="32" fill="#fff" fontSize="8" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">PERFECT!!</text>
+          <rect x="140" y="18" width="60" height="20" rx="10" fill="#00f0ff" />
+          <text x="170" y="32" fill="#000" fontSize="8" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">NICE BEAT!</text>
+        </svg>
+      );
+    }
+    if (type === "settings") {
+      return (
+        <svg viewBox="0 0 240 130" className="guide-card-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="240" height="130" rx="8" fill="#060814" />
+          <rect x="16" y="20" width="46" height="36" rx="6" fill="#0e142b" stroke="#00f0ff" strokeWidth="1.5" />
+          <text x="39" y="44" fill="#00f0ff" fontSize="16" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">Q</text>
+          <rect x="70" y="20" width="46" height="36" rx="6" fill="#0e142b" stroke="#00f0ff" strokeWidth="1.5" />
+          <text x="93" y="44" fill="#00f0ff" fontSize="16" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">W</text>
+          <rect x="124" y="20" width="46" height="36" rx="6" fill="#0e142b" stroke="#00f0ff" strokeWidth="1.5" />
+          <text x="147" y="44" fill="#00f0ff" fontSize="16" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">↑</text>
+          <rect x="178" y="20" width="46" height="36" rx="6" fill="#0e142b" stroke="#00f0ff" strokeWidth="1.5" />
+          <text x="201" y="44" fill="#00f0ff" fontSize="14" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">N1</text>
+          <rect x="16" y="70" width="208" height="42" rx="6" fill="#090d1f" stroke="#1f2c4d" />
+          <text x="28" y="88" fill="#00ffcc" fontSize="9" fontWeight="bold" fontFamily="Orbitron">KEYBOARDS &amp; NUMPAD READY</text>
+          <text x="28" y="102" fill="rgba(255,255,255,0.5)" fontSize="8">UPSCROLL / DOWNSCROLL • 10 FONTS</text>
+        </svg>
+      );
+    }
+    if (type === "chat") {
+      return (
+        <svg viewBox="0 0 240 130" className="guide-card-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="240" height="130" rx="8" fill="#060814" />
+          <rect x="20" y="20" width="200" height="38" rx="6" fill="#0e142b" stroke="#1a2744" />
+          <circle cx="36" cy="39" r="10" fill="#ff2d78" />
+          <text x="54" y="34" fill="#00f0ff" fontSize="8" fontWeight="bold" fontFamily="Orbitron">PlayerOne [Lv.42]</text>
+          <text x="54" y="48" fill="#fff" fontSize="8">Siapa yang mau duel di track Pixel Panic?!</text>
+          <rect x="20" y="68" width="200" height="38" rx="6" fill="#0e142b" stroke="#1a2744" />
+          <circle cx="36" cy="87" r="10" fill="#00ff88" />
+          <text x="54" y="82" fill="#ffe500" fontSize="8" fontWeight="bold" fontFamily="Orbitron">RhythmMaster [Lv.99]</text>
+          <text x="54" y="96" fill="#fff" fontSize="8">Gaskeun bro! Baru cetak Perfect Combo tadi 🔥</text>
+        </svg>
+      );
+    }
+    // Leaderboard
+    return (
+      <svg viewBox="0 0 240 130" className="guide-card-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="240" height="130" rx="8" fill="#060814" />
+        <rect x="30" y="55" width="50" height="55" rx="4" fill="#12182b" stroke="#00f0ff" strokeWidth="1" />
+        <text x="55" y="85" fill="#00f0ff" fontSize="16" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">#2</text>
+        <rect x="95" y="35" width="50" height="75" rx="4" fill="#1c182b" stroke="#ffe500" strokeWidth="1.5" />
+        <text x="120" y="70" fill="#ffe500" fontSize="20" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">👑#1</text>
+        <rect x="160" y="65" width="50" height="45" rx="4" fill="#12182b" stroke="#ff2d78" strokeWidth="1" />
+        <text x="185" y="90" fill="#ff2d78" fontSize="14" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">#3</text>
+        <text x="120" y="24" fill="#00ffcc" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="Orbitron">GLOBAL 4-TAB RANKING</text>
+      </svg>
+    );
   };
 
   return (
@@ -277,7 +393,19 @@ export default function MainMenu() {
         </button>
       )}
 
-      {/* UPDATE LOG BUTTON */}
+      {/* GUIDE PLAY BUTTON (TOP-LEFT) */}
+      <button
+        onClick={handleOpenGuide}
+        className="guide-play-trigger"
+        id="btnGuidePlay"
+        type="button"
+        title="Game Guide & Tutorial"
+      >
+        <i className="fa-solid fa-circle-question"></i>
+        <span>GUIDE PLAY</span>
+      </button>
+
+      {/* UPDATE LOG BUTTON (TOP-RIGHT) */}
       <button
         onClick={handleOpenUpdateLog}
         className="update-log-trigger"
@@ -287,6 +415,119 @@ export default function MainMenu() {
         <i className="fa-solid fa-file-lines"></i>
         <span>UPDATE LOG</span>
       </button>
+
+      {/* GAME GUIDE MODAL (5-STEP ONBOARDING) */}
+      <div
+        id="gameGuideModal"
+        className={`popup-overlay-menu ${isGuideOpen ? "active" : ""}`}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) handleCloseGuide();
+        }}
+      >
+        <div className="popup-box-skew guide-modal-box">
+          <div className="popup-header-row">
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <h3 className="popup-box-title">[?] GAME PLAYBOOK &amp; GUIDE</h3>
+              <span className="guide-step-pill">
+                STEP {guideStep + 1} / {GAME_GUIDE_STEPS.length}
+              </span>
+            </div>
+            <button
+              onClick={handleCloseGuide}
+              className="popup-close-btn"
+              id="btnCloseGuide"
+              type="button"
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          {GAME_GUIDE_STEPS[guideStep] && (
+            <div className="popup-body-content guide-modal-body">
+              <div className="guide-slide-header">
+                <div className="guide-slide-tag">{GAME_GUIDE_STEPS[guideStep].tag}</div>
+                <h2 className="guide-slide-title">
+                  <i className={`fa-solid ${GAME_GUIDE_STEPS[guideStep].icon} mr-2`}></i>
+                  {GAME_GUIDE_STEPS[guideStep].title}
+                </h2>
+                <p className="guide-slide-sub">// {GAME_GUIDE_STEPS[guideStep].subtitle}</p>
+              </div>
+
+              <div className="guide-slide-grid">
+                <div className="guide-slide-visual">
+                  {renderGuideSvg(GAME_GUIDE_STEPS[guideStep].svgType)}
+                </div>
+
+                <div className="guide-slide-points">
+                  {GAME_GUIDE_STEPS[guideStep].points.map((pt, pIdx) => (
+                    <div className="guide-point-card" key={pIdx}>
+                      <div className="guide-point-num">{pIdx + 1}</div>
+                      <div className="guide-point-content">
+                        <div className="guide-point-title">{pt.title}</div>
+                        <div className="guide-point-desc">{pt.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Guide Pagination & Controls */}
+              <div className="guide-modal-footer">
+                <div className="guide-dots-indicator">
+                  {GAME_GUIDE_STEPS.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className={`guide-dot ${guideStep === idx ? "active" : ""}`}
+                      onClick={() => {
+                        playSfx("clickSound");
+                        setGuideStep(idx);
+                      }}
+                      title={`Step ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                <div className="guide-nav-buttons">
+                  {guideStep > 0 && (
+                    <button
+                      type="button"
+                      className="guide-btn-prev"
+                      onClick={() => {
+                        playSfx("clickSound");
+                        setGuideStep((s) => Math.max(0, s - 1));
+                      }}
+                    >
+                      <i className="fa-solid fa-chevron-left mr-1"></i> Sebelumnya
+                    </button>
+                  )}
+
+                  {guideStep < GAME_GUIDE_STEPS.length - 1 ? (
+                    <button
+                      type="button"
+                      className="guide-btn-next"
+                      onClick={() => {
+                        playSfx("clickSound");
+                        setGuideStep((s) => Math.min(GAME_GUIDE_STEPS.length - 1, s + 1));
+                      }}
+                    >
+                      Selanjutnya <i className="fa-solid fa-chevron-right ml-1"></i>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="guide-btn-start"
+                      onClick={handleCloseGuide}
+                    >
+                      <i className="fa-solid fa-play mr-1"></i> Selesai &amp; Main
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* UPDATE LOG MODAL */}
       <div
@@ -311,35 +552,42 @@ export default function MainMenu() {
           <div className="popup-body-content" id="updateLogContent">
             <div className="log-version-container">
               {UPDATE_LOGS.map((log, idx) => (
-                <div className="log-version-item" key={idx}>
-                  <div className="log-version-header">
-                    <span className={`v-badge ${log.badgeClass}`}>{log.version}</span>
-                    <span className="v-date">{log.date}</span>
-                  </div>
+                <div key={idx}>
+                  {log.stageDivider && (
+                    <div className="log-stage-divider">
+                      <span>{log.stageDivider}</span>
+                    </div>
+                  )}
+                  <div className="log-version-item">
+                    <div className="log-version-header">
+                      <span className={`v-badge ${log.badgeClass}`}>{log.version}</span>
+                      <span className="v-date">{log.date}</span>
+                    </div>
 
-                  <div className="log-banner-wrapper">
-                    <img
-                      src={log.bannerImg}
-                      alt={`Update ${log.version}`}
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = "none";
-                      }}
-                    />
-                  </div>
+                    <div className="log-banner-wrapper">
+                      <img
+                        src={log.bannerImg}
+                        alt={`Update ${log.version}`}
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = "none";
+                        }}
+                      />
+                    </div>
 
-                  <ul className="log-version-list">
-                    {log.changes.map((change, cIdx) => {
-                      let tagLabel = "UPD";
-                      if (change.type === "add") tagLabel = "NEW";
-                      if (change.type === "fix") tagLabel = "FIX";
-                      return (
-                        <li key={cIdx}>
-                          <span className={`tag-${change.type}`}>{tagLabel}</span>
-                          <p>{change.text}</p>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                    <ul className="log-version-list">
+                      {log.changes.map((change, cIdx) => {
+                        let tagLabel = "UPD";
+                        if (change.type === "add") tagLabel = "NEW";
+                        if (change.type === "fix") tagLabel = "FIX";
+                        return (
+                          <li key={cIdx}>
+                            <span className={`tag-${change.type}`}>{tagLabel}</span>
+                            <p>{change.text}</p>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 </div>
               ))}
             </div>

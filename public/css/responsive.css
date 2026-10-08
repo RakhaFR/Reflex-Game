@@ -312,7 +312,16 @@
 
   /* splash-text — hide di HP landscape, terlalu sempit */
 
-  /* Update log trigger — pojok kanan atas, dikecilkan */
+  /* Guide & Update log triggers — sejajar kiri & kanan atas, dikecilkan */
+  .guide-play-trigger {
+    top: 6px;
+    left: 6px;
+    padding: 4px 8px;
+    font-size: 9px;
+    gap: 5px;
+    box-shadow: 2px 2px 0px #000;
+    transform: skewX(-8deg);
+  }
   .update-log-trigger {
     top: 6px;
     right: 6px;
@@ -637,7 +646,15 @@
     right: -60px;
   }
 
-  /* Update log trigger button */
+  /* Guide & Update log trigger buttons */
+  .guide-play-trigger {
+    top: 14px;
+    left: 14px;
+    padding: 6px 12px;
+    font-size: 10px;
+    gap: 6px;
+    box-shadow: 3px 3px 0px #000;
+  }
   .update-log-trigger {
     top: 14px;
     right: 14px;

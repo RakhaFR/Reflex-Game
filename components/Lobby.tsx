@@ -13,6 +13,8 @@ import {
   KEYBIND_FONTS,
   KeybindFontOption,
   Track,
+  formatKeyDisplay,
+  isRestrictedKey,
 } from "@/lib/gameData";
 import {
   profileLoad,
@@ -1216,26 +1218,23 @@ export default function Lobby() {
 
       if (isProfileModalOpen) {
         if (keybindListeningIdx >= 0) {
-          const k = e.key.toLowerCase();
-          if (k.length === 1 || ["arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) {
-            if (!["escape", " ", "enter", "tab"].includes(k)) {
-              e.preventDefault();
-              const newKeybinds = Array.isArray(profile.settings.keybinds)
-                ? [...profile.settings.keybinds]
-                : ["q", "w", "e", "r"];
-              newKeybinds[keybindListeningIdx] = k;
+          if (isRestrictedKey(e)) return;
+          e.preventDefault();
+          const rawKey = e.code.toLowerCase().startsWith("numpad") ? e.code.toLowerCase() : e.key.toLowerCase();
+          const newKeybinds = Array.isArray(profile.settings.keybinds)
+            ? [...profile.settings.keybinds]
+            : ["q", "w", "e", "r"];
+          newKeybinds[keybindListeningIdx] = rawKey;
 
-              const updated = {
-                ...profile,
-                settings: { ...profile.settings, keybinds: newKeybinds },
-              };
-              setProfile(updated);
-              profileSave(updated);
-              if (authUser) syncLocalProfileToCloud(authUser, updated);
-              setKeybindListeningIdx(-1);
-              showToast(`Key ${keybindListeningIdx + 1} diatur ke "${k.toUpperCase()}"`, "success");
-            }
-          }
+          const updated = {
+            ...profile,
+            settings: { ...profile.settings, keybinds: newKeybinds },
+          };
+          setProfile(updated);
+          profileSave(updated);
+          if (authUser) syncLocalProfileToCloud(authUser, updated);
+          setKeybindListeningIdx(-1);
+          showToast(`Key ${keybindListeningIdx + 1} diatur ke "${formatKeyDisplay(rawKey)}"`, "success");
           return;
         }
 
@@ -2456,17 +2455,17 @@ export default function Lobby() {
                           return (
                             <div className="keybind-slot" key={idx}>
                               <span className="keybind-slot-label">{label}</span>
-                              <button
-                                type="button"
-                                className={`keybind-key-btn ${isListening ? "listening" : ""} ${isDup ? "duplicate" : ""}`}
-                                style={{ fontFamily: selectedFontObj.fontFamily }}
-                                onClick={() => {
-                                  playSfx("clickSound");
-                                  setKeybindListeningIdx(idx);
-                                }}
-                              >
-                                {currentKey.toUpperCase()}
-                              </button>
+                                <button
+                                  type="button"
+                                  className={`keybind-key-btn ${isListening ? "listening" : ""} ${isDup ? "duplicate" : ""}`}
+                                  style={{ fontFamily: selectedFontObj.fontFamily }}
+                                  onClick={() => {
+                                    playSfx("clickSound");
+                                    setKeybindListeningIdx(idx);
+                                  }}
+                                >
+                                  {formatKeyDisplay(currentKey)}
+                                </button>
                             </div>
                           );
                         })}
