@@ -2181,7 +2181,36 @@ export default function Lobby() {
                     </div>
 
                     <div className="settings-blueprint-card">
-                      <div className="card-blueprint-title">// VISUAL FEEDBACK</div>
+                      <div className="card-blueprint-title">// VISUAL & PERFORMANCE</div>
+                      <div className="setting-blueprint-row">
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                          <span>Performance Mode (FPS Boost)</span>
+                          <span style={{ fontSize: "8px", color: "#00ff88", marginTop: "2px" }}>
+                            Rekomendasi chipset Helio/Mali GPU (Zero Lag)
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className={`toggle-blueprint-btn ${(profile.settings as any)?.performanceMode ? "on" : "off"}`}
+                          onClick={() => {
+                            playSfx("clickSound");
+                            const next = !(profile.settings as any)?.performanceMode;
+                            const updated = {
+                              ...profile,
+                              settings: {
+                                ...profile.settings,
+                                performanceMode: next,
+                              },
+                            };
+                            setProfile(updated);
+                            profileSave(updated);
+                            if (authUser) syncLocalProfileToCloud(authUser, updated);
+                            showToast(next ? "Performance Mode Aktif (60 FPS Boost)" : "Visual Quality Tinggi Aktif", "success");
+                          }}
+                        >
+                          {(profile.settings as any)?.performanceMode ? "ON" : "OFF"}
+                        </button>
+                      </div>
                       <div className="setting-blueprint-row">
                         <span>Particle Effects</span>
                         <button
@@ -2371,7 +2400,7 @@ export default function Lobby() {
                       </div>
 
                       {((profile.settings as any)?.playStyle || "arena") === "lanes" && (
-                        <div style={{ marginTop: "12px", paddingTop: "10px", borderTop: "1px dashed rgba(255,255,255,0.1)" }}>
+                        <div style={{ marginTop: "12px", paddingTop: "10px", borderTop: "1px dashed rgba(255,255,255,0.1)", display: "flex", flexDirection: "column", gap: "10px" }}>
                           <div className="setting-blueprint-row">
                             <span>Scroll Direction (4-Lane)</span>
                             <button
@@ -2398,6 +2427,78 @@ export default function Lobby() {
                                 className={`fa-solid ${(profile.settings as any)?.scrollDirection === "downscroll" ? "fa-arrow-down" : "fa-arrow-up"} mr-1`}
                               ></i>
                               {(profile.settings as any)?.scrollDirection === "downscroll" ? "DOWNSCROLL (KE BAWAH)" : "UPSCROLL (KE ATAS)"}
+                            </button>
+                          </div>
+
+                          <div className="setting-blueprint-row" style={{ alignItems: "flex-start" }}>
+                            <div style={{ display: "flex", flexDirection: "column" }}>
+                              <span>Ukuran Jalur (Lane Scale)</span>
+                              <span style={{ fontSize: "8px", color: "rgba(255,255,255,0.5)", marginTop: "2px" }}>
+                                Lebar highway & receptor (Wide direkomendasikan untuk HP/Touch)
+                              </span>
+                            </div>
+                            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                              {[
+                                { id: "compact", label: "Compact", desc: "420px" },
+                                { id: "standard", label: "Standard", desc: "540px" },
+                                { id: "wide", label: "Wide", desc: "680px (HP)" },
+                                { id: "stretch", label: "Stretch", desc: "850px" },
+                              ].map((scaleItem) => {
+                                const currentScale = (profile.settings as any)?.laneScale || "wide";
+                                const isActive = currentScale === scaleItem.id;
+                                return (
+                                  <button
+                                    key={scaleItem.id}
+                                    type="button"
+                                    className={`toggle-blueprint-btn ${isActive ? "on" : "off"}`}
+                                    style={{ padding: "3px 8px", fontSize: "10px", width: "auto", minWidth: "60px" }}
+                                    onClick={() => {
+                                      playSfx("clickSound");
+                                      const updated = {
+                                        ...profile,
+                                        settings: {
+                                          ...profile.settings,
+                                          laneScale: scaleItem.id as "compact" | "standard" | "wide" | "stretch",
+                                        },
+                                      };
+                                      setProfile(updated);
+                                      profileSave(updated);
+                                      if (authUser) syncLocalProfileToCloud(authUser, updated);
+                                    }}
+                                  >
+                                    {scaleItem.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="setting-blueprint-row">
+                            <div style={{ display: "flex", flexDirection: "column" }}>
+                              <span>Huruf Keybind di Layar</span>
+                              <span style={{ fontSize: "8px", color: "rgba(255,255,255,0.5)", marginTop: "2px" }}>
+                                Nonaktifkan untuk receptor bersih tanpa teks keyboard
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              className={`toggle-blueprint-btn ${(profile.settings as any)?.showKeybindHints !== false ? "on" : "off"}`}
+                              onClick={() => {
+                                playSfx("clickSound");
+                                const nextVal = (profile.settings as any)?.showKeybindHints === false ? true : false;
+                                const updated = {
+                                  ...profile,
+                                  settings: {
+                                    ...profile.settings,
+                                    showKeybindHints: nextVal,
+                                  },
+                                };
+                                setProfile(updated);
+                                profileSave(updated);
+                                if (authUser) syncLocalProfileToCloud(authUser, updated);
+                              }}
+                            >
+                              {(profile.settings as any)?.showKeybindHints !== false ? "ON" : "OFF"}
                             </button>
                           </div>
                         </div>

@@ -141,6 +141,7 @@ function GameArenaInner() {
   const [pressedLanes, setPressedLanes] = useState<{ [lane: number]: boolean }>({});
   const [audioClockSec, setAudioClockSec] = useState<number>(0);
   const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
+  const [isPortrait, setIsPortrait] = useState<boolean>(false);
 
   // ── Mascot Companion Reaction State ─────────────────────────
   const [mascotReaction, setMascotReaction] = useState<{
@@ -192,6 +193,29 @@ function GameArenaInner() {
         navigator.maxTouchPoints > 0 ||
         window.matchMedia("(pointer: coarse)").matches;
       setIsTouchDevice(isTouch);
+
+      const checkOrientation = () => {
+        const portrait = window.innerHeight > window.innerWidth;
+        setIsPortrait(portrait);
+        if (portrait && runningRef.current && !pausedRef.current) {
+          if (trackAudioRef.current) trackAudioRef.current.pause();
+          pausedRef.current = true;
+        }
+      };
+      checkOrientation();
+      window.addEventListener("resize", checkOrientation);
+      window.addEventListener("orientationchange", checkOrientation);
+
+      try {
+        if (screen.orientation && typeof (screen.orientation as any).lock === "function") {
+          (screen.orientation as any).lock("landscape").catch(() => {});
+        }
+      } catch {}
+
+      return () => {
+        window.removeEventListener("resize", checkOrientation);
+        window.removeEventListener("orientationchange", checkOrientation);
+      };
     }
   }, []);
 
@@ -242,6 +266,8 @@ function GameArenaInner() {
 
   const countdownAudioRef = useRef<HTMLAudioElement | null>(null);
   const resultAudioRef = useRef<HTMLAudioElement | null>(null);
+  const hadParticlesRef = useRef<boolean>(false);
+  const lastRemainRef = useRef<number>(-1);
 
   // Track stats for result calculation
   const totalHitClicksRef = useRef(0);
@@ -259,6 +285,9 @@ function GameArenaInner() {
     if (!canvas.width) canvas.width = window.innerWidth || 1280;
     if (!canvas.height) canvas.height = window.innerHeight || 720;
 
+    const isPerfMode = !!profileRef.current.settings?.performanceMode;
+    const effectiveCount = isPerfMode ? Math.min(count, 8) : count;
+
     const screenX = (xPercent / 100) * canvas.width;
     const screenY = (yPercent / 100) * canvas.height;
 
@@ -271,11 +300,11 @@ function GameArenaInner() {
     };
 
     const colors = palettes[mainColor] || [mainColor, "#ffffff", "#ffe500", "#00ffcc"];
-    const types: ("circle" | "square" | "star")[] = ["circle", "square", "star"];
+    const types: ("circle" | "square" | "star")[] = isPerfMode ? ["circle", "square"] : ["circle", "square", "star"];
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < effectiveCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 8 + 3;
+      const speed = Math.random() * (isPerfMode ? 5 : 8) + 3;
       const chosenColor = colors[Math.floor(Math.random() * colors.length)];
       const chosenType = types[Math.floor(Math.random() * types.length)];
 
@@ -286,12 +315,12 @@ function GameArenaInner() {
         vy: Math.sin(angle) * speed - Math.random() * 3,
         color: chosenColor,
         alpha: 1,
-        size: Math.random() * 8 + 4,
+        size: Math.random() * (isPerfMode ? 6 : 8) + 4,
         type: chosenType,
         gravity: 0.22,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.3,
-        decay: Math.random() * 0.02 + 0.015,
+        rotSpeed: isPerfMode ? 0 : (Math.random() - 0.5) * 0.3,
+        decay: isPerfMode ? 0.035 : Math.random() * 0.02 + 0.015,
       });
     }
   }, []);
@@ -304,8 +333,11 @@ function GameArenaInner() {
     if (!canvas.width) canvas.width = window.innerWidth || 1280;
     if (!canvas.height) canvas.height = window.innerHeight || 720;
 
+    const isPerfMode = !!profileRef.current.settings?.performanceMode;
+    const perOriginCount = isPerfMode ? 12 : 45;
+
     const colors = ["#00ffcc", "#ff2d78", "#ffe500", "#00e5ff", "#ffffff", "#ff9500", "#a8ffcb"];
-    const types: ("circle" | "square" | "star")[] = ["square", "star", "circle"];
+    const types: ("circle" | "square" | "star")[] = isPerfMode ? ["circle", "square"] : ["square", "star", "circle"];
 
     const origins = [
       { x: canvas.width * 0.15, y: canvas.height * 0.3 },
@@ -314,9 +346,9 @@ function GameArenaInner() {
     ];
 
     origins.forEach((orig) => {
-      for (let i = 0; i < 45; i++) {
+      for (let i = 0; i < perOriginCount; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 12 + 5;
+        const speed = Math.random() * 10 + 4;
         const chosenColor = colors[Math.floor(Math.random() * colors.length)];
         const chosenType = types[Math.floor(Math.random() * types.length)];
 
@@ -324,21 +356,21 @@ function GameArenaInner() {
           x: orig.x,
           y: orig.y,
           vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - Math.random() * 5,
+          vy: Math.sin(angle) * speed - Math.random() * 4,
           color: chosenColor,
           alpha: 1,
-          size: Math.random() * 10 + 5,
+          size: Math.random() * (isPerfMode ? 7 : 10) + 4,
           type: chosenType,
           gravity: 0.25,
           rotation: Math.random() * Math.PI * 2,
-          rotSpeed: (Math.random() - 0.5) * 0.4,
-          decay: Math.random() * 0.015 + 0.01,
+          rotSpeed: isPerfMode ? 0 : (Math.random() - 0.5) * 0.4,
+          decay: isPerfMode ? 0.03 : Math.random() * 0.015 + 0.01,
         });
       }
     });
   }, []);
 
-  // ── Render Particle Canvas Loop ────────────────────────────
+  // ── Render Particle Canvas Loop (Optimized for Mali/Helio) ─
   useEffect(() => {
     const canvas = particleCanvasRef.current;
     if (!canvas) return;
@@ -353,8 +385,19 @@ function GameArenaInner() {
     const renderLoop = () => {
       const ctx = canvas.getContext("2d");
       if (ctx) {
+        if (particlesRef.current.length === 0) {
+          if (hadParticlesRef.current) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hadParticlesRef.current = false;
+          }
+          animParticleRef.current = requestAnimationFrame(renderLoop);
+          return;
+        }
+
+        hadParticlesRef.current = true;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         const nextParticles: Particle[] = [];
+        const isPerfMode = !!profileRef.current.settings?.performanceMode;
 
         for (const p of particlesRef.current) {
           p.x += p.vx;
@@ -370,16 +413,21 @@ function GameArenaInner() {
             ctx.globalAlpha = Math.max(0, p.alpha);
             ctx.fillStyle = p.color;
             ctx.translate(p.x, p.y);
-            ctx.rotate(p.rotation);
 
-            if (p.type === "star") {
-              drawStar(ctx, 0, 0, 5, p.size, p.size / 2);
-            } else if (p.type === "square") {
-              ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+            if (isPerfMode) {
+              // Direct fast fill without pathing
+              ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
             } else {
-              ctx.beginPath();
-              ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
-              ctx.fill();
+              ctx.rotate(p.rotation);
+              if (p.type === "star") {
+                drawStar(ctx, 0, 0, 5, p.size, p.size / 2);
+              } else if (p.type === "square") {
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+              } else {
+                ctx.beginPath();
+                ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+              }
             }
             ctx.restore();
             nextParticles.push(p);
@@ -777,7 +825,10 @@ function GameArenaInner() {
       setAudioClockSec(audioSec);
       const totalDur = currentTrackRef.current.duration || 60;
       const remain = Math.max(0, Math.ceil(totalDur - audioSec));
-      setTimeLeft(remain);
+      if (lastRemainRef.current !== remain) {
+        lastRemainRef.current = remain;
+        setTimeLeft(remain);
+      }
 
       if (audioSec >= totalDur - 0.2 || trackAudioRef.current.ended) {
         finishGame();
@@ -1073,6 +1124,10 @@ function GameArenaInner() {
 
   const playStyle = (profile.settings as any)?.playStyle || "arena";
   const scrollDirection = (profile.settings as any)?.scrollDirection || "upscroll";
+  const laneScale = (profile.settings as any)?.laneScale || "wide";
+  const performanceMode = !!(profile.settings as any)?.performanceMode;
+  const shouldShowKeybinds = (profile.settings as any)?.showKeybindHints !== false && !isTouchDevice;
+
   const mascotEnabled = (profile.settings as any)?.mascotEnabled !== false;
   const mascotChar = ((profile.settings as any)?.mascotCharacter || "kamia") as "kamia" | "ocean" | "silia";
   const mascotAssets = MASCOT_ASSETS[mascotChar] || MASCOT_ASSETS.kamia;
@@ -1095,6 +1150,22 @@ function GameArenaInner() {
       ></canvas>
       <div id="flashOverlay"></div>
 
+      {/* PORTRAIT ORIENTATION BLOCKER OVERLAY */}
+      {isPortrait && (
+        <div className="bm-portrait-lock-overlay">
+          <div className="bm-portrait-lock-card">
+            <div className="bm-phone-rotate-icon">
+              <i className="fa-solid fa-mobile-screen-button"></i>
+              <i className="fa-solid fa-rotate-right rotate-arrow"></i>
+            </div>
+            <div className="bm-portrait-lock-title">MODE LANDSCAPE DIPERLUKAN</div>
+            <div className="bm-portrait-lock-desc">
+              Silakan putar perangkat kamu ke posisi horizontal (landscape) untuk bermain reflex game.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* COUNTDOWN OVERLAY 3..2..1..GO! */}
       {countdownText && (
         <div key={countdownText} id="countdownOverlay" className="countdown-overlay active">
@@ -1109,7 +1180,7 @@ function GameArenaInner() {
       {/* BASIC / N.O.M MODE LAYOUT */}
       <main
         id="basicMode"
-        className="active"
+        className={`active ${performanceMode ? "perf-mode" : ""}`}
         suppressHydrationWarning
         style={{ "--key-font": activeKeyFont } as React.CSSProperties}
         onClick={(e) => {
@@ -1136,8 +1207,8 @@ function GameArenaInner() {
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            opacity: 0.25,
-            filter: "brightness(.5) saturate(1.5)",
+            opacity: performanceMode ? 0.15 : 0.25,
+            filter: performanceMode ? "brightness(.4)" : "brightness(.5) saturate(1.5)",
             zIndex: 0,
             pointerEvents: "none",
           }}
@@ -1219,7 +1290,7 @@ function GameArenaInner() {
 
         {/* GAMEPLAY LAYOUT: VERTICAL 4-LANE (MANIA STYLE) vs FREE ARENA */}
         {playStyle === "lanes" ? (
-          <div className={`bm-lanes-stage ${scrollDirection}`}>
+          <div className={`bm-lanes-stage ${scrollDirection} lane-scale-${laneScale} ${performanceMode ? "perf-mode" : ""}`}>
             <div className="bm-lanes-highway">
               {keybinds.map((k, idx) => (
                 <div
@@ -1247,14 +1318,14 @@ function GameArenaInner() {
                   return (
                     <div key={idx} className="bm-lane-receptor-slot">
                       <div className={`bm-lane-receptor ${isPressed ? "hit-flash" : ""}`}>
-                        {formatKeyDisplay(k)}
+                        {shouldShowKeybinds ? formatKeyDisplay(k) : null}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Dynamic Lane Notes */}
+              {/* Dynamic Lane Notes (Spawn 0% for downscroll, 100% for upscroll) */}
               {activeNotes.map((note) => {
                 const lane =
                   note.laneIdx !== undefined && note.laneIdx >= 0 && note.laneIdx < 4
@@ -1267,12 +1338,12 @@ function GameArenaInner() {
                 const totalDuration = note.windowMs / 1000;
                 const progress = Math.max(0, Math.min(1.2, 1 - timeRemaining / totalDuration));
 
-                // Upscroll: starts at 88%, moves to 10% (top receptor)
-                // Downscroll: starts at 10%, moves to 88% (bottom receptor)
+                // Downscroll: starts at 0% (absolute top border), hits receptor at 88%
+                // Upscroll: starts at 100% (absolute bottom border), hits receptor at 10%
                 const topPos =
                   scrollDirection === "upscroll"
-                    ? (1 - progress) * 76 + 10
-                    : progress * 76 + 10;
+                    ? (1 - progress) * 88 + 10
+                    : progress * 88;
 
                 return (
                   <div
@@ -1298,7 +1369,7 @@ function GameArenaInner() {
                       handleNoteClickOrKey(note.id, true);
                     }}
                   >
-                    {formatKeyDisplay(note.key)}
+                    {shouldShowKeybinds ? formatKeyDisplay(note.key) : null}
                   </div>
                 );
               })}
@@ -1342,7 +1413,7 @@ function GameArenaInner() {
                   handleNoteClickOrKey(note.id, true);
                 }}
               >
-                {!isTouchDevice && <span className="bm-key-label">{formatKeyDisplay(note.key)}</span>}
+                {shouldShowKeybinds && <span className="bm-key-label">{formatKeyDisplay(note.key)}</span>}
                 <div className="bm-ring"></div>
               </div>
             ))}
@@ -1392,8 +1463,8 @@ function GameArenaInner() {
           <span id="bmComboText">x{combo}</span>
         </div>
 
-        {/* KEY LEGEND (BOTTOM) */}
-        {!isTouchDevice && (
+        {/* KEY LEGEND (BOTTOM) - ONLY FOR FREE ARENA OSU-STYLE, NEVER FOR 4-LANES */}
+        {!isTouchDevice && playStyle === "arena" && (
           <div
             id="bmKeyLegend"
             style={{

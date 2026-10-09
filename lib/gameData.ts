@@ -1149,5 +1149,8 @@ export const PROFILE_DEFAULT = {
     mascotCharacter: "kamia" as "kamia" | "ocean" | "silia",
     playStyle: "lanes" as "arena" | "lanes",
     scrollDirection: "upscroll" as "upscroll" | "downscroll",
+    laneScale: "wide" as "compact" | "standard" | "wide" | "stretch",
+    showKeybindHints: true,
+    performanceMode: false,
   },
 };

@@ -779,17 +779,32 @@
 /* ── Vertical 4-Lane Track (Mania Style) ── */
 .bm-lanes-stage {
   position: absolute;
-  top: 72px;
+  top: 0px;
   bottom: 0px;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 480px;
+  max-width: 640px;
   display: flex;
   flex-direction: column;
   z-index: 15;
   pointer-events: auto;
   user-select: none;
+  contain: layout style;
+}
+
+/* Lane Width Scales */
+.bm-lanes-stage.lane-scale-compact {
+  max-width: 420px;
+}
+.bm-lanes-stage.lane-scale-standard {
+  max-width: 540px;
+}
+.bm-lanes-stage.lane-scale-wide {
+  max-width: 680px;
+}
+.bm-lanes-stage.lane-scale-stretch {
+  max-width: 860px;
 }
 
 .bm-lanes-highway {
@@ -798,11 +813,12 @@
   width: 100%;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  background: linear-gradient(to bottom, rgba(4, 4, 10, 0.85), rgba(8, 8, 20, 0.65) 50%, rgba(4, 4, 10, 0.85));
-  border-left: 2px solid rgba(0, 240, 255, 0.25);
-  border-right: 2px solid rgba(0, 240, 255, 0.25);
-  box-shadow: 0 0 35px rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(0, 240, 255, 0.05);
+  background: linear-gradient(to bottom, rgba(4, 4, 10, 0.88), rgba(8, 8, 20, 0.7) 50%, rgba(4, 4, 10, 0.88));
+  border-left: 2px solid rgba(0, 240, 255, 0.3);
+  border-right: 2px solid rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 240, 255, 0.04);
   touch-action: none;
+  transform: translate3d(0, 0, 0);
 }
 
 .bm-lane-column {
@@ -815,6 +831,7 @@
   cursor: pointer;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
+  transform: translate3d(0, 0, 0);
 }
 
 .bm-lane-column:last-child {
@@ -831,7 +848,7 @@
   background: linear-gradient(to bottom, rgba(0, 240, 255, 0.35), transparent);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.08s ease-out;
+  transition: opacity 0.06s ease-out;
 }
 
 .bm-lane-column.pressed .bm-lane-beam {
@@ -843,7 +860,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  height: 80px;
+  height: 84px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   pointer-events: none;
@@ -852,12 +869,12 @@
 
 /* Upscroll: Receptors at top */
 .bm-lanes-stage.upscroll .bm-lanes-receptors-bar {
-  top: 18px;
+  top: 14px;
 }
 
 /* Downscroll: Receptors at bottom */
 .bm-lanes-stage.downscroll .bm-lanes-receptors-bar {
-  bottom: 24px;
+  bottom: 20px;
 }
 
 .bm-lane-receptor-slot {
@@ -867,48 +884,63 @@
 }
 
 .bm-lane-receptor {
-  width: 68px;
-  height: 68px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  border: 3.5px solid rgba(255, 255, 255, 0.85);
+  border: 3.5px solid rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--key-font, "Orbitron"), sans-serif;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 900;
   color: #fff;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 16px rgba(0, 240, 255, 0.3), inset 0 0 12px rgba(255, 255, 255, 0.2);
-  transition: transform 0.08s ease, border-color 0.08s ease, box-shadow 0.08s ease, background-color 0.08s ease;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.35), inset 0 0 12px rgba(255, 255, 255, 0.2);
+  transition: transform 0.06s ease, border-color 0.06s ease, box-shadow 0.06s ease, background-color 0.06s ease;
+  transform: translate3d(0, 0, 0);
+}
+
+.bm-lanes-stage.lane-scale-wide .bm-lane-receptor {
+  width: 76px;
+  height: 76px;
+}
+
+.bm-lanes-stage.lane-scale-stretch .bm-lane-receptor {
+  width: 82px;
+  height: 82px;
+}
+
+.bm-lanes-stage.lane-scale-compact .bm-lane-receptor {
+  width: 62px;
+  height: 62px;
 }
 
 .bm-lane-receptor.hit-flash {
-  transform: scale(1.18);
+  transform: scale(1.15) translate3d(0, 0, 0);
   border-color: #00f0ff;
   background: rgba(0, 240, 255, 0.35);
-  box-shadow: 0 0 30px #00f0ff, inset 0 0 20px #00f0ff;
+  box-shadow: 0 0 25px #00f0ff, inset 0 0 16px #00f0ff;
 }
 
 /* Falling / Rising Lane Note */
 .bm-lane-note {
   position: absolute;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 64px;
-  height: 64px;
+  transform: translate(-50%, -50%) translate3d(0, 0, 0);
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   background: var(--nc, #00ff88);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--key-font, "Orbitron"), sans-serif;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 900;
   color: #000;
-  box-shadow: 0 0 20px var(--nc, #00ff88), inset 0 0 10px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 18px var(--nc, #00ff88), inset 0 0 10px rgba(255, 255, 255, 0.6);
   z-index: 5;
   pointer-events: auto;
   cursor: pointer;
@@ -917,13 +949,122 @@
   will-change: top, transform;
 }
 
+.bm-lanes-stage.lane-scale-wide .bm-lane-note {
+  width: 72px;
+  height: 72px;
+}
+
+.bm-lanes-stage.lane-scale-stretch .bm-lane-note {
+  width: 78px;
+  height: 78px;
+}
+
+.bm-lanes-stage.lane-scale-compact .bm-lane-note {
+  width: 58px;
+  height: 58px;
+}
+
 .bm-lane-note.bm-note-exit {
-  animation: laneNoteHitExplode 0.18s ease-out forwards;
+  animation: laneNoteHitExplode 0.16s ease-out forwards;
 }
 
 @keyframes laneNoteHitExplode {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; filter: blur(4px); }
+  0% { transform: translate(-50%, -50%) scale(1) translate3d(0, 0, 0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.5) translate3d(0, 0, 0); opacity: 0; }
+}
+
+/* ── PERFORMANCE MODE (OPTIMIZED FOR MALI / HELIO CHIPSETS) ── */
+.perf-mode .bm-lanes-highway {
+  box-shadow: none !important;
+  background: rgba(6, 6, 14, 0.95) !important;
+}
+
+.perf-mode .bm-lane-receptor {
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.3) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.perf-mode .bm-lane-receptor.hit-flash {
+  box-shadow: 0 0 14px #00f0ff !important;
+}
+
+.perf-mode .bm-lane-note {
+  box-shadow: 0 0 8px var(--nc, #00ff88) !important;
+}
+
+.perf-mode .bm-companion-bubble {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* ── PORTRAIT ORIENTATION BLOCKER OVERLAY ─────────────────── */
+.bm-portrait-lock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999999;
+  background: rgba(4, 4, 10, 0.98);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  user-select: none;
+}
+
+.bm-portrait-lock-card {
+  max-width: 360px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1.5px solid rgba(0, 240, 255, 0.4);
+  border-radius: 16px;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+}
+
+.bm-phone-rotate-icon {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  color: #00f0ff;
+}
+
+.bm-phone-rotate-icon .rotate-arrow {
+  position: absolute;
+  right: -8px;
+  bottom: -4px;
+  font-size: 20px;
+  color: #ff2d78;
+  animation: phoneRotateSpin 1.8s linear infinite;
+}
+
+@keyframes phoneRotateSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.bm-portrait-lock-title {
+  font-family: var(--primary-font, "Orbitron"), sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+}
+
+.bm-portrait-lock-desc {
+  font-family: var(--secondary-font, "Inter"), sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #94a3b8;
 }
 
 /* Responsive adjustments */
@@ -937,18 +1078,17 @@
     height: 90px;
   }
   .bm-lanes-stage {
-    max-width: 100%;
-    padding: 0 8px;
+    max-width: 90vw;
   }
   .bm-lane-receptor {
-    width: 54px;
-    height: 54px;
-    font-size: 18px;
+    width: 64px;
+    height: 64px;
+    font-size: 22px;
   }
   .bm-lane-note {
-    width: 50px;
-    height: 50px;
-    font-size: 17px;
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
   }
 }
 
@@ -963,14 +1103,14 @@
     height: 74px;
   }
   .bm-lane-receptor {
-    width: 46px;
-    height: 46px;
-    font-size: 16px;
-    border-width: 2.5px;
+    width: 58px;
+    height: 58px;
+    font-size: 20px;
+    border-width: 3px;
   }
   .bm-lane-note {
-    width: 42px;
-    height: 42px;
-    font-size: 15px;
+    width: 54px;
+    height: 54px;
+    font-size: 18px;
   }
 }
