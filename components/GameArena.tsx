@@ -117,6 +117,9 @@ function GameArenaInner() {
   const modeParam = (searchParams.get("mode") as "basic" | "notoriginal") || "basic";
   const trackParam = parseInt(searchParams.get("track") || "0") || 0;
   const diffParam = searchParams.get("diff") || "normal";
+  const isBotPlay = searchParams.get("bot") === "true";
+  const isBotPlayRef = useRef(isBotPlay);
+  isBotPlayRef.current = isBotPlay;
 
   const trackList = modeParam === "notoriginal" ? NOM_TRACKS : BM_TRACKS;
   const currentTrack: Track = trackList[trackParam] || trackList[0];
@@ -690,39 +693,41 @@ function GameArenaInner() {
     }
 
     const calculatedXP = calcXpGained(finalScore, finalCombo, accNum, rank, diffParam);
-    const { gainedXP, previousBest, isNewBest, currentStreak, isNewStreakDay } = recordGameEnd(
-      finalScore,
-      finalCombo,
-      modeParamRef.current,
-      calculatedXP,
-      currentTrack.id,
-      diffParam,
-      accStr,
-      rank,
-      isTrackCompleted
-    );
-    const updatedProf = profileLoad();
-    setProfile(updatedProf);
+    
+    let gainedXP = 0;
+    let previousBest = 0;
+    let isNewBest = false;
+    let currentStreak = 0;
+    let isNewStreakDay = false;
 
-    // Auto-sync stats, XP & score entry to Supabase Cloud if user is authenticated
-    if (isSupabaseConfigured()) {
-      supabase.auth.getUser().then(({ data }) => {
-        if (data?.user) {
-          syncLocalProfileToCloud(data.user, updatedProf);
-          syncProfileMetaToBestScores(data.user, updatedProf);
-          recordScoreToCloud(
-            data.user,
-            updatedProf,
-            currentTrack.id,
-            modeParamRef.current,
-            diffParam,
-            finalScore,
-            finalCombo,
-            accStr,
-            rank
-          );
-          if (isNewBest) {
-            recordBestScoreToCloud(
+    if (!isBotPlayRef.current) {
+      const recordRes = recordGameEnd(
+        finalScore,
+        finalCombo,
+        modeParamRef.current,
+        calculatedXP,
+        currentTrack.id,
+        diffParam,
+        accStr,
+        rank,
+        isTrackCompleted
+      );
+      gainedXP = recordRes.gainedXP;
+      previousBest = recordRes.previousBest;
+      isNewBest = recordRes.isNewBest;
+      currentStreak = recordRes.currentStreak;
+      isNewStreakDay = recordRes.isNewStreakDay;
+
+      const updatedProf = profileLoad();
+      setProfile(updatedProf);
+
+      // Auto-sync stats, XP & score entry to Supabase Cloud if user is authenticated
+      if (isSupabaseConfigured()) {
+        supabase.auth.getUser().then(({ data }) => {
+          if (data?.user) {
+            syncLocalProfileToCloud(data.user, updatedProf);
+            syncProfileMetaToBestScores(data.user, updatedProf);
+            recordScoreToCloud(
               data.user,
               updatedProf,
               currentTrack.id,
@@ -733,9 +738,22 @@ function GameArenaInner() {
               accStr,
               rank
             );
+            if (isNewBest) {
+              recordBestScoreToCloud(
+                data.user,
+                updatedProf,
+                currentTrack.id,
+                modeParamRef.current,
+                diffParam,
+                finalScore,
+                finalCombo,
+                accStr,
+                rank
+              );
+            }
           }
-        }
-      });
+        });
+      }
     }
 
     triggerConfettiBlast();
@@ -848,6 +866,26 @@ function GameArenaInner() {
         nextChartIdxRef.current++;
       }
 
+      // 1.5 Autonomous Bot Play (Always PERFECT)
+      if (isBotPlayRef.current) {
+        const botCandidateNotes = activeNotesRef.current.filter(
+          (n) => !n.isExiting && audioSec >= n.hitTimestamp
+        );
+        for (const note of botCandidateNotes) {
+          if (note.type.id === "avoid") {
+            continue; // Dodge avoid note naturally
+          }
+          handleNoteClickOrKey(note.id, true);
+          if (note.laneIdx !== undefined && note.laneIdx >= 0) {
+            const lIdx = note.laneIdx;
+            setPressedLanes((prev) => ({ ...prev, [lIdx]: true }));
+            setTimeout(() => {
+              setPressedLanes((prev) => ({ ...prev, [lIdx]: false }));
+            }, 90);
+          }
+        }
+      }
+
       // 2. Check note expirations
       const currentNotes = activeNotesRef.current;
       const expired = currentNotes.filter((n) => !n.isExiting && audioSec >= n.expireTime);
@@ -882,7 +920,7 @@ function GameArenaInner() {
     }
 
     animGameLoopRef.current = requestAnimationFrame(gameLoop);
-  }, [spawnRhythmBeat, finishGame, showJudge, triggerParticles]);
+  }, [spawnRhythmBeat, finishGame, showJudge, triggerParticles, handleNoteClickOrKey]);
 
   // ── Countdown Audio Helper ─────────────────────────────────
   const playCountdownAudio = useCallback(() => {
@@ -1223,6 +1261,13 @@ function GameArenaInner() {
             pointerEvents: "none",
           }}
         ></div>
+
+        {/* BOT PLAY WATERMARK (CENTER BLINKING) */}
+        {isBotPlay && (
+          <div className="bm-bot-watermark" id="bmBotWatermark">
+            BOT PLAY
+          </div>
+        )}
 
         {/* HUD */}
         <div

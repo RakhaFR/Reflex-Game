@@ -3909,6 +3909,18 @@ export default function Lobby() {
         <div className="lobby-content-grid">
           {/* LEFT INFO PANEL */}
           <section className="info-panel-left">
+            <div className="lobby-bot-play-wrap">
+              <button
+                type="button"
+                className="lobby-bot-play-btn"
+                onClick={() => {
+                  playSfx("clickSound");
+                  router.push(`/game?mode=${currentMode.id}&track=${activeTrackIdx}&diff=${activeDiff}&bot=true`);
+                }}
+              >
+                BOT PLAY
+              </button>
+            </div>
             <div className="mode-info-block mode-info-block-basic" id="modeInfoBlock">
               <div className="slide-meta">
                 <span className="slide-num slide-num-basic">{String(activeTrackIdx + 1).padStart(2, "0")}</span>

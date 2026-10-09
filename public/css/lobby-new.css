@@ -467,6 +467,44 @@
   margin-bottom: 10px;
 }
 
+/* Bot Play Quick Trigger Button (Above Info Block) */
+.lobby-bot-play-wrap {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 6px;
+}
+
+.lobby-bot-play-btn {
+  background: rgba(10, 15, 29, 0.85);
+  border: 1.5px solid rgba(0, 240, 255, 0.4);
+  color: #00f0ff;
+  font-family: var(--primary-font, "Orbitron"), sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.15);
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+  text-transform: uppercase;
+}
+
+.lobby-bot-play-btn:hover {
+  background: rgba(0, 240, 255, 0.15);
+  border-color: #00f0ff;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.lobby-bot-play-btn:active {
+  transform: translateY(1px);
+}
+
 .mode-info-block {
   background: rgba(0, 0, 0, 0.5);
   padding: 14px 18px;
