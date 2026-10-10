@@ -72,8 +72,16 @@ BEGIN
     NOW()
   )
   ON CONFLICT (id) DO UPDATE SET
-    username = COALESCE(NULLIF(EXCLUDED.username, ''), public.profiles.username),
-    avatar_url = COALESCE(NULLIF(EXCLUDED.avatar_url, ''), public.profiles.avatar_url),
+    username = CASE 
+      WHEN public.profiles.username IS NOT NULL AND public.profiles.username NOT IN ('Guest', 'Operator', 'Player') 
+      THEN public.profiles.username 
+      ELSE COALESCE(NULLIF(EXCLUDED.username, ''), public.profiles.username)
+    END,
+    avatar_url = CASE 
+      WHEN public.profiles.avatar_url IS NOT NULL AND public.profiles.avatar_url NOT IN ('default', '') 
+      THEN public.profiles.avatar_url 
+      ELSE COALESCE(NULLIF(EXCLUDED.avatar_url, ''), public.profiles.avatar_url)
+    END,
     updated_at = NOW();
 
   RETURN NEW;
@@ -167,6 +175,10 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users Update Own Avatars') THEN
     CREATE POLICY "Users Update Own Avatars" ON storage.objects FOR UPDATE USING (bucket_id = 'avatars' AND auth.role() = 'authenticated');
   END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users Delete Own Avatars') THEN
+    CREATE POLICY "Users Delete Own Avatars" ON storage.objects FOR DELETE USING (bucket_id = 'avatars' AND auth.role() = 'authenticated');
+  END IF;
 END $$;
 
 -- ── 6. TABEL GLOBAL MESSAGES (GLOBAL CHAT ROOM - MAX 100 PESAN) ──
@@ -217,5 +229,15 @@ CREATE TRIGGER trigger_prune_global_messages
   FOR EACH STATEMENT
   EXECUTE FUNCTION public.prune_old_global_messages();
 
--- Enable Supabase Realtime untuk tabel global_messages
-ALTER PUBLICATION supabase_realtime ADD TABLE public.global_messages;
+-- Enable Supabase Realtime untuk tabel global_messages (Idempotent Safe)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+      AND schemaname = 'public' 
+      AND tablename = 'global_messages'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.global_messages;
+  END IF;
+END $$;
