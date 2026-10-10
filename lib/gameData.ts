@@ -932,7 +932,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.5.0 — Game Guide Playbook & Full Keybind Engine",
     date: "08 OCT 2026",
     badgeClass: "cyan",
-    bannerImg: "/assets/picture/update.png",
+    bannerImg: "/assets/picture/beta-build.png",
     changes: [
       { type: "add", text: "Interactive 5-Step Game Guide Onboarding: Modal panduan gameplay interaktif lengkap dengan diagram SVG visual, mencakup Cara Main 4-Lane/Arena, Mascot Sync, Settings Kustomisasi, Global Chat, dan Leaderboard Stats. Tombol GUIDE PLAY tersedia di kiri atas Main Menu." },
       { type: "add", text: "Full Keyboard & Numpad Customizer: Bebas menggunakan seluruh tombol keyboard dan Numpad (Numpad 0-9, Numpad +, -, *, /, Enter, Arrow Keys, Shift, Ctrl, Space) tanpa batasan." },
@@ -945,7 +945,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.4.1 — Mascot Reactions & Vertical 4-Lane Track Scenario",
     date: "08 OCT 2026",
     badgeClass: "pink",
-    bannerImg: "/assets/picture/update.png",
+    bannerImg: "/assets/picture/beta-build.png",
     changes: [
       { type: "add", text: "Interactive Mascot Reaction Companion: Maskot chibi anime di arena bermain (Kamia, Ocean, Silia) yang berekspresi real-time dengan animasi bouncing/shaking saat PERFECT, GOOD, OK, atau MISS." },
       { type: "add", text: "Vertical 4-Lane Rhythm Track Mode (Mania-Style): Pilihan skenario gameplay jalur kolom vertikal dengan target hit receptor dan multi-touch support responsif di perangkat mobile & tablet landscape." },
@@ -957,7 +957,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.4.0 — Audio Beat Synchronizer & Rhythm Engine",
     date: "08 OCT 2026",
     badgeClass: "cyan",
-    bannerImg: "/assets/picture/update.png",
+    bannerImg: "/assets/picture/beta-build.png",
     changes: [
       { type: "add", text: "Procedural Audio Beat Analyzer: Sistem analisis gelombang audio instan yang mendeteksi ketukan drum, bass, dan aksen lagu tanpa perlu mapping manual." },
       { type: "upd", text: "Dynamic Rhythm Difficulty Pacing: Pola kemunculan node disesuaikan dengan irama birama musik (Normal untuk Downbeat, Medium untuk Quarter note, Hard untuk Syncopation, Extreme untuk High-density Burst)." },
