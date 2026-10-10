@@ -53,11 +53,13 @@ export function buildRhythmChart(
   }
 
   // Filter detected timestamps to match difficulty density and pacing
+  // Cut off at duration - 2.5s to ensure notes finish before audio ends
+  const maxHitSec = Math.max(1.0, duration - 2.5);
   const filteredTimestamps: number[] = [];
   let lastTimestamp = -999;
 
   for (const time of detectedBeats) {
-    if (time < 1.0 || time > duration - 1.5) continue;
+    if (time < 1.0 || time > maxHitSec) continue;
     
     if (time - lastTimestamp >= minIntervalSec) {
       filteredTimestamps.push(time);
@@ -68,7 +70,7 @@ export function buildRhythmChart(
   // If detected beats are too sparse, backfill with quantized BPM grid
   if (filteredTimestamps.length < Math.floor(duration / (minIntervalSec * 1.8))) {
     let t = Math.max(1.2, beatSec * subdivisionStep);
-    while (t < duration - 1.5) {
+    while (t < maxHitSec) {
       if (!filteredTimestamps.some((ft) => Math.abs(ft - t) < minIntervalSec * 0.6)) {
         filteredTimestamps.push(Number(t.toFixed(3)));
       }

@@ -1085,7 +1085,7 @@ function GameArenaInner() {
   // ── Lane Column Press Handler (Touch & Click) ─────────────
   const handleLanePress = useCallback(
     (laneIdx: number) => {
-      if (!runningRef.current || pausedRef.current) return;
+      if (!runningRef.current || pausedRef.current || isBotPlayRef.current) return;
       const keys =
         Array.isArray(profileRef.current.settings?.keybinds) &&
         profileRef.current.settings.keybinds.length >= 4
@@ -1138,7 +1138,7 @@ function GameArenaInner() {
         if (bgVideoRef.current) bgVideoRef.current.pause();
         return;
       }
-      if (!runningRef.current || pausedRef.current) return;
+      if (!runningRef.current || pausedRef.current || isBotPlayRef.current) return;
 
       const rawKey = e.code.toLowerCase().startsWith("numpad") ? e.code.toLowerCase() : e.key.toLowerCase();
       const stdKey = e.key.toLowerCase();
@@ -1424,12 +1424,13 @@ function GameArenaInner() {
                       } as React.CSSProperties
                     }
                     onTouchStart={(e) => {
+                      if (isBotPlay) return;
                       e.stopPropagation();
                       e.preventDefault();
                       handleNoteClickOrKey(note.id, true);
                     }}
                     onPointerDown={(e) => {
-                      if (e.pointerType === "touch") return;
+                      if (isBotPlay || e.pointerType === "touch") return;
                       e.stopPropagation();
                       handleNoteClickOrKey(note.id, true);
                     }}
@@ -1468,12 +1469,13 @@ function GameArenaInner() {
                   } as React.CSSProperties
                 }
                 onTouchStart={(e) => {
+                  if (isBotPlay) return;
                   e.stopPropagation();
                   e.preventDefault();
                   handleNoteClickOrKey(note.id, true);
                 }}
                 onPointerDown={(e) => {
-                  if (e.pointerType === "touch") return; // Avoid double triggering since onTouchStart handled it
+                  if (isBotPlay || e.pointerType === "touch") return; // Avoid double triggering since onTouchStart handled it
                   e.stopPropagation();
                   handleNoteClickOrKey(note.id, true);
                 }}

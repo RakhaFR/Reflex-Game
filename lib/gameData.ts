@@ -914,11 +914,25 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
+    version: "v0.5.1 — Spectral Flux Beat Sync, Bot Auto-Play & Mobile Engine",
+    date: "10 OCT 2026",
+    badgeClass: "cyan",
+    bannerImg: "/assets/picture/update.png",
+    stageDivider: "══ BETA STAGE ══",
+    changes: [
+      { type: "add", text: "Spectral Flux Audio Beat Engine: Algoritma deteksi ketukan berbasis spectral flux yang membaca transien drum & bass secara presisi tanpa drift tempo." },
+      { type: "add", text: "Autonomous Bot Play Mode: Fitur demo putar otomatis dengan akurasi 100% PERFECT, watermark tengah layar, dan proteksi penuh tanpa menyimpan data pengguna." },
+      { type: "upd", text: "4-Lane Mobile Auto-Scaling: Highway melebar otomatis di layar HP landscape (Wide ~680px) dengan opsi kustomisasi ukuran Compact/Standard/Wide/Stretch di Settings." },
+      { type: "upd", text: "Full Screen Height Highway: Jalur not kini memanjang penuh 100% dari ujung atas ke bawah tanpa terpotong header." },
+      { type: "fix", text: "Note Duration Boundary Fix: Memastikan seluruh not selesai sebelum audio berakhir sehingga tidak ada not tersisa saat lagu selesai." },
+      { type: "fix", text: "Performance Mode & Zero Lag: Optimasi render loop tanpa React DOM thrashing dan hardware-accelerated CSS khusus GPU Mali/Helio." },
+    ],
+  },
+  {
     version: "v0.5.0 — Game Guide Playbook & Full Keybind Engine",
     date: "08 OCT 2026",
     badgeClass: "cyan",
-    bannerImg: "/assets/picture/beta-build.png",
-    stageDivider: "══ BETA STAGE ══",
+    bannerImg: "/assets/picture/update.png",
     changes: [
       { type: "add", text: "Interactive 5-Step Game Guide Onboarding: Modal panduan gameplay interaktif lengkap dengan diagram SVG visual, mencakup Cara Main 4-Lane/Arena, Mascot Sync, Settings Kustomisasi, Global Chat, dan Leaderboard Stats. Tombol GUIDE PLAY tersedia di kiri atas Main Menu." },
       { type: "add", text: "Full Keyboard & Numpad Customizer: Bebas menggunakan seluruh tombol keyboard dan Numpad (Numpad 0-9, Numpad +, -, *, /, Enter, Arrow Keys, Shift, Ctrl, Space) tanpa batasan." },
@@ -931,7 +945,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.4.1 — Mascot Reactions & Vertical 4-Lane Track Scenario",
     date: "08 OCT 2026",
     badgeClass: "pink",
-    bannerImg: "/assets/picture/beta-build.png",
+    bannerImg: "/assets/picture/update.png",
     changes: [
       { type: "add", text: "Interactive Mascot Reaction Companion: Maskot chibi anime di arena bermain (Kamia, Ocean, Silia) yang berekspresi real-time dengan animasi bouncing/shaking saat PERFECT, GOOD, OK, atau MISS." },
       { type: "add", text: "Vertical 4-Lane Rhythm Track Mode (Mania-Style): Pilihan skenario gameplay jalur kolom vertikal dengan target hit receptor dan multi-touch support responsif di perangkat mobile & tablet landscape." },
@@ -943,7 +957,7 @@ export const UPDATE_LOGS: UpdateLog[] = [
     version: "v0.4.0 — Audio Beat Synchronizer & Rhythm Engine",
     date: "08 OCT 2026",
     badgeClass: "cyan",
-    bannerImg: "/assets/picture/beta-build.png",
+    bannerImg: "/assets/picture/update.png",
     changes: [
       { type: "add", text: "Procedural Audio Beat Analyzer: Sistem analisis gelombang audio instan yang mendeteksi ketukan drum, bass, dan aksen lagu tanpa perlu mapping manual." },
       { type: "upd", text: "Dynamic Rhythm Difficulty Pacing: Pola kemunculan node disesuaikan dengan irama birama musik (Normal untuk Downbeat, Medium untuk Quarter note, Hard untuk Syncopation, Extreme untuk High-density Burst)." },
