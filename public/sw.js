@@ -1,5 +1,5 @@
 // Service Worker for ReflexRHYTHM PWA
-const CACHE_NAME = "reflex-rhythm-v1";
+const CACHE_NAME = "reflex-rhythm-v2";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -17,10 +17,38 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  // Pass through fetch for network-first strategy on dynamic Next.js routes
+  const req = event.request;
+  const url = new URL(req.url);
+
+  // 1. Only handle GET requests
+  if (req.method !== "GET") return;
+
+  // 2. Bypass media files, audio/video streams, range requests, and external Supabase CDN
+  if (
+    url.pathname.endsWith(".mp4") ||
+    url.pathname.endsWith(".mp3") ||
+    url.pathname.endsWith(".webm") ||
+    req.headers.has("range") ||
+    url.hostname.includes("supabase.co")
+  ) {
+    return; // Let browser handle natively without Service Worker interception
+  }
+
+  // 3. Network-first strategy with guaranteed valid Response fallback
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
+    fetch(req)
+      .then((networkRes) => {
+        return networkRes;
+      })
+      .catch(async () => {
+        const cached = await caches.match(req);
+        if (cached) return cached;
+        // Guaranteed valid response to prevent "Failed to convert value to 'Response'" error
+        return new Response("Offline or resource unavailable", {
+          status: 503,
+          statusText: "Service Unavailable",
+          headers: { "Content-Type": "text/plain" },
+        });
+      })
   );
 });
