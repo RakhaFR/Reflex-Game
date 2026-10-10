@@ -537,7 +537,7 @@ function GameArenaInner() {
 
   // ── Handle Note Hit / Click / Key ──────────────────────────
   const handleNoteClickOrKey = useCallback(
-    (keyOrId: string, isDirectClick = false) => {
+    (keyOrId: string, isDirectClick = false, forceBot = false) => {
       if (!runningRef.current || pausedRef.current) return;
 
       const diff = currentDiffRef.current;
@@ -550,6 +550,7 @@ function GameArenaInner() {
       );
 
       if (noteIdx < 0) {
+        if (forceBot) return;
         currentComboRef.current = 0;
         setCombo(0);
         totalWrongClicksRef.current += 1;
@@ -560,10 +561,9 @@ function GameArenaInner() {
       }
 
       const note = currentNotes[noteIdx];
-      const deltaMs = Math.abs(audioSec - note.hitTimestamp) * 1000;
 
       if (note.type.id === "avoid") {
-        // Penalty for hitting avoid note
+        if (forceBot) return;
         currentComboRef.current = 0;
         setCombo(0);
         totalWrongClicksRef.current += 1;
@@ -571,8 +571,7 @@ function GameArenaInner() {
         showJudge("WRONG!", "bm-j-wrong bm-j-pop");
         triggerMascotReaction("miss", "OUCH!");
         triggerParticles(note.x, note.y, "#ff4444");
-      } else if (audioSec > note.expireTime) {
-        // Note hit late (expired) -> MISS & reset combo
+      } else if (!forceBot && audioSec > note.expireTime) {
         currentComboRef.current = 0;
         setCombo(0);
         totalWrongClicksRef.current += 1;
@@ -586,21 +585,29 @@ function GameArenaInner() {
         let judgeStr = "GOOD";
         let judgeCls = "bm-j-good";
 
-        if (deltaMs <= diff.perfectMs) {
+        if (forceBot) {
           multiplier = 2.0;
           judgeStr = "PERFECT!";
           judgeCls = "bm-j-perfect";
           triggerMascotReaction("perfect", "PERFECT!!");
-        } else if (deltaMs <= diff.goodMs) {
-          multiplier = 1.2;
-          judgeStr = "GOOD";
-          judgeCls = "bm-j-good";
-          triggerMascotReaction("good", "NICE!");
         } else {
-          multiplier = 0.8;
-          judgeStr = "OK";
-          judgeCls = "bm-j-good";
-          triggerMascotReaction("ok", "OK~");
+          const deltaMs = Math.abs(audioSec - note.hitTimestamp) * 1000;
+          if (deltaMs <= diff.perfectMs) {
+            multiplier = 2.0;
+            judgeStr = "PERFECT!";
+            judgeCls = "bm-j-perfect";
+            triggerMascotReaction("perfect", "PERFECT!!");
+          } else if (deltaMs <= diff.goodMs) {
+            multiplier = 1.2;
+            judgeStr = "GOOD";
+            judgeCls = "bm-j-good";
+            triggerMascotReaction("good", "NICE!");
+          } else {
+            multiplier = 0.8;
+            judgeStr = "OK";
+            judgeCls = "bm-j-good";
+            triggerMascotReaction("ok", "OK~");
+          }
         }
 
         const currentC = currentComboRef.current;
@@ -619,7 +626,7 @@ function GameArenaInner() {
         }
 
         totalHitClicksRef.current += 1;
-        recordNoteHit(isBonus, mode);
+        if (!forceBot) recordNoteHit(isBonus, mode);
 
         showJudge(judgeStr, `${judgeCls} bm-j-pop`);
         triggerParticles(note.x, note.y, note.type.color);
@@ -869,13 +876,10 @@ function GameArenaInner() {
       // 1.5 Autonomous Bot Play (Always PERFECT)
       if (isBotPlayRef.current) {
         const botCandidateNotes = activeNotesRef.current.filter(
-          (n) => !n.isExiting && audioSec >= n.hitTimestamp
+          (n) => !n.isExiting && n.type.id !== "avoid" && audioSec >= n.hitTimestamp
         );
         for (const note of botCandidateNotes) {
-          if (note.type.id === "avoid") {
-            continue; // Dodge avoid note naturally
-          }
-          handleNoteClickOrKey(note.id, true);
+          handleNoteClickOrKey(note.id, true, true);
           if (note.laneIdx !== undefined && note.laneIdx >= 0) {
             const lIdx = note.laneIdx;
             setPressedLanes((prev) => ({ ...prev, [lIdx]: true }));
@@ -1020,7 +1024,20 @@ function GameArenaInner() {
             trackAudioRef.current.currentTime = 0;
             trackAudioRef.current.volume =
               ((profileRef.current.settings?.masterVolume ?? 100) / 100) * 0.8;
-            trackAudioRef.current.play().catch(() => {});
+            const playPromise = trackAudioRef.current.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(() => {
+                const retryPlay = () => {
+                  if (trackAudioRef.current) {
+                    trackAudioRef.current.play().catch(() => {});
+                  }
+                  document.removeEventListener("pointerdown", retryPlay);
+                  document.removeEventListener("keydown", retryPlay);
+                };
+                document.addEventListener("pointerdown", retryPlay, { once: true });
+                document.addEventListener("keydown", retryPlay, { once: true });
+              });
+            }
           }
 
           // Start requestAnimationFrame rhythm game loop
@@ -1048,6 +1065,9 @@ function GameArenaInner() {
     }
     if (resultAudioRef.current) {
       resultAudioRef.current.load();
+    }
+    if (trackAudioRef.current) {
+      trackAudioRef.current.load();
     }
 
     startGame();
