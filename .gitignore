@@ -43,3 +43,6 @@ next-env.d.ts
 # large media assets (hosted on Supabase Storage CDN)
 /public/assets/video/
 /public/assets/music/
+
+# database
+*.sql

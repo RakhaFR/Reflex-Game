@@ -1852,8 +1852,8 @@ export default function Lobby() {
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                                 <img
-                                  src={authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || getAvatarDisplay(profile.identity.avatar)}
-                                  alt="Google Avatar"
+                                  src={getAvatarDisplay(profile.identity.avatar)}
+                                  alt="Account Avatar"
                                   referrerPolicy="no-referrer"
                                   crossOrigin="anonymous"
                                   onError={(e) => {

@@ -122,10 +122,15 @@ export async function syncLocalProfileToCloud(user: User, localProfile: ProfileD
   if (!isSupabaseConfigured() || !user) return null;
   try {
     const fallbackName = user.user_metadata?.username || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Operator";
+    const resolvedAvatar =
+      localProfile.identity.avatar && localProfile.identity.avatar !== "default"
+        ? localProfile.identity.avatar
+        : user.user_metadata?.avatar_url || user.user_metadata?.picture || "default";
+
     const payload = {
       id: user.id,
       username: localProfile.identity.username && localProfile.identity.username !== "Player" ? localProfile.identity.username : fallbackName,
-      avatar_url: localProfile.identity.avatar || user.user_metadata?.avatar_url || "default",
+      avatar_url: resolvedAvatar,
       xp: localProfile.stats.lifetimeScore || 0,
       banner_skin: localProfile.identity.bannerSkin || "arcade-spark",
       stats: localProfile.stats || {},
@@ -218,12 +223,16 @@ export async function fetchCloudProfile(user: User, localProfile: ProfileData): 
 
     if (error || !data) {
       // First time user profile created in cloud -> MIGRATE ALL GUEST DATA
+      const localCustomAvatar = localProfile.identity.avatar && localProfile.identity.avatar !== "default"
+        ? localProfile.identity.avatar
+        : (googleAvatar || "default");
+
       const newProfile: ProfileData = {
         ...localProfile,
         identity: {
           ...localProfile.identity,
-          username: googleName || localProfile.identity.username,
-          avatar: googleAvatar || localProfile.identity.avatar,
+          username: localProfile.identity.username && localProfile.identity.username !== "Player" ? localProfile.identity.username : (googleName || "Operator"),
+          avatar: localCustomAvatar,
         },
         stats: {
           ...localProfile.stats,
@@ -237,15 +246,15 @@ export async function fetchCloudProfile(user: User, localProfile: ProfileData): 
     }
 
     const localAvatar = localProfile.identity.avatar;
-    const isLocalCustom = localAvatar && localAvatar !== "default";
+    const isLocalCustom = localAvatar && localAvatar !== "default" && !localAvatar.includes("lh3.googleusercontent.com");
     const cloudAvatar = data.avatar_url;
-    const isCloudCustom = cloudAvatar && cloudAvatar !== "default";
+    const isCloudCustom = cloudAvatar && cloudAvatar !== "default" && !cloudAvatar.includes("lh3.googleusercontent.com");
 
     const resolvedAvatar = isCloudCustom
       ? cloudAvatar
       : isLocalCustom
       ? localAvatar
-      : (googleAvatar || "default");
+      : (cloudAvatar && cloudAvatar !== "default" ? cloudAvatar : (googleAvatar || "default"));
 
     const cloudStats = data.stats || {};
     const { lifetimeScore: _stripLocal, ...localStatsRest } = localProfile.stats as any;
@@ -382,17 +391,21 @@ export async function recordBestScoreToCloud(
   }
 }
 
-// ── STORAGE AVATAR UPLOAD ──────────────────────────────────────
+// ── STORAGE AVATAR UPLOAD (DETERMINISTIC 1-FILE OVERWRITE) ────
 
 export async function uploadAvatarToStorage(user: User, file: File): Promise<string | null> {
   if (!isSupabaseConfigured() || !user) return null;
   try {
-    const fileExt = file.name.split(".").pop() || "jpg";
-    const filePath = `${user.id}-${Date.now()}.${fileExt}`;
+    const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    // Fixed deterministic path per user to prevent storage bloat / duplicates
+    const filePath = `${user.id}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
-      .upload(filePath, file, { upsert: true });
+      .upload(filePath, file, {
+        upsert: true,
+        cacheControl: "3600",
+      });
 
     if (uploadError) {
       console.warn("Avatar storage upload error:", uploadError.message);
@@ -400,7 +413,8 @@ export async function uploadAvatarToStorage(user: User, file: File): Promise<str
     }
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-    return data.publicUrl;
+    // Append timestamp cache-buster so browser refreshes immediately
+    return `${data.publicUrl}?t=${Date.now()}`;
   } catch (err) {
     console.error("Avatar upload exception:", err);
     return null;
