@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback, Suspense } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   BM_TRACKS,
@@ -52,6 +53,17 @@ interface ActiveNote {
   windowMs: number;
   isExiting?: boolean;
 }
+
+const JET_SET_SPRAY_SRCS = [
+  "/assets/audio/jet-set-radio/jet-set-radio-spray-1.mp3",
+  "/assets/audio/jet-set-radio/jet-set-radio-spray-2.mp3",
+  "/assets/audio/jet-set-radio/jet-set-radio-spray-3.mp3",
+  "/assets/audio/jet-set-radio/jet-set-radio-spray-4.mp3",
+  "/assets/audio/jet-set-radio/jet-set-radio-spray-5.mp3",
+  "/assets/audio/jet-set-radio/jet-set-radio-spray-6.mp3",
+  "/assets/audio/jet-set-radio/jet-set-radio-spray-7.mp3",
+  "/assets/audio/jet-set-radio/jet-set-radio-success-8.mp3",
+];
 
 const MASCOT_ASSETS: Record<string, Record<string, string>> = {
   kamia: {
@@ -227,6 +239,7 @@ function GameArenaInner() {
   const [isResultOpen, setIsResultOpen] = useState(false);
   const [isRpButtonsReady, setIsRpButtonsReady] = useState(false);
   const [resultAnimKey, setResultAnimKey] = useState(0);
+  const [resultStep, setResultStep] = useState(0);
   const [gameResult, setGameResult] = useState<{
     score: number;
     maxCombo: number;
@@ -238,6 +251,25 @@ function GameArenaInner() {
     currentStreak?: number;
     isNewStreakDay?: boolean;
   } | null>(null);
+
+  const resultTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const resultAudiosRef = useRef<HTMLAudioElement[]>([]);
+
+  const clearResultSequence = useCallback(() => {
+    resultTimeoutsRef.current.forEach(clearTimeout);
+    resultTimeoutsRef.current = [];
+    resultAudiosRef.current.forEach((a) => {
+      try {
+        a.pause();
+        a.currentTime = 0;
+      } catch {}
+    });
+    resultAudiosRef.current = [];
+    if (resultAudioRef.current) {
+      resultAudioRef.current.pause();
+      resultAudioRef.current.currentTime = 0;
+    }
+  }, []);
 
   // ── Stable Refs for Engine ─────────────────────────────────
   const profileRef = useRef<ProfileData>(profile);
@@ -269,6 +301,7 @@ function GameArenaInner() {
 
   const countdownAudioRef = useRef<HTMLAudioElement | null>(null);
   const resultAudioRef = useRef<HTMLAudioElement | null>(null);
+  const jetSetIndexRef = useRef<number>(0);
   const hadParticlesRef = useRef<boolean>(false);
   const lastRemainRef = useRef<number>(-1);
 
@@ -385,8 +418,13 @@ function GameArenaInner() {
     resize();
     window.addEventListener("resize", resize);
 
+    const ctx = canvas.getContext("2d");
+    let frameCount = 0;
+
     const renderLoop = () => {
-      const ctx = canvas.getContext("2d");
+      frameCount++;
+      const isPerfMode = !!profileRef.current.settings?.performanceMode;
+
       if (ctx) {
         if (particlesRef.current.length === 0) {
           if (hadParticlesRef.current) {
@@ -397,10 +435,14 @@ function GameArenaInner() {
           return;
         }
 
+        if (isPerfMode && frameCount % 2 !== 0) {
+          animParticleRef.current = requestAnimationFrame(renderLoop);
+          return;
+        }
+
         hadParticlesRef.current = true;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         const nextParticles: Particle[] = [];
-        const isPerfMode = !!profileRef.current.settings?.performanceMode;
 
         for (const p of particlesRef.current) {
           p.x += p.vx;
@@ -418,7 +460,6 @@ function GameArenaInner() {
             ctx.translate(p.x, p.y);
 
             if (isPerfMode) {
-              // Direct fast fill without pathing
               ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
             } else {
               ctx.rotate(p.rotation);
@@ -660,14 +701,8 @@ function GameArenaInner() {
       bgVideoRef.current.pause();
     }
 
-    // Play Result Music PixelCoinDash(hasil).mp3
-    if (resultAudioRef.current) {
-      resultAudioRef.current.currentTime = 0;
-      resultAudioRef.current.volume =
-        ((profileRef.current.settings?.masterVolume ?? 100) / 100) * 0.7;
-      resultAudioRef.current.play().catch(() => {});
-    }
-
+    // Play Jet-Set-Radio SFX sequence first, PixelCoinDash starts after sequence
+    const masterVol = (profileRef.current.settings?.masterVolume ?? 100) / 100;
     const finalScore = currentScoreRef.current;
     const finalCombo = bestComboRef.current;
     const totalHits = totalHitClicksRef.current;
@@ -765,6 +800,107 @@ function GameArenaInner() {
 
     triggerConfettiBlast();
 
+    clearResultSequence();
+    setResultStep(0);
+    setIsRpButtonsReady(false);
+    setResultAnimKey(Date.now());
+    setIsResultOpen(true);
+
+    const playSpraySfx = (idx: number) => {
+      try {
+        const a = new Audio(JET_SET_SPRAY_SRCS[idx]);
+        a.volume = Math.min(1, masterVol * 1.0);
+        resultAudiosRef.current.push(a);
+        a.play().catch(() => {});
+      } catch {}
+    };
+
+    // Step 1 (0ms): Header & "TRACK CLEAR" + spray-1
+    playSpraySfx(0);
+    setResultStep(1);
+
+    // Step 2 (400ms): Album Art slams in + spray-2
+    resultTimeoutsRef.current.push(
+      setTimeout(() => {
+        playSpraySfx(1);
+        setResultStep(2);
+      }, 400)
+    );
+
+    // Step 3 (820ms): Diff tape, Title & Artist + spray-3
+    resultTimeoutsRef.current.push(
+      setTimeout(() => {
+        playSpraySfx(2);
+        setResultStep(3);
+      }, 820)
+    );
+
+    // Step 4 (1260ms): Total Score & Prev Best + spray-4
+    resultTimeoutsRef.current.push(
+      setTimeout(() => {
+        playSpraySfx(3);
+        setResultStep(4);
+      }, 1260)
+    );
+
+    // Step 5 (1720ms): Max Combo & Accuracy + spray-5
+    resultTimeoutsRef.current.push(
+      setTimeout(() => {
+        playSpraySfx(4);
+        setResultStep(5);
+      }, 1720)
+    );
+
+    // Step 6 (2350ms): Rank Stamp + spray-6
+    resultTimeoutsRef.current.push(
+      setTimeout(() => {
+        playSpraySfx(5);
+        setResultStep(6);
+      }, 2350)
+    );
+
+    // Step 7 (2950ms): XP Gained Bar & Streak + spray-7
+    resultTimeoutsRef.current.push(
+      setTimeout(() => {
+        playSpraySfx(6);
+        setResultStep(7);
+      }, 2950)
+    );
+
+    if (isNewBest) {
+      // Step 8 (3550ms): NEW PERSONAL BEST crown badge + success-8
+      resultTimeoutsRef.current.push(
+        setTimeout(() => {
+          playSpraySfx(7);
+          setResultStep(8);
+        }, 3550)
+      );
+
+      // PixelCoinDash starts AFTER jet-set success-8 finishes (~4750ms)
+      resultTimeoutsRef.current.push(
+        setTimeout(() => {
+          if (resultAudioRef.current) {
+            resultAudioRef.current.currentTime = 0;
+            resultAudioRef.current.volume = masterVol * 0.55;
+            resultAudioRef.current.play().catch(() => {});
+          }
+          setIsRpButtonsReady(true);
+        }, 4750)
+      );
+    } else {
+      // PixelCoinDash starts AFTER spray-7 finishes (~3650ms)
+      resultTimeoutsRef.current.push(
+        setTimeout(() => {
+          if (resultAudioRef.current) {
+            resultAudioRef.current.currentTime = 0;
+            resultAudioRef.current.volume = masterVol * 0.55;
+            resultAudioRef.current.play().catch(() => {});
+          }
+          setIsRpButtonsReady(true);
+        }, 3650)
+      );
+    }
+
     setGameResult({
       score: finalScore,
       maxCombo: finalCombo,
@@ -776,20 +912,13 @@ function GameArenaInner() {
       currentStreak,
       isNewStreakDay,
     });
-    setResultAnimKey(Date.now());
-    setIsRpButtonsReady(false);
-    setIsResultOpen(true);
-
-    // Enable result buttons 3.1s after popup opens (matches 3s CSS delay)
-    setTimeout(() => {
-      setIsRpButtonsReady(true);
-    }, 3100);
-  }, []);
+  }, [clearResultSequence]);
 
   // ── Handle Immediate Early Quit to Lobby (No Result / No Stats Recorded) ──
   const handleEarlyQuitToLobby = useCallback(() => {
     runningRef.current = false;
     pausedRef.current = true;
+    clearResultSequence();
 
     // Clear all active game loops and timers
     if (countdownTimeoutRef.current) {
@@ -831,6 +960,7 @@ function GameArenaInner() {
   // ── Cleanup all timers helper ──────────────────────────────
   const cleanupAllTimers = useCallback(() => {
     runningRef.current = false;
+    clearResultSequence();
     if (countdownTimeoutRef.current) {
       clearTimeout(countdownTimeoutRef.current);
       countdownTimeoutRef.current = null;
@@ -954,11 +1084,7 @@ function GameArenaInner() {
   // ── Start Gameplay Engine with Countdown ───────────────────
   const startGame = useCallback(() => {
     cleanupAllTimers();
-
-    if (resultAudioRef.current) {
-      resultAudioRef.current.pause();
-      resultAudioRef.current.currentTime = 0;
-    }
+    clearResultSequence();
 
     const track = currentTrackRef.current;
 
@@ -1642,151 +1768,352 @@ function GameArenaInner() {
         className={`popup-overlay rp-overlay ${isResultOpen ? "active" : ""}`}
         id="basicResultPopup"
       >
-        <div key={resultAnimKey} className="rp-wrap">
-          <div className="rp-glow-border"></div>
-          <div className="rp-card">
-            <div className="rp-header">
-              <div className="rp-star rp-star-yellow"></div>
-              <div className="rp-star rp-star-cyan"></div>
-              <div className="rp-sublabel"><i className="fa-solid fa-star mr-1"></i> TRACK CLEAR</div>
-              <div className="rp-title-line">
-                <span className="rp-title-mission">Track</span>
-                <span className="rp-title-completed">Completed!</span>
-              </div>
-              {gameResult?.isNewBest && (
-                <div style={{ display: "inline-block", background: "linear-gradient(90deg, #ffe500, #ff9500)", color: "#0a0a0a", fontWeight: "bold", fontSize: "11px", padding: "4px 14px", borderRadius: "12px", letterSpacing: "1px", marginTop: "6px", textTransform: "uppercase", boxShadow: "0 0 14px rgba(255, 229, 0, 0.7)" }}>
-                  <i className="fa-solid fa-crown" style={{ marginRight: "6px" }}></i>NEW PERSONAL BEST!
-                </div>
-              )}
-            </div>
+        <AnimatePresence mode="wait">
+          {isResultOpen && (
+            <motion.div
+              key={resultAnimKey}
+              className="rp-wrap"
+              initial={{ scale: 0.85, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: -20 }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+            >
+              <div className="rp-glow-border"></div>
+              <div className="rp-card">
+                {/* ── STEP 1: HEADER (spray-1) ── */}
+                <div className="rp-header">
+                  <div className="rp-star rp-star-yellow"></div>
+                  <div className="rp-star rp-star-cyan"></div>
+                  <motion.div
+                    className="rp-sublabel"
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 450, damping: 16 }}
+                  >
+                    <i className="fa-solid fa-star mr-1"></i> TRACK CLEAR
+                  </motion.div>
+                  <div className="rp-title-line">
+                    <motion.span
+                      className="rp-title-mission"
+                      initial={{ opacity: 0, x: -25 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                    >
+                      Track
+                    </motion.span>
+                    <motion.span
+                      className="rp-title-completed"
+                      initial={{ opacity: 0, scale: 0.5, rotate: -6 }}
+                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      transition={{ type: "spring", stiffness: 420, damping: 14 }}
+                    >
+                      Completed!
+                    </motion.span>
+                  </div>
 
-            <div className="rp-body">
-              <div className="rp-left">
-                <div className="rp-spider rp-spider-pink"></div>
-                <div className="rp-art-wrap">
-                  <div className="rp-art-frame">
-                    <img
-                      id="rpAlbumArt"
-                      src={currentTrack.art || "/assets/picture/new-logo.png"}
-                      alt="Track artwork"
-                    />
-                    <div className="rp-art-tint"></div>
+                  {/* ── STEP 8: NEW BEST CROWN BADGE (success-8) ── */}
+                  {gameResult?.isNewBest && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0, y: 15 }}
+                      animate={
+                        resultStep >= 8
+                          ? { scale: 1, opacity: 1, y: 0 }
+                          : { scale: 0, opacity: 0, y: 15 }
+                      }
+                      transition={{ type: "spring", stiffness: 480, damping: 14 }}
+                      style={{
+                        display: "inline-block",
+                        background: "linear-gradient(90deg, #ffe500, #ff9500)",
+                        color: "#0a0a0a",
+                        fontWeight: 900,
+                        fontSize: "11px",
+                        padding: "5px 16px",
+                        borderRadius: "14px",
+                        letterSpacing: "1.5px",
+                        marginTop: "6px",
+                        textTransform: "uppercase",
+                        boxShadow: "0 0 20px rgba(255, 229, 0, 0.85), 0 0 40px rgba(255, 149, 0, 0.5)",
+                      }}
+                    >
+                      <i className="fa-solid fa-crown" style={{ marginRight: "6px" }}></i>NEW PERSONAL BEST!
+                    </motion.div>
+                  )}
+                </div>
+
+                <div className="rp-body">
+                  <div className="rp-left">
+                    <div className="rp-spider rp-spider-pink"></div>
+                    <div className="rp-art-wrap">
+                      {/* ── STEP 2: ALBUM ART BANTING (spray-2) ── */}
+                      <motion.div
+                        className="rp-art-frame"
+                        initial={{ opacity: 0, scale: 0.4, rotate: -22, y: -15 }}
+                        animate={
+                          resultStep >= 2
+                            ? { opacity: 1, scale: 1, rotate: -3, y: 0 }
+                            : { opacity: 0, scale: 0.4, rotate: -22, y: -15 }
+                        }
+                        transition={{ type: "spring", stiffness: 420, damping: 14 }}
+                      >
+                        <img
+                          id="rpAlbumArt"
+                          src={currentTrack.art || "/assets/picture/new-logo.png"}
+                          alt="Track artwork"
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                        <div className="rp-art-tint"></div>
+                      </motion.div>
+
+                      {/* ── STEP 3: DIFF TAPE (spray-3) ── */}
+                      <motion.div
+                        className="rp-art-tape"
+                        id="rpDiffTape"
+                        initial={{ opacity: 0, y: 15, x: "-50%", skewX: -6 }}
+                        animate={
+                          resultStep >= 3
+                            ? { opacity: 1, y: 0, x: "-50%", skewX: -6 }
+                            : { opacity: 0, y: 15, x: "-50%", skewX: -6 }
+                        }
+                        style={{ left: "50%" }}
+                        transition={{ type: "spring", stiffness: 420, damping: 16 }}
+                      >
+                        {currentDiff.label} · BPM {currentTrack.bpm}
+                      </motion.div>
+                    </div>
+
+                    {/* ── STEP 3: TRACK INFO (spray-3) ── */}
+                    <div className="rp-track-info">
+                      <motion.div
+                        className="rp-track-name"
+                        id="basicFinalTrack"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={
+                          resultStep >= 3
+                            ? { opacity: 1, y: 0 }
+                            : { opacity: 0, y: 10 }
+                        }
+                        transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                      >
+                        {currentTrack.title}
+                      </motion.div>
+                      <motion.div
+                        className="rp-track-sub"
+                        id="rpTrackSub"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={
+                          resultStep >= 3
+                            ? { opacity: 1, y: 0 }
+                            : { opacity: 0, y: 8 }
+                        }
+                        transition={{ type: "spring", stiffness: 380, damping: 18, delay: 0.04 }}
+                      >
+                        {currentTrack.artist}
+                      </motion.div>
+                    </div>
                   </div>
-                  <div className="rp-art-tape" id="rpDiffTape">
-                    {currentDiff.label} · BPM {currentTrack.bpm}
+
+                  <div className="rp-right">
+                    <div className="rp-stat-grid">
+                      {/* ── STEP 4: TOTAL SCORE & PREV BEST (spray-4) ── */}
+                      <motion.div
+                        className="rp-stat-row"
+                        style={{ color: gameResult?.isNewBest ? "#ffe500" : "#fff" }}
+                        initial={{ opacity: 0, scale: 0.94 }}
+                        animate={
+                          resultStep >= 4
+                            ? { opacity: 1, scale: 1 }
+                            : { opacity: 0, scale: 0.94 }
+                        }
+                        transition={{ type: "spring", stiffness: 420, damping: 18 }}
+                      >
+                        <span className="rp-stat-label">Total Score</span>
+                        <span
+                          className="rp-stat-value"
+                          id="basicFinalScore"
+                          style={{ textShadow: "0 0 10px rgba(255,229,0,0.6)" }}
+                        >
+                          {gameResult?.score.toLocaleString() || "0"}
+                        </span>
+                      </motion.div>
+
+                      <motion.div
+                        className="rp-stat-row"
+                        initial={{ opacity: 0, scale: 0.94 }}
+                        animate={
+                          resultStep >= 4
+                            ? { opacity: 0.85, scale: 1 }
+                            : { opacity: 0, scale: 0.94 }
+                        }
+                        transition={{ type: "spring", stiffness: 400, damping: 18, delay: 0.04 }}
+                      >
+                        <span className="rp-stat-label">Previous Best</span>
+                        <span className="rp-stat-value" style={{ fontSize: "0.88rem", color: "#aaa" }}>
+                          {gameResult?.previousBest ? gameResult.previousBest.toLocaleString() : "-"}
+                        </span>
+                      </motion.div>
+
+                      {/* ── STEP 5: MAX COMBO & ACCURACY (spray-5) ── */}
+                      <motion.div
+                        className="rp-stat-row"
+                        initial={{ opacity: 0, scale: 0.94 }}
+                        animate={
+                          resultStep >= 5
+                            ? { opacity: 1, scale: 1 }
+                            : { opacity: 0, scale: 0.94 }
+                        }
+                        transition={{ type: "spring", stiffness: 420, damping: 18 }}
+                      >
+                        <span className="rp-stat-label">Max Combo</span>
+                        <span className="rp-stat-value" id="basicFinalCombo">
+                          ×{gameResult?.maxCombo || "0"}
+                        </span>
+                      </motion.div>
+
+                      <motion.div
+                        className="rp-stat-row rp-accent"
+                        initial={{ opacity: 0, scale: 0.94 }}
+                        animate={
+                          resultStep >= 5
+                            ? { opacity: 1, scale: 1 }
+                            : { opacity: 0, scale: 0.94 }
+                        }
+                        transition={{ type: "spring", stiffness: 420, damping: 18, delay: 0.04 }}
+                      >
+                        <span className="rp-stat-label">Accuracy</span>
+                        <span className="rp-stat-value rp-accent-val" id="rpAccuracy">
+                          {gameResult?.accuracy || "0%"}
+                        </span>
+                      </motion.div>
+
+                      {/* ── STEP 6: RANK SLAM (spray-6) ── */}
+                      <motion.div
+                        className="rp-stat-row rp-accent"
+                        initial={{ opacity: 0, scale: 0.94 }}
+                        animate={
+                          resultStep >= 6
+                            ? { opacity: 1, scale: 1 }
+                            : { opacity: 0, scale: 0.94 }
+                        }
+                        transition={{ type: "spring", stiffness: 420, damping: 18 }}
+                      >
+                        <span className="rp-stat-label">Rank</span>
+                        <motion.span
+                          className="rp-stat-value rp-accent-val"
+                          id="rpRank"
+                          initial={{ opacity: 0, scale: 2.2 }}
+                          animate={
+                            resultStep >= 6
+                              ? { opacity: 1, scale: 1 }
+                              : { opacity: 0, scale: 2.2 }
+                          }
+                          transition={{ type: "spring", stiffness: 480, damping: 13 }}
+                          style={{
+                            display: "inline-block",
+                            fontSize: "1.4rem",
+                            fontWeight: 900,
+                            letterSpacing: "2px",
+                            textShadow: "0 0 16px rgba(255,159,67,0.9)",
+                          }}
+                        >
+                          {gameResult?.rank || "-"}
+                        </motion.span>
+                      </motion.div>
+                    </div>
+
+                    {/* ── STEP 7: XP BAR & STREAK (spray-7) ── */}
+                    <motion.div
+                      className="rp-xp-bar"
+                      initial={{ scaleX: 0, opacity: 0 }}
+                      animate={
+                        resultStep >= 7
+                          ? { scaleX: 1, opacity: 1 }
+                          : { scaleX: 0, opacity: 0 }
+                      }
+                      style={{ transformOrigin: "left" }}
+                      transition={{ type: "spring", stiffness: 380, damping: 16 }}
+                    >
+                      <div className="rp-xp-star"></div>
+                      <span className="rp-xp-label">XP Gained</span>
+                      <span className="rp-xp-value" id="rpXpGained">
+                        +{gameResult?.xpGained.toLocaleString() || "0"} XP
+                      </span>
+                    </motion.div>
+
+                    {gameResult?.currentStreak !== undefined && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={resultStep >= 7 ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
+                        transition={{ type: "spring", stiffness: 380, damping: 18, delay: 0.06 }}
+                        style={{
+                          marginTop: "6px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "5px 12px",
+                          background: "rgba(255, 106, 0, 0.12)",
+                          border: "1px solid rgba(255, 159, 67, 0.4)",
+                          borderRadius: "6px",
+                          fontSize: "10.5px",
+                          color: "#ff9f43",
+                          fontFamily: "'Orbitron', sans-serif",
+                        }}
+                      >
+                        <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <i className="fa-solid fa-fire" style={{ color: "#ff6a00", fontSize: "12px" }}></i>
+                          <span>DAILY PLAY STREAK</span>
+                        </span>
+                        <strong style={{ fontSize: "11px", color: "#fff", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                          {gameResult.currentStreak} {gameResult.currentStreak === 1 ? "DAY" : "DAYS"}
+                          <i className="fa-solid fa-fire" style={{ color: "#ff9f43", fontSize: "11px" }}></i>
+                        </strong>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
-                <div className="rp-track-info">
-                  <div className="rp-track-name" id="basicFinalTrack">
-                    {currentTrack.title}
-                  </div>
-                  <div className="rp-track-sub" id="rpTrackSub">
-                    {currentTrack.artist}
-                  </div>
+
+                {/* ── BUTTONS READY AFTER ALL JET SET FINISHES ── */}
+                <div className={`rp-buttons ${isRpButtonsReady ? "rp-buttons-ready" : ""}`}>
+                  <button
+                    className="rp-btn rp-btn-retry"
+                    id="basicPlayAgainBtn"
+                    type="button"
+                    onClick={() => {
+                      playSfx("clickSound");
+                      clearResultSequence();
+                      startGame();
+                    }}
+                  >
+                    <i className="fa-solid fa-rotate-right rp-btn-icon"></i>
+                    <span>Main Lagi</span>
+                  </button>
+                  <button
+                    className="rp-btn rp-btn-lobby"
+                    id="basicGoHomeBtn"
+                    type="button"
+                    onClick={() => {
+                      playSfx("clickSound");
+                      clearResultSequence();
+                      router.push("/lobby");
+                    }}
+                  >
+                    <span>Balik ke Lobby</span>
+                    <svg
+                      viewBox="0 0 20 20"
+                      className="rp-btn-icon"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M5 10h10M11 6l4 4-4 4" />
+                    </svg>
+                  </button>
                 </div>
               </div>
-
-              <div className="rp-right">
-                <div className="rp-stat-grid">
-                  <div className="rp-stat-row">
-                    <span className="rp-stat-label">Total Score</span>
-                    <span className="rp-stat-value" id="basicFinalScore" style={{ color: gameResult?.isNewBest ? "#ffe500" : "#fff" }}>
-                      {gameResult?.score.toLocaleString() || "0"}
-                    </span>
-                  </div>
-                  <div className="rp-stat-row" style={{ opacity: 0.85 }}>
-                    <span className="rp-stat-label">Previous Best</span>
-                    <span className="rp-stat-value" style={{ fontSize: "0.88rem", color: "#aaa" }}>
-                      {gameResult?.previousBest ? gameResult.previousBest.toLocaleString() : "-"}
-                    </span>
-                  </div>
-                  <div className="rp-stat-row">
-                    <span className="rp-stat-label">Max Combo</span>
-                    <span className="rp-stat-value" id="basicFinalCombo">
-                      ×{gameResult?.maxCombo || "0"}
-                    </span>
-                  </div>
-                  <div className="rp-stat-row rp-accent">
-                    <span className="rp-stat-label">Accuracy</span>
-                    <span className="rp-stat-value rp-accent-val" id="rpAccuracy">
-                      {gameResult?.accuracy || "0%"}
-                    </span>
-                  </div>
-                  <div className="rp-stat-row rp-accent">
-                    <span className="rp-stat-label">Rank</span>
-                    <span className="rp-stat-value rp-accent-val" id="rpRank">
-                      {gameResult?.rank || "-"}
-                    </span>
-                  </div>
-                </div>
-                <div className="rp-xp-bar">
-                  <div className="rp-xp-star"></div>
-                  <span className="rp-xp-label">XP Gained</span>
-                  <span className="rp-xp-value" id="rpXpGained">
-                    +{gameResult?.xpGained.toLocaleString() || "0"} XP
-                  </span>
-                </div>
-                {gameResult?.currentStreak !== undefined && (
-                  <div style={{ marginTop: "6px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px", background: "rgba(255, 106, 0, 0.12)", border: "1px solid rgba(255, 159, 67, 0.4)", borderRadius: "6px", fontSize: "10.5px", color: "#ff9f43", fontFamily: "'Orbitron', sans-serif" }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <i className="fa-solid fa-fire" style={{ color: "#ff6a00", fontSize: "12px" }}></i>
-                      <span>DAILY PLAY STREAK</span>
-                    </span>
-                    <strong style={{ fontSize: "11px", color: "#fff", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                      {gameResult.currentStreak} {gameResult.currentStreak === 1 ? "DAY" : "DAYS"}
-                      <i className="fa-solid fa-fire" style={{ color: "#ff9f43", fontSize: "11px" }}></i>
-                    </strong>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className={`rp-buttons ${isRpButtonsReady ? "rp-buttons-ready" : ""}`}>
-              <button
-                className="rp-btn rp-btn-retry"
-                id="basicPlayAgainBtn"
-                type="button"
-                onClick={() => {
-                  playSfx("clickSound");
-                  if (resultAudioRef.current) {
-                    resultAudioRef.current.pause();
-                    resultAudioRef.current.currentTime = 0;
-                  }
-                  startGame();
-                }}
-              >
-                <i className="fa-solid fa-rotate-right rp-btn-icon"></i>
-                <span>Main Lagi</span>
-              </button>
-              <button
-                className="rp-btn rp-btn-lobby"
-                id="basicGoHomeBtn"
-                type="button"
-                onClick={() => {
-                  playSfx("clickSound");
-                  if (resultAudioRef.current) {
-                    resultAudioRef.current.pause();
-                    resultAudioRef.current.currentTime = 0;
-                  }
-                  router.push("/lobby");
-                }}
-              >
-                <span>Balik ke Lobby</span>
-                <svg
-                  viewBox="0 0 20 20"
-                  className="rp-btn-icon"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 10h10M11 6l4 4-4 4" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* AUDIO ELEMENTS */}

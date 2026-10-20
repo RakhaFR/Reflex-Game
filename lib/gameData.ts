@@ -914,6 +914,19 @@ export const OG_GAMES: OgGame[] = [
 // ============================================================
 export const UPDATE_LOGS: UpdateLog[] = [
   {
+    version: "v0.5.2 — Jet Set Radio Result Sequence & Spring Motion Animation",
+    date: "20 OCT 2026",
+    badgeClass: "cyan",
+    bannerImg: "/assets/picture/update.png",
+    changes: [
+      { type: "add", text: "Jet Set Radio Result SFX Sequence: Ketukan spray berurutan 1 sampai 7 yang sinkron dengan reveal tiap elemen hasil (Track Clear, Album Art, Song Info, Score, Combo, Rank, XP Bar), dan SFX success-8 khusus Highscore (New Personal Best)." },
+      { type: "upd", text: "Framer Motion Result Choreography: Animasi reveal popup hasil permainan dengan fisika spring banting natural, album art dynamic tilt, dan rank stamp slam tanpa distorsi layout." },
+      { type: "upd", text: "PixelCoinDash Delayed Playback: Musik latar hasil (PixelCoinDash) kini diputar mulus setelah rangkaian ketukan SFX Jet Set Radio selesai sehingga audio tidak saling bertabrakan." },
+      { type: "fix", text: "Helio G90 & Low-End GPU Optimization: Penghapusan backdrop-filter blur pada result overlay saat Performance Mode aktif, throttling partikel kanvas 30 FPS frame-skip, dan context caching." },
+      { type: "fix", text: "Album Art Diff Tape Center Alignment: Pita tingkat kesulitan (BPM & Diff tape) terpusat presisi di tengah bawah album art tanpa pergeseran horizontal." },
+    ],
+  },
+  {
     version: "v0.5.1 — Spectral Flux Beat Sync, Bot Auto-Play & Mobile Engine",
     date: "10 OCT 2026",
     badgeClass: "cyan",
